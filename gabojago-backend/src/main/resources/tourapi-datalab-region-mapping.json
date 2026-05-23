@@ -1,0 +1,1465 @@
+{
+  "areaMappings": [
+    {
+      "tourAreaCode": "1",
+      "datalabAreaCode": "11",
+      "name": "서울특별시"
+    },
+    {
+      "tourAreaCode": "2",
+      "datalabAreaCode": "28",
+      "name": "인천광역시"
+    },
+    {
+      "tourAreaCode": "3",
+      "datalabAreaCode": "30",
+      "name": "대전광역시"
+    },
+    {
+      "tourAreaCode": "4",
+      "datalabAreaCode": "27",
+      "name": "대구광역시"
+    },
+    {
+      "tourAreaCode": "5",
+      "datalabAreaCode": "29",
+      "name": "광주광역시"
+    },
+    {
+      "tourAreaCode": "6",
+      "datalabAreaCode": "26",
+      "name": "부산광역시"
+    },
+    {
+      "tourAreaCode": "7",
+      "datalabAreaCode": "31",
+      "name": "울산광역시"
+    },
+    {
+      "tourAreaCode": "8",
+      "datalabAreaCode": "36",
+      "name": "세종특별자치시"
+    },
+    {
+      "tourAreaCode": "31",
+      "datalabAreaCode": "41",
+      "name": "경기도"
+    },
+    {
+      "tourAreaCode": "32",
+      "datalabAreaCode": "42",
+      "name": "강원특별자치도"
+    },
+    {
+      "tourAreaCode": "33",
+      "datalabAreaCode": "43",
+      "name": "충청북도"
+    },
+    {
+      "tourAreaCode": "34",
+      "datalabAreaCode": "44",
+      "name": "충청남도"
+    },
+    {
+      "tourAreaCode": "35",
+      "datalabAreaCode": "47",
+      "name": "경상북도"
+    },
+    {
+      "tourAreaCode": "36",
+      "datalabAreaCode": "48",
+      "name": "경상남도"
+    },
+    {
+      "tourAreaCode": "37",
+      "datalabAreaCode": "45",
+      "name": "전북특별자치도"
+    },
+    {
+      "tourAreaCode": "38",
+      "datalabAreaCode": "46",
+      "name": "전라남도"
+    },
+    {
+      "tourAreaCode": "39",
+      "datalabAreaCode": "50",
+      "name": "제주특별자치도"
+    }
+  ],
+  "sigunguMappings": [
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "680",
+      "name": "강남구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "740",
+      "name": "강동구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "305",
+      "name": "강북구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "500",
+      "name": "강서구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "620",
+      "name": "관악구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "6",
+      "datalabSigunguCode": "215",
+      "name": "광진구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "530",
+      "name": "구로구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "545",
+      "name": "금천구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "9",
+      "datalabSigunguCode": "350",
+      "name": "노원구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "10",
+      "datalabSigunguCode": "320",
+      "name": "도봉구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "11",
+      "datalabSigunguCode": "230",
+      "name": "동대문구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "12",
+      "datalabSigunguCode": "590",
+      "name": "동작구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "13",
+      "datalabSigunguCode": "440",
+      "name": "마포구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "14",
+      "datalabSigunguCode": "410",
+      "name": "서대문구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "15",
+      "datalabSigunguCode": "650",
+      "name": "서초구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "16",
+      "datalabSigunguCode": "200",
+      "name": "성동구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "17",
+      "datalabSigunguCode": "290",
+      "name": "성북구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "18",
+      "datalabSigunguCode": "710",
+      "name": "송파구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "19",
+      "datalabSigunguCode": "470",
+      "name": "양천구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "20",
+      "datalabSigunguCode": "560",
+      "name": "영등포구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "21",
+      "datalabSigunguCode": "170",
+      "name": "용산구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "22",
+      "datalabSigunguCode": "380",
+      "name": "은평구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "23",
+      "datalabSigunguCode": "110",
+      "name": "종로구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "24",
+      "datalabSigunguCode": "140",
+      "name": "중구"
+    },
+    {
+      "tourAreaCode": "1",
+      "tourSigunguCode": "25",
+      "datalabSigunguCode": "260",
+      "name": "중랑구"
+    },
+    {
+      "tourAreaCode": "2",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "710",
+      "name": "강화군"
+    },
+    {
+      "tourAreaCode": "2",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "245",
+      "name": "계양구"
+    },
+    {
+      "tourAreaCode": "2",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "177",
+      "name": "미추홀구"
+    },
+    {
+      "tourAreaCode": "2",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "200",
+      "name": "남동구"
+    },
+    {
+      "tourAreaCode": "2",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "140",
+      "name": "동구"
+    },
+    {
+      "tourAreaCode": "2",
+      "tourSigunguCode": "6",
+      "datalabSigunguCode": "237",
+      "name": "부평구"
+    },
+    {
+      "tourAreaCode": "2",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "260",
+      "name": "서구"
+    },
+    {
+      "tourAreaCode": "2",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "185",
+      "name": "연수구"
+    },
+    {
+      "tourAreaCode": "2",
+      "tourSigunguCode": "9",
+      "datalabSigunguCode": "720",
+      "name": "옹진군"
+    },
+    {
+      "tourAreaCode": "2",
+      "tourSigunguCode": "10",
+      "datalabSigunguCode": "110",
+      "name": "중구"
+    },
+    {
+      "tourAreaCode": "3",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "230",
+      "name": "대덕구"
+    },
+    {
+      "tourAreaCode": "3",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "110",
+      "name": "동구"
+    },
+    {
+      "tourAreaCode": "3",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "170",
+      "name": "서구"
+    },
+    {
+      "tourAreaCode": "3",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "200",
+      "name": "유성구"
+    },
+    {
+      "tourAreaCode": "3",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "140",
+      "name": "중구"
+    },
+    {
+      "tourAreaCode": "4",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "200",
+      "name": "남구"
+    },
+    {
+      "tourAreaCode": "4",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "290",
+      "name": "달서구"
+    },
+    {
+      "tourAreaCode": "4",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "710",
+      "name": "달성군"
+    },
+    {
+      "tourAreaCode": "4",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "140",
+      "name": "동구"
+    },
+    {
+      "tourAreaCode": "4",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "230",
+      "name": "북구"
+    },
+    {
+      "tourAreaCode": "4",
+      "tourSigunguCode": "6",
+      "datalabSigunguCode": "170",
+      "name": "서구"
+    },
+    {
+      "tourAreaCode": "4",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "260",
+      "name": "수성구"
+    },
+    {
+      "tourAreaCode": "4",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "110",
+      "name": "중구"
+    },
+    {
+      "tourAreaCode": "4",
+      "tourSigunguCode": "9",
+      "datalabSigunguCode": "720",
+      "name": "군위군"
+    },
+    {
+      "tourAreaCode": "5",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "200",
+      "name": "광산구"
+    },
+    {
+      "tourAreaCode": "5",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "155",
+      "name": "남구"
+    },
+    {
+      "tourAreaCode": "5",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "110",
+      "name": "동구"
+    },
+    {
+      "tourAreaCode": "5",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "170",
+      "name": "북구"
+    },
+    {
+      "tourAreaCode": "5",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "140",
+      "name": "서구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "440",
+      "name": "강서구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "410",
+      "name": "금정구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "710",
+      "name": "기장군"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "290",
+      "name": "남구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "170",
+      "name": "동구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "6",
+      "datalabSigunguCode": "260",
+      "name": "동래구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "230",
+      "name": "부산진구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "320",
+      "name": "북구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "9",
+      "datalabSigunguCode": "530",
+      "name": "사상구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "10",
+      "datalabSigunguCode": "380",
+      "name": "사하구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "11",
+      "datalabSigunguCode": "140",
+      "name": "서구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "12",
+      "datalabSigunguCode": "500",
+      "name": "수영구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "13",
+      "datalabSigunguCode": "470",
+      "name": "연제구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "14",
+      "datalabSigunguCode": "200",
+      "name": "영도구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "15",
+      "datalabSigunguCode": "110",
+      "name": "중구"
+    },
+    {
+      "tourAreaCode": "6",
+      "tourSigunguCode": "16",
+      "datalabSigunguCode": "350",
+      "name": "해운대구"
+    },
+    {
+      "tourAreaCode": "7",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "110",
+      "name": "중구"
+    },
+    {
+      "tourAreaCode": "7",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "140",
+      "name": "남구"
+    },
+    {
+      "tourAreaCode": "7",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "170",
+      "name": "동구"
+    },
+    {
+      "tourAreaCode": "7",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "200",
+      "name": "북구"
+    },
+    {
+      "tourAreaCode": "7",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "710",
+      "name": "울주군"
+    },
+    {
+      "tourAreaCode": "8",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "36110",
+      "name": "세종특별자치시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "820",
+      "name": "가평군"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "281",
+      "name": "고양시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "290",
+      "name": "과천시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "210",
+      "name": "광명시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "610",
+      "name": "광주시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "6",
+      "datalabSigunguCode": "310",
+      "name": "구리시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "410",
+      "name": "군포시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "570",
+      "name": "김포시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "9",
+      "datalabSigunguCode": "360",
+      "name": "남양주시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "10",
+      "datalabSigunguCode": "250",
+      "name": "동두천시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "11",
+      "datalabSigunguCode": "192",
+      "name": "부천시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "12",
+      "datalabSigunguCode": "135",
+      "name": "성남시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "13",
+      "datalabSigunguCode": "115",
+      "name": "수원시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "14",
+      "datalabSigunguCode": "390",
+      "name": "시흥시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "15",
+      "datalabSigunguCode": "271",
+      "name": "안산시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "16",
+      "datalabSigunguCode": "550",
+      "name": "안성시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "17",
+      "datalabSigunguCode": "173",
+      "name": "안양시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "18",
+      "datalabSigunguCode": "630",
+      "name": "양주시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "19",
+      "datalabSigunguCode": "830",
+      "name": "양평군"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "20",
+      "datalabSigunguCode": "670",
+      "name": "여주시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "21",
+      "datalabSigunguCode": "800",
+      "name": "연천군"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "22",
+      "datalabSigunguCode": "370",
+      "name": "오산시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "23",
+      "datalabSigunguCode": "463",
+      "name": "용인시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "24",
+      "datalabSigunguCode": "430",
+      "name": "의왕시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "25",
+      "datalabSigunguCode": "150",
+      "name": "의정부시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "26",
+      "datalabSigunguCode": "500",
+      "name": "이천시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "27",
+      "datalabSigunguCode": "480",
+      "name": "파주시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "28",
+      "datalabSigunguCode": "220",
+      "name": "평택시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "29",
+      "datalabSigunguCode": "650",
+      "name": "포천시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "30",
+      "datalabSigunguCode": "450",
+      "name": "하남시"
+    },
+    {
+      "tourAreaCode": "31",
+      "tourSigunguCode": "31",
+      "datalabSigunguCode": "590",
+      "name": "화성시"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "150",
+      "name": "강릉시"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "820",
+      "name": "고성군"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "170",
+      "name": "동해시"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "230",
+      "name": "삼척시"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "210",
+      "name": "속초시"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "6",
+      "datalabSigunguCode": "800",
+      "name": "양구군"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "830",
+      "name": "양양군"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "750",
+      "name": "영월군"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "9",
+      "datalabSigunguCode": "130",
+      "name": "원주시"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "10",
+      "datalabSigunguCode": "810",
+      "name": "인제군"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "11",
+      "datalabSigunguCode": "770",
+      "name": "정선군"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "12",
+      "datalabSigunguCode": "780",
+      "name": "철원군"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "13",
+      "datalabSigunguCode": "110",
+      "name": "춘천시"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "14",
+      "datalabSigunguCode": "190",
+      "name": "태백시"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "15",
+      "datalabSigunguCode": "760",
+      "name": "평창군"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "16",
+      "datalabSigunguCode": "720",
+      "name": "홍천군"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "17",
+      "datalabSigunguCode": "790",
+      "name": "화천군"
+    },
+    {
+      "tourAreaCode": "32",
+      "tourSigunguCode": "18",
+      "datalabSigunguCode": "730",
+      "name": "횡성군"
+    },
+    {
+      "tourAreaCode": "33",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "760",
+      "name": "괴산군"
+    },
+    {
+      "tourAreaCode": "33",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "800",
+      "name": "단양군"
+    },
+    {
+      "tourAreaCode": "33",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "720",
+      "name": "보은군"
+    },
+    {
+      "tourAreaCode": "33",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "740",
+      "name": "영동군"
+    },
+    {
+      "tourAreaCode": "33",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "730",
+      "name": "옥천군"
+    },
+    {
+      "tourAreaCode": "33",
+      "tourSigunguCode": "6",
+      "datalabSigunguCode": "770",
+      "name": "음성군"
+    },
+    {
+      "tourAreaCode": "33",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "150",
+      "name": "제천시"
+    },
+    {
+      "tourAreaCode": "33",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "750",
+      "name": "진천군"
+    },
+    {
+      "tourAreaCode": "33",
+      "tourSigunguCode": "10",
+      "datalabSigunguCode": "113",
+      "name": "청주시"
+    },
+    {
+      "tourAreaCode": "33",
+      "tourSigunguCode": "11",
+      "datalabSigunguCode": "130",
+      "name": "충주시"
+    },
+    {
+      "tourAreaCode": "33",
+      "tourSigunguCode": "12",
+      "datalabSigunguCode": "745",
+      "name": "증평군"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "150",
+      "name": "공주시"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "710",
+      "name": "금산군"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "230",
+      "name": "논산시"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "270",
+      "name": "당진시"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "180",
+      "name": "보령시"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "6",
+      "datalabSigunguCode": "760",
+      "name": "부여군"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "210",
+      "name": "서산시"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "770",
+      "name": "서천군"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "9",
+      "datalabSigunguCode": "200",
+      "name": "아산시"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "11",
+      "datalabSigunguCode": "810",
+      "name": "예산군"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "12",
+      "datalabSigunguCode": "131",
+      "name": "천안시"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "13",
+      "datalabSigunguCode": "790",
+      "name": "청양군"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "14",
+      "datalabSigunguCode": "825",
+      "name": "태안군"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "15",
+      "datalabSigunguCode": "800",
+      "name": "홍성군"
+    },
+    {
+      "tourAreaCode": "34",
+      "tourSigunguCode": "16",
+      "datalabSigunguCode": "250",
+      "name": "계룡시"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "290",
+      "name": "경산시"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "130",
+      "name": "경주시"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "830",
+      "name": "고령군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "190",
+      "name": "구미시"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "6",
+      "datalabSigunguCode": "150",
+      "name": "김천시"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "280",
+      "name": "문경시"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "920",
+      "name": "봉화군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "9",
+      "datalabSigunguCode": "250",
+      "name": "상주시"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "10",
+      "datalabSigunguCode": "840",
+      "name": "성주군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "11",
+      "datalabSigunguCode": "170",
+      "name": "안동시"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "12",
+      "datalabSigunguCode": "770",
+      "name": "영덕군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "13",
+      "datalabSigunguCode": "760",
+      "name": "영양군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "14",
+      "datalabSigunguCode": "210",
+      "name": "영주시"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "15",
+      "datalabSigunguCode": "230",
+      "name": "영천시"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "16",
+      "datalabSigunguCode": "900",
+      "name": "예천군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "17",
+      "datalabSigunguCode": "940",
+      "name": "울릉군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "18",
+      "datalabSigunguCode": "930",
+      "name": "울진군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "19",
+      "datalabSigunguCode": "730",
+      "name": "의성군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "20",
+      "datalabSigunguCode": "820",
+      "name": "청도군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "21",
+      "datalabSigunguCode": "750",
+      "name": "청송군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "22",
+      "datalabSigunguCode": "850",
+      "name": "칠곡군"
+    },
+    {
+      "tourAreaCode": "35",
+      "tourSigunguCode": "23",
+      "datalabSigunguCode": "113",
+      "name": "포항시"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "310",
+      "name": "거제시"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "880",
+      "name": "거창군"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "820",
+      "name": "고성군"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "250",
+      "name": "김해시"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "840",
+      "name": "남해군"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "270",
+      "name": "밀양시"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "240",
+      "name": "사천시"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "9",
+      "datalabSigunguCode": "860",
+      "name": "산청군"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "10",
+      "datalabSigunguCode": "330",
+      "name": "양산시"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "12",
+      "datalabSigunguCode": "720",
+      "name": "의령군"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "13",
+      "datalabSigunguCode": "170",
+      "name": "진주시"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "15",
+      "datalabSigunguCode": "740",
+      "name": "창녕군"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "16",
+      "datalabSigunguCode": "125",
+      "name": "창원시"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "17",
+      "datalabSigunguCode": "220",
+      "name": "통영시"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "18",
+      "datalabSigunguCode": "850",
+      "name": "하동군"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "19",
+      "datalabSigunguCode": "730",
+      "name": "함안군"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "20",
+      "datalabSigunguCode": "870",
+      "name": "함양군"
+    },
+    {
+      "tourAreaCode": "36",
+      "tourSigunguCode": "21",
+      "datalabSigunguCode": "890",
+      "name": "합천군"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "790",
+      "name": "고창군"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "130",
+      "name": "군산시"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "210",
+      "name": "김제시"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "190",
+      "name": "남원시"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "730",
+      "name": "무주군"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "6",
+      "datalabSigunguCode": "800",
+      "name": "부안군"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "770",
+      "name": "순창군"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "710",
+      "name": "완주군"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "9",
+      "datalabSigunguCode": "140",
+      "name": "익산시"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "10",
+      "datalabSigunguCode": "750",
+      "name": "임실군"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "11",
+      "datalabSigunguCode": "740",
+      "name": "장수군"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "12",
+      "datalabSigunguCode": "111",
+      "name": "전주시"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "13",
+      "datalabSigunguCode": "180",
+      "name": "정읍시"
+    },
+    {
+      "tourAreaCode": "37",
+      "tourSigunguCode": "14",
+      "datalabSigunguCode": "720",
+      "name": "진안군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "1",
+      "datalabSigunguCode": "810",
+      "name": "강진군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "2",
+      "datalabSigunguCode": "770",
+      "name": "고흥군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "720",
+      "name": "곡성군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "230",
+      "name": "광양시"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "5",
+      "datalabSigunguCode": "730",
+      "name": "구례군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "6",
+      "datalabSigunguCode": "170",
+      "name": "나주시"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "7",
+      "datalabSigunguCode": "710",
+      "name": "담양군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "8",
+      "datalabSigunguCode": "110",
+      "name": "목포시"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "9",
+      "datalabSigunguCode": "840",
+      "name": "무안군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "10",
+      "datalabSigunguCode": "780",
+      "name": "보성군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "11",
+      "datalabSigunguCode": "150",
+      "name": "순천시"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "12",
+      "datalabSigunguCode": "910",
+      "name": "신안군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "13",
+      "datalabSigunguCode": "130",
+      "name": "여수시"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "16",
+      "datalabSigunguCode": "870",
+      "name": "영광군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "17",
+      "datalabSigunguCode": "830",
+      "name": "영암군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "18",
+      "datalabSigunguCode": "890",
+      "name": "완도군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "19",
+      "datalabSigunguCode": "880",
+      "name": "장성군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "20",
+      "datalabSigunguCode": "800",
+      "name": "장흥군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "21",
+      "datalabSigunguCode": "900",
+      "name": "진도군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "22",
+      "datalabSigunguCode": "860",
+      "name": "함평군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "23",
+      "datalabSigunguCode": "820",
+      "name": "해남군"
+    },
+    {
+      "tourAreaCode": "38",
+      "tourSigunguCode": "24",
+      "datalabSigunguCode": "790",
+      "name": "화순군"
+    },
+    {
+      "tourAreaCode": "39",
+      "tourSigunguCode": "3",
+      "datalabSigunguCode": "130",
+      "name": "서귀포시"
+    },
+    {
+      "tourAreaCode": "39",
+      "tourSigunguCode": "4",
+      "datalabSigunguCode": "110",
+      "name": "제주시"
+    }
+  ]
+}
