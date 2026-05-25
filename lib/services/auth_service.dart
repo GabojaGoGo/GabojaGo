@@ -8,10 +8,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_prefs.dart';
 import 'api_service.dart';
+import 'social_login_clients.dart';
 import 'user_data_service.dart';
 
 class AuthService {
@@ -25,6 +25,7 @@ class AuthService {
   static const _kRefreshToken = 'auth_refresh_token';
   static const _kNickname  = 'auth_nickname';
   static const _kUserId    = 'auth_user_id';
+  static const _kProvider  = 'auth_provider';
   static const _kPurposes  = 'auth_purposes';
   static const _kDuration  = 'auth_duration';
 
@@ -57,7 +58,7 @@ class AuthService {
   bool   get hasNickname => nickname.trim().isNotEmpty;
   List<String> get purposes => _prefs?.getStringList(_kPurposes) ?? [];
   String get duration => _prefs?.getString(_kDuration) ?? '';
-  String get provider => 'kakao';
+  String get provider => _prefs?.getString(_kProvider) ?? '';
 
   UserPrefs toUserPrefs() => UserPrefs(
     nickname: nickname,
@@ -83,47 +84,34 @@ class AuthService {
     }
   }
 
-  // ── 카카오 로그인 시작 ────────────────────────────────────
+  // ── 소셜 SDK 로그인 ─────────────────────────────────────
 
-  Future<void> startKakaoLogin() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/auth/kakao/start?platform=ANDROID'),
-      ).timeout(const Duration(seconds: 10));
+  Future<({bool success, bool isNewUser})> loginWithKakao() =>
+      loginWithProvider(SocialLoginProvider.kakao);
 
-      if (response.statusCode != 200) {
-        throw Exception('로그인 시작 실패: ${response.statusCode}');
-      }
-
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      final kakaoAuthUrl = data['kakaoAuthUrl'] as String;
-
-      final uri = Uri.parse(kakaoAuthUrl);
-      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        throw Exception('브라우저를 열 수 없습니다.');
-      }
-    } catch (e) {
-      debugPrint('[AuthService] startKakaoLogin error: $e');
-      rethrow;
-    }
+  Future<({bool success, bool isNewUser})> loginWithProvider(
+      SocialLoginProvider provider) async {
+    final providerToken = await _clientFor(provider).login();
+    return _loginWithSocialToken(providerToken);
   }
 
-  // ── 딥링크 수신 처리 ─────────────────────────────────────
-
-  Future<({bool success, bool isNewUser})> handleDeepLink(Uri uri) async {
-    final loginRequestId = uri.queryParameters['id'];
-    if (loginRequestId == null) {
-      throw Exception('딥링크에 loginRequestId가 없습니다.');
-    }
-
+  Future<({bool success, bool isNewUser})> _loginWithSocialToken(
+      SocialLoginToken providerToken) async {
     final response = await http.post(
-      Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/auth/mobile/exchange?id=$loginRequestId'),
+      Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/auth/social/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'provider': providerToken.provider.apiValue,
+        'accessToken': providerToken.accessToken,
+      }),
     ).timeout(const Duration(seconds: 15));
 
-    if (response.statusCode == 410) throw Exception('만료된 로그인 요청');
-    if (response.statusCode != 200) throw Exception('토큰 교환 실패: ${response.statusCode}');
+    if (response.statusCode == 401) throw Exception('소셜 토큰 검증 실패');
+    if (response.statusCode != 200) {
+      throw Exception('소셜 로그인 실패: ${response.statusCode}');
+    }
 
-    final data = json.decode(response.body) as Map<String, dynamic>;
+    final data = json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
     final accessToken = data['accessToken'] as String;
     final refreshToken = data['refreshToken'] as String;
     final uid = data['userId'] as String;
@@ -134,9 +122,10 @@ class AuthService {
     _setAccessToken(accessToken);
     await _storage.write(key: _kRefreshToken, value: refreshToken);
     await _prefs?.setString(_kUserId, uid);
+    await _prefs?.setString(_kProvider, providerToken.provider.name);
     if (nick.isNotEmpty) await _prefs?.setString(_kNickname, nick);
 
-    debugPrint('[AuthService] 로그인 완료: userId=$uid, isNewUser=$isNewUser');
+    debugPrint('[AuthService] ${providerToken.provider.apiValue} 로그인 완료: userId=$uid, isNewUser=$isNewUser');
     return (success: true, isNewUser: isNewUser);
   }
 
@@ -261,7 +250,16 @@ class AuthService {
     await _storage.delete(key: _kRefreshToken);
     await _prefs?.remove(_kUserId);
     await _prefs?.remove(_kNickname);
+    await _prefs?.remove(_kProvider);
     await _prefs?.remove(_kPurposes);
     await _prefs?.remove(_kDuration);
+  }
+
+  SocialLoginClient _clientFor(SocialLoginProvider provider) {
+    return switch (provider) {
+      SocialLoginProvider.kakao => KakaoSocialLoginClient(),
+      SocialLoginProvider.naver => NaverSocialLoginClient(),
+      SocialLoginProvider.google => GoogleSocialLoginClient(),
+    };
   }
 }

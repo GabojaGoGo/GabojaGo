@@ -2,9 +2,9 @@
 // 앱 진입점 — Material 3 테마 설정 및 BottomNavigationBar 4탭 구성
 // 탭: 홈 / 보조금 / 플래너 / 기록
 
-import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:kakao_maps_flutter/kakao_maps_flutter.dart';
 import 'models/user_prefs.dart';
 import 'services/auth_service.dart';
@@ -16,8 +16,6 @@ import 'screens/home_screen.dart';
 import 'screens/subsidy_screen.dart';
 import 'screens/planner_screen.dart';
 import 'screens/my_trip_screen.dart';
-
-final _appLinks = AppLinks();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +33,7 @@ void main() async {
   if (kakaoNativeAppKey == null || kakaoNativeAppKey.isEmpty) {
     throw StateError('KAKAO_NATIVE_APP_KEY is missing in .env');
   }
+  KakaoSdk.init(nativeAppKey: kakaoNativeAppKey);
   await KakaoMapsFlutter.init(kakaoNativeAppKey);
   runApp(const GabojaGoApp());
 }
@@ -56,50 +55,6 @@ class GabojaGoApp extends StatefulWidget {
 
 class _GabojaGoAppState extends State<GabojaGoApp> {
   final _navKey = GlobalKey<NavigatorState>();
-
-  @override
-  void initState() {
-    super.initState();
-    _initDeepLinks();
-  }
-
-  void _initDeepLinks() {
-    // 콜드스타트 딥링크
-    _appLinks.getInitialLink().then((uri) {
-      if (uri != null) _handleDeepLink(uri);
-    });
-    // 포그라운드 딥링크
-    _appLinks.uriLinkStream.listen(_handleDeepLink);
-  }
-
-  Future<void> _handleDeepLink(Uri uri) async {
-    if (!uri.scheme.contains('tripmate') || uri.host != 'auth') return;
-    if (uri.queryParameters.containsKey('error')) {
-      _navKey.currentState?.pushNamedAndRemoveUntil('/login', (_) => false);
-      return;
-    }
-    try {
-      final result = await AuthService.instance.handleDeepLink(uri);
-      if (!mounted) return;
-      // 로그인 완료 후 서버 데이터 sync — await해서 취향/족적 복원 후 화면 전환
-      await UserDataService.instance.syncFromServer();
-      // syncFromServer로 복원된 취향을 AuthService에도 반영
-      final udPrefs = UserDataService.instance.getPrefs();
-      final purposes = List<String>.from(udPrefs['purposes'] as List? ?? []);
-      final duration  = (udPrefs['duration'] as String?) ?? '';
-      if (purposes.isNotEmpty || duration.isNotEmpty) {
-        await AuthService.instance.updatePrefs(purposes: purposes, duration: duration);
-      }
-      if (!mounted) return;
-      if (result.isNewUser || !AuthService.instance.hasNickname) {
-        _navKey.currentState?.pushNamedAndRemoveUntil('/onboarding', (_) => false);
-      } else {
-        _navKey.currentState?.pushNamedAndRemoveUntil('/main', (_) => false);
-      }
-    } catch (e) {
-      _navKey.currentState?.pushNamedAndRemoveUntil('/login', (_) => false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

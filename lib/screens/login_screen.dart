@@ -3,6 +3,8 @@
 
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/social_login_clients.dart';
+import '../services/user_data_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,22 +46,35 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  // ── 카카오 로그인 ─────────────────��───────────────────────
+  // ── 소셜 로그인 ───────────────────────────────────────────
 
-  Future<void> _kakaoLogin() async {
+  Future<void> _socialLogin(SocialLoginProvider provider) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
-      await AuthService.instance.startKakaoLogin();
-      // 브라우저가 열린 후 딥링크 수신을 기다림 (main.dart에서 처리)
-      // 로딩 표시는 딥링크 수신 전까지 유지
+      final result = await AuthService.instance.loginWithProvider(provider);
+      await UserDataService.instance.syncFromServer();
+      final udPrefs = UserDataService.instance.getPrefs();
+      final purposes = List<String>.from(udPrefs['purposes'] as List? ?? []);
+      final duration = (udPrefs['duration'] as String?) ?? '';
+      if (purposes.isNotEmpty || duration.isNotEmpty) {
+        await AuthService.instance.updatePrefs(
+          purposes: purposes,
+          duration: duration,
+        );
+      }
+      if (!mounted) return;
+      final route = result.isNewUser || !AuthService.instance.hasNickname
+          ? '/onboarding'
+          : '/main';
+      Navigator.of(context).pushNamedAndRemoveUntil(route, (_) => false);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = '카카오 로그인을 시작할 수 없습니다.\n잠시 후 다시 시도해주세요.';
+        _errorMessage = '로그인을 완료할 수 없습니다.\n잠시 후 다시 시도해주세요.';
       });
     }
   }
@@ -85,9 +100,52 @@ class _LoginScreenState extends State<LoginScreen>
                   const SizedBox(height: 48),
 
                   // ── 카카오 로그인 버튼 ───────────────────
-                  _KakaoLoginButton(
+                  _SocialLoginButton(
                     isLoading: _isLoading,
-                    onTap: _isLoading ? null : _kakaoLogin,
+                    onTap: _isLoading
+                        ? null
+                        : () => _socialLogin(SocialLoginProvider.kakao),
+                    backgroundColor: const Color(0xFFFEE500),
+                    foregroundColor: const Color(0xFF191919),
+                    icon: const Text('💬', style: TextStyle(fontSize: 20)),
+                    label: '카카오로 계속하기',
+                  ),
+                  const SizedBox(height: 10),
+                  _SocialLoginButton(
+                    isLoading: false,
+                    onTap: _isLoading
+                        ? null
+                        : () => _socialLogin(SocialLoginProvider.naver),
+                    backgroundColor: const Color(0xFF03C75A),
+                    foregroundColor: Colors.white,
+                    icon: const Text(
+                      'N',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
+                    label: '네이버로 계속하기',
+                  ),
+                  const SizedBox(height: 10),
+                  _SocialLoginButton(
+                    isLoading: false,
+                    onTap: _isLoading
+                        ? null
+                        : () => _socialLogin(SocialLoginProvider.google),
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF191919),
+                    borderColor: const Color(0xFFE0E0E0),
+                    icon: const Text(
+                      'G',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF4285F4),
+                      ),
+                    ),
+                    label: 'Google로 계속하기',
                   ),
 
                   // ── 에러 메시지 ────────────────���─────────
@@ -108,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen>
                   if (_isLoading) ...[
                     const SizedBox(height: 20),
                     Text(
-                      '카카오 로그인 화면으로 이동 중입니다.\n로그인 완료 후 자동으로 돌아옵니다.',
+                      '소셜 로그인 화면으로 이동 중입니다.\n로그인 완료 후 자동으로 돌아옵니다.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
@@ -214,12 +272,25 @@ class _Logo extends StatelessWidget {
   }
 }
 
-// ── 카카오 로그인 버튼 ─────────────────────────────────────
-class _KakaoLoginButton extends StatelessWidget {
+// ── 소셜 로그인 버튼 ─────────────────────────────────────
+class _SocialLoginButton extends StatelessWidget {
   final bool isLoading;
   final VoidCallback? onTap;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color? borderColor;
+  final Widget icon;
+  final String label;
 
-  const _KakaoLoginButton({required this.isLoading, required this.onTap});
+  const _SocialLoginButton({
+    required this.isLoading,
+    required this.onTap,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.icon,
+    required this.label,
+    this.borderColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -231,8 +302,9 @@ class _KakaoLoginButton extends StatelessWidget {
         child: Container(
           height: 56,
           decoration: BoxDecoration(
-            color: const Color(0xFFFEE500),
+            color: backgroundColor,
             borderRadius: BorderRadius.circular(14),
+            border: borderColor == null ? null : Border.all(color: borderColor!),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.08),
@@ -245,23 +317,23 @@ class _KakaoLoginButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (isLoading)
-                const SizedBox(
+                SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                    color: Color(0xFF191919),
+                    color: foregroundColor,
                     strokeWidth: 2.5,
                   ),
                 )
               else ...[
-                const Text('💬', style: TextStyle(fontSize: 20)),
+                icon,
                 const SizedBox(width: 10),
-                const Text(
-                  '카카오로 계속하기',
+                Text(
+                  label,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF191919),
+                    color: foregroundColor,
                   ),
                 ),
               ],

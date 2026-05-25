@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import '../models/user_prefs.dart';
 import '../services/auth_service.dart';
+import '../services/social_login_clients.dart';
 import '../services/user_data_service.dart';
 import 'travel_setup_screen.dart';
 
@@ -84,7 +85,35 @@ class _MyTripScreenState extends State<MyTripScreen> {
 
   // ── 게스트 → 소셜 계정 연동 ──────────────────────────
   Future<void> _linkAccount(String provider) async {
-    await AuthService.instance.startKakaoLogin();
+    final socialProvider = switch (provider) {
+      'kakao' => SocialLoginProvider.kakao,
+      'naver' => SocialLoginProvider.naver,
+      'google' => SocialLoginProvider.google,
+      _ => null,
+    };
+    if (socialProvider == null) return;
+
+    final result = await AuthService.instance.loginWithProvider(socialProvider);
+    await UserDataService.instance.syncFromServer();
+    final udPrefs = UserDataService.instance.getPrefs();
+    final purposes = List<String>.from(udPrefs['purposes'] as List? ?? []);
+    final duration = (udPrefs['duration'] as String?) ?? '';
+    if (purposes.isNotEmpty || duration.isNotEmpty) {
+      await AuthService.instance.updatePrefs(
+        purposes: purposes,
+        duration: duration,
+      );
+    }
+    if (!mounted) return;
+    if (result.isNewUser || !AuthService.instance.hasNickname) {
+      Navigator.of(context).pushNamedAndRemoveUntil('/onboarding', (_) => false);
+    } else {
+      UserPrefsScope.maybeOf(context)?.onUpdate(
+        AuthService.instance.toUserPrefs().copyWith(
+          loginProvider: AuthService.instance.provider,
+        ),
+      );
+    }
   }
 
   // ── 취향 재설정 ───────────────────────────────────────

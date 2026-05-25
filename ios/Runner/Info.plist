@@ -80,14 +80,28 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>kakaomap</string>
+		<string>kakaokompassauth</string>
+		<string>kakaolink</string>
 		<string>tel</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLSchemes</key>
+			<array><string>kakao$(KAKAO_NATIVE_APP_KEY)</string></array>
+		</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
 			<array><string>tripmate</string></array>
 		</dict>
 	</array>
+	<key>NAVER_CLIENT_ID</key>
+	<string>$(NAVER_CLIENT_ID)</string>
+	<key>NAVER_CLIENT_SECRET</key>
+	<string>$(NAVER_CLIENT_SECRET)</string>
+	<key>NAVER_CLIENT_NAME</key>
+	<string>$(NAVER_CLIENT_NAME)</string>
+	<key>NAVER_URL_SCHEME</key>
+	<string>$(NAVER_URL_SCHEME)</string>
 </dict>
 </plist>
