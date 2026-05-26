@@ -21,7 +21,7 @@ public class SocialAccount {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 32)
+    @Column(nullable = false, length = 32, columnDefinition = "varchar(32)")
     private OAuthProvider provider;
 
     @Column(name = "provider_user_id", nullable = false, length = 128)

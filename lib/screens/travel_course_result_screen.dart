@@ -279,8 +279,13 @@ class _CourseCardState extends State<_CourseCard> {
       }),
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(20),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
+            const BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
+            const BoxShadow(color: Color(0x14000000), blurRadius: 16, offset: Offset(0, 4)),
+          ],
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -292,9 +297,15 @@ class _CourseCardState extends State<_CourseCard> {
                 height: 160,
                 width: double.infinity,
                 fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return _CourseImagePlaceholder(course: widget.course, height: 160);
+                },
                 errorBuilder: (context, error, stack) =>
-                    const SizedBox.shrink(),
-              ),
+                    _CourseImagePlaceholder(course: widget.course, height: 160),
+              )
+            else
+              _CourseImagePlaceholder(course: widget.course, height: 100),
 
             Padding(
               padding: const EdgeInsets.all(16),
@@ -348,15 +359,21 @@ class _CourseCardState extends State<_CourseCard> {
                   Text(
                     widget.course['title'] as String? ?? '',
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w800),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
                   ),
 
                   if (overview.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
                       overview,
-                      style:
-                          TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF6B7280),
+                        height: 1.6,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -483,6 +500,81 @@ class _PlacesPreview extends StatelessWidget {
             ],
           );
         }).toList(),
+      ),
+    );
+  }
+}
+
+// ─── 코스 이미지 플레이스홀더 (이미지 없거나 로딩 실패 시) ──
+class _CourseImagePlaceholder extends StatelessWidget {
+  final Map<String, dynamic> course;
+  final double height;
+
+  const _CourseImagePlaceholder({
+    required this.course,
+    required this.height,
+  });
+
+  static const _gradients = [
+    [Color(0xFF2E7D6B), Color(0xFF1B5E4A)],
+    [Color(0xFF1565C0), Color(0xFF0D47A1)],
+    [Color(0xFF5C4AE3), Color(0xFF3D2FC4)],
+    [Color(0xFFF57C00), Color(0xFFE65100)],
+    [Color(0xFF388E3C), Color(0xFF1B5E20)],
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final title = course['title'] as String? ?? '';
+    final idx = title.isEmpty ? 0 : title.codeUnitAt(0) % _gradients.length;
+    final colors = _gradients[idx];
+    final region = course['region'] as String? ?? '';
+
+    return Container(
+      height: height,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: colors,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (region.isNotEmpty)
+              Row(
+                children: [
+                  const Icon(Icons.location_on, color: Colors.white70, size: 12),
+                  const SizedBox(width: 3),
+                  Text(
+                    region,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            if (region.isNotEmpty) const SizedBox(height: 4),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }

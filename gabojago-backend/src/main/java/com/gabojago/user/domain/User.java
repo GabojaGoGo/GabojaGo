@@ -19,7 +19,7 @@ public class User extends BaseTimeEntity {
     private String id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
+    @Column(nullable = false, length = 16, columnDefinition = "varchar(16)")
     private UserStatus status;
 
     @Column(nullable = false, length = 100)

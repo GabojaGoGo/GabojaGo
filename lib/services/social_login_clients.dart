@@ -35,6 +35,8 @@ class KakaoSocialLoginClient implements SocialLoginClient {
   @override
   SocialLoginProvider get provider => SocialLoginProvider.kakao;
 
+  static const _scopes = ['profile_nickname', 'account_email'];
+
   @override
   Future<SocialLoginToken> login() async {
     OAuthToken token;
@@ -47,10 +49,31 @@ class KakaoSocialLoginClient implements SocialLoginClient {
     } else {
       token = await UserApi.instance.loginWithKakaoAccount();
     }
+
+    // v1.x: 로그인 후 scope 부족 시 추가 동의 요청
+    final scopeToken = await _ensureScopes();
+    if (scopeToken != null) token = scopeToken;
+
     return SocialLoginToken(
       provider: provider,
       accessToken: token.accessToken,
     );
+  }
+
+  /// scope 부족 시 추가 동의 요청 (kakao_flutter_sdk_user 1.x 방식)
+  Future<OAuthToken?> _ensureScopes() async {
+    try {
+      final scopeInfo = await UserApi.instance.scopes(scopes: _scopes);
+      final missing = scopeInfo.scopes
+              ?.where((s) => _scopes.contains(s.id) && !(s.agreed ?? false))
+              .map((s) => s.id)
+              .toList() ??
+          [];
+      if (missing.isEmpty) return null;
+      return await UserApi.instance.loginWithNewScopes(missing);
+    } catch (_) {
+      return null;
+    }
   }
 
   @override

@@ -151,7 +151,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   Text(
                     widget.course['title'] as String? ?? '',
                     style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.w800),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.4,
+                      height: 1.2,
+                    ),
                   ),
                   const SizedBox(height: 12),
 
@@ -247,13 +251,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       child: Row(
                         children: [
                           Icon(Icons.info_outline,
-                              size: 18, color: Colors.grey[500]),
+                              size: 18, color: const Color(0xFF9CA3AF)),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               '이 코스의 상세 정보가 제공되지 않아요.',
                               style: TextStyle(
-                                  fontSize: 13, color: Colors.grey[600]),
+                                  fontSize: 13, color: const Color(0xFF6B7280)),
                             ),
                           ),
                         ],
@@ -302,9 +306,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             style: FilledButton.styleFrom(
               minimumSize: const Size(double.infinity, 52),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(12)),
               backgroundColor:
-                  _saved ? Colors.grey[400] : colorScheme.primary,
+                  _saved ? Colors.grey.shade400 : colorScheme.primary,
             ),
           ),
         ),
@@ -501,7 +505,10 @@ class _PlaceDetailItem extends StatelessWidget {
                   Expanded(
                     child: Text(name,
                         style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w700)),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
+                        )),
                   ),
                 ],
               ),
@@ -512,12 +519,12 @@ class _PlaceDetailItem extends StatelessWidget {
                 Row(
                   children: [
                     Icon(Icons.place_outlined,
-                        size: 13, color: Colors.grey[500]),
+                        size: 13, color: const Color(0xFF9CA3AF)),
                     const SizedBox(width: 3),
                     Expanded(
                       child: Text(address,
                           style: TextStyle(
-                              fontSize: 12, color: Colors.grey[600]),
+                              fontSize: 12, color: const Color(0xFF6B7280)),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                     ),
@@ -546,10 +553,10 @@ class _PlaceDetailItem extends StatelessWidget {
               if (overview.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Text(overview,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 13,
-                        color: Colors.grey[600],
-                        height: 1.4),
+                        color: Color(0xFF6B7280),
+                        height: 1.6),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis),
               ],
@@ -595,9 +602,12 @@ class _NearbyPlaceItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade200),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
+          const BoxShadow(color: Color(0x08000000), blurRadius: 6, offset: Offset(0, 2)),
+        ],
       ),
       child: Row(
         children: [
@@ -618,7 +628,7 @@ class _NearbyPlaceItem extends StatelessWidget {
                       if (address.isNotEmpty) address,
                     ].join(' · '),
                     style: TextStyle(
-                        fontSize: 12, color: Colors.grey[600]),
+                        fontSize: 12, color: const Color(0xFF6B7280)),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -629,7 +639,7 @@ class _NearbyPlaceItem extends StatelessWidget {
             const SizedBox(width: 8),
             Text('${distance}m',
                 style:
-                    TextStyle(fontSize: 12, color: Colors.grey[500])),
+                    TextStyle(fontSize: 12, color: const Color(0xFF9CA3AF))),
           ],
         ],
       ),
@@ -654,7 +664,7 @@ class _InfoPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.grey.shade600),
+          Icon(icon, size: 14, color: const Color(0xFF6B7280)),
           const SizedBox(width: 4),
           Text(label,
               style: TextStyle(
@@ -677,10 +687,10 @@ class _SmallTag extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 12, color: Colors.grey[500]),
+        Icon(icon, size: 12, color: const Color(0xFF9CA3AF)),
         const SizedBox(width: 3),
         Text(text,
-            style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 11, color: const Color(0xFF6B7280)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis),
       ],

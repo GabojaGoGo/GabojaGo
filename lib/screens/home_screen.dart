@@ -1,55 +1,55 @@
 // home_screen.dart
 // 홈 화면 — 개인화 인사, 여행 시작 CTA, 혜택 카테고리 섹션,
-// 주변 관광지 가로 스크롤, 이번 주 근처 축제 리스트
+// 이번 주 근처 축제 리스트
 
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/user_prefs.dart';
-import '../widgets/spot_card.dart';
 import '../widgets/benefit_chip.dart';
+import '../widgets/shimmer_box.dart';
 import '../services/api_service.dart';
 import 'travel_setup_screen.dart';
 import 'course_loading_screen.dart';
 import 'benefit_detail_screen.dart';
-import 'nearby_spots_screen.dart';
 import 'subsidy_screen.dart' show BenefitItem, StatusType;
 
 // ─────────────────────────────────────────────
 // 홈 화면 위젯
 // ─────────────────────────────────────────────
 
-/// purpose별 (greeting 문구, CTA 카드 문구) 변형 풀 — 매 화면 진입마다 랜덤 선택
-const _kGreetingVariants = <String, List<(String, String)>>{
+/// purpose별 (greeting 문구, CTA 카드 문구, 선호 앵커명) 변형 풀 — 매 화면 진입마다 랜덤 선택
+/// 앵커명은 CourseService.ANCHORS의 name()과 일치해야 함
+const _kGreetingVariants = <String, List<(String, String, String)>>{
   'resort': [
-    ('편안한 숙소 여행, 강원도 어떠세요? 🏨',  '강원도 숙박 여행 코스,\n어떠세요?'),
-    ('한적한 호텔 패키지, 제주도로! 🌊',       '제주 프리미엄 숙박 코스,\n어떠세요?'),
-    ('감성 풀빌라 여행, 경주 어떠세요? 🏯',    '경북 힐링 숙박 여행 코스,\n어떠세요?'),
+    ('편안한 숙소 여행, 강원도 어떠세요? 🏨',  '강원도 숙박 여행 코스,\n어떠세요?',    '강릉'),
+    ('한적한 호텔 패키지, 제주도로! 🌊',       '제주 프리미엄 숙박 코스,\n어떠세요?',  '서귀포'),
+    ('감성 풀빌라 여행, 경주 어떠세요? 🏯',    '경북 힐링 숙박 여행 코스,\n어떠세요?', '경주'),
   ],
   'food': [
-    ('맛집 탐방 코스, 경북 의성 추천해요! 🍜', '경북 미식 여행 코스,\n어떠세요?'),
-    ('전주 비빔밥부터 막걸리까지! 🍶',         '전북 맛집 탐방 코스,\n어떠세요?'),
-    ('통영 해산물 투어, 떠나볼까요? 🦞',       '경남 해산물 미식 코스,\n어떠세요?'),
+    ('맛집 탐방 코스, 안동 찜닭 어떠세요! 🍜', '안동 미식 여행 코스,\n어떠세요?',      '안동'),
+    ('전주 비빔밥부터 막걸리까지! 🍶',         '전주 맛집 탐방 코스,\n어떠세요?',      '전주'),
+    ('통영 해산물 투어, 떠나볼까요? 🦞',       '통영 해산물 미식 코스,\n어떠세요?',    '통영'),
   ],
   'budget': [
-    ('가성비 여행지, 가평/홍천이 딱이에요 💰', '가평/홍천 가성비 코스,\n어떠세요?'),
-    ('알뜰 국내 여행, 충청도 어떠세요? 🏕️',   '충청 알뜰 여행 코스,\n어떠세요?'),
-    ('예산 아껴도 즐거운 강화도 여행! 🌅',     '인천/강화 가성비 코스,\n어떠세요?'),
+    ('가성비 여행지, 춘천이 딱이에요 💰',       '춘천 가성비 코스,\n어떠세요?',         '춘천'),
+    ('알뜰 국내 여행, 대전 어떠세요? 🏕️',      '대전 알뜰 여행 코스,\n어떠세요?',      '대전'),
+    ('예산 아껴도 즐거운 강화도 여행! 🌅',      '인천 강화도 가성비 코스,\n어떠세요?',  '인천 강화도'),
   ],
   'nature': [
-    ('자연 속 힐링, 이번 주말 강원도로! 🌿',   '강원도 자연 힐링 코스,\n어떠세요?'),
-    ('비자림·오름 트레킹, 제주로! 🌋',         '제주 자연 탐방 코스,\n어떠세요?'),
-    ('지리산 둘레길, 함께 걸어요 🍃',          '남원/함양 트레킹 코스,\n어떠세요?'),
+    ('자연 속 힐링, 이번 주말 속초로! 🌿',      '속초·양양 자연 힐링 코스,\n어떠세요?', '속초·양양'),
+    ('비자림·오름 트레킹, 제주로! 🌋',          '제주 자연 탐방 코스,\n어떠세요?',      '제주시'),
+    ('지리산 둘레길, 순천에서 시작해요 🍃',     '순천 자연 트레킹 코스,\n어떠세요?',    '순천'),
   ],
   'history': [
-    ('천년 역사의 경주, 떠나보세요 🏛️',        '경주 역사 탐방 코스,\n어떠세요?'),
-    ('조선 왕조의 흔적, 수원 화성! 🏰',        '수원/용인 역사 투어,\n어떠세요?'),
-    ('백제 문화의 중심, 부여/공주로! 🗺️',      '충남 백제 문화 코스,\n어떠세요?'),
+    ('천년 역사의 경주, 떠나보세요 🏛️',         '경주 역사 탐방 코스,\n어떠세요?',      '경주'),
+    ('조선 왕조의 흔적, 수원 화성! 🏰',         '수원 화성 역사 투어,\n어떠세요?',      '수원 화성'),
+    ('백제 문화의 중심, 부여/공주로! 🗺️',       '공주·부여 백제 코스,\n어떠세요?',      '공주·부여'),
   ],
   'activity': [
-    ('액티비티 가득한 제주도로 가볼까요? 🧗',  '제주 액티비티 코스,\n어떠세요?'),
-    ('래프팅·번지점프, 인제/양양으로! 🏄',     '강원 익스트림 코스,\n어떠세요?'),
-    ('서핑·스노클링, 부산/거제로! 🏊',         '경남 해양 스포츠 코스,\n어떠세요?'),
+    ('액티비티 가득한 제주도로 가볼까요? 🧗',   '제주 액티비티 코스,\n어떠세요?',       '제주시'),
+    ('래프팅·번지점프, 양양으로! 🏄',           '속초·양양 익스트림 코스,\n어떠세요?',  '속초·양양'),
+    ('서핑·스노클링, 거제로! 🏊',               '거제 해양 스포츠 코스,\n어떠세요?',    '거제'),
   ],
 };
 
@@ -59,6 +59,14 @@ String _personalizedGreeting(UserPrefs prefs, int variantIdx) {
   final variants = _kGreetingVariants[prefs.purposes.first];
   if (variants == null || variants.isEmpty) return '어디로 떠나볼까요? ✈️';
   return variants[variantIdx % variants.length].$1;
+}
+
+/// 선택된 variant의 선호 앵커명 반환
+String? _preferredAnchor(UserPrefs prefs, int variantIdx) {
+  if (!prefs.hasPrefs) return null;
+  final variants = _kGreetingVariants[prefs.purposes.first];
+  if (variants == null || variants.isEmpty) return null;
+  return variants[variantIdx % variants.length].$3;
 }
 
 class HomeScreen extends StatefulWidget {
@@ -78,14 +86,9 @@ class _HomeScreenState extends State<HomeScreen> {
   late int _greetingVariantIdx;
 
   // 백엔드 연동 데이터
-  List<SpotData> _nearbySpotsList = [];
   List<Map<String, String>> _nearbyFestivalsList = [];
   List<BenefitItem> _benefitsList = [];
   bool _isLoading = true;
-  String _currentLocationName = '위치 확인 중...';
-  bool _hasLocationPermission = true;
-  double _currentLat = 0;
-  double _currentLng = 0;
 
   @override
   void initState() {
@@ -99,41 +102,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        setState(() {
-          _hasLocationPermission = false;
-          _isLoading = false;
-        });
-        return;
+      double? lat, lng;
+      if (permission != LocationPermission.denied &&
+          permission != LocationPermission.deniedForever) {
+        final position = await ApiService.getCurrentLocation();
+        lat = position.latitude;
+        lng = position.longitude;
       }
-      
-      setState(() => _hasLocationPermission = true);
 
-      final position = await ApiService.getCurrentLocation();
-      _currentLat = position.latitude;
-      _currentLng = position.longitude;
-
-      // 📍 위경도를 주소 명칭으로 변환
-      final address = await ApiService.getAddressFromLatLng(
-        position.latitude,
-        position.longitude,
-      );
-      setState(() => _currentLocationName = address);
-
-      final results = await Future.wait([
-        ApiService.getNearbySpots(position.latitude, position.longitude),
-        ApiService.getNearbyFestivals(position.latitude, position.longitude),
-        ApiService.getBenefits(),
-      ]);
-        final spots = results[0];
-        final festivals = results[1];
-        final benefits = results[2] as List<Map<String, dynamic>>;
+      final festivalsRaw = lat != null
+          ? await ApiService.getNearbyFestivals(lat, lng!)
+          : <dynamic>[];
+      final benefitsRaw = await ApiService.getBenefits();
+      final benefits = benefitsRaw;
 
       setState(() {
-        _nearbySpotsList = spots
-            .map((s) => SpotData.fromJson(s as Map<String, dynamic>))
-            .toList();
-        _nearbyFestivalsList = festivals.map((f) {
+        _nearbyFestivalsList = festivalsRaw.map((f) {
           final map = f as Map<String, dynamic>;
           return {
             'title': (map['title'] as String?) ?? '행사 정보 없음',
@@ -146,52 +130,9 @@ class _HomeScreenState extends State<HomeScreen> {
         _benefitsList = benefits.map(BenefitItem.fromJson).toList();
         _isLoading = false;
       });
-
-      _fetchSpotCongestions(position.latitude, position.longitude);
     } catch (e) {
       debugPrint('Data fetch error: $e');
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('데이터를 불러오지 못했습니다: $e')));
-      }
-    }
-  }
-
-  Future<void> _fetchSpotCongestions(double lat, double lng) async {
-    try {
-      final congestions = await ApiService.getNearbySpotCongestions(lat, lng);
-      final congestionById = <int, Map<String, dynamic>>{
-        for (final item in congestions)
-          ((item as Map<String, dynamic>)['id'] as num?)?.toInt() ?? -1: item,
-      };
-
-      if (!mounted) return;
-      setState(() {
-        _nearbySpotsList = _nearbySpotsList.map((spot) {
-          final match = congestionById[spot.id];
-          if (match == null) {
-            return spot.copyWith(congestion: '정보 없음', congestionSource: 'none');
-          }
-          return spot.copyWith(
-            congestion: (match['congestion'] as String?) ?? '정보 없음',
-            congestionSource: (match['congestionSource'] as String?) ?? 'none',
-            congestionBaseYmd: match['congestionBaseYmd'] as String?,
-          );
-        }).toList();
-      });
-    } catch (e) {
-      debugPrint('Spot congestion fetch error: $e');
-      if (!mounted) return;
-      setState(() {
-        _nearbySpotsList = _nearbySpotsList
-            .map(
-              (spot) =>
-                  spot.copyWith(congestion: '정보 없음', congestionSource: 'none'),
-            )
-            .toList();
-      });
     }
   }
 
@@ -207,7 +148,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final hasPrefs = widget.userPrefs.hasPrefs;
 
     return Scaffold(
@@ -247,6 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF1A1A1A),
+                        letterSpacing: -0.4,
                       ),
                     ),
                     Text(
@@ -255,6 +196,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF1A1A1A),
+                        letterSpacing: -0.4,
+                        height: 1.3,
                       ),
                     ),
                     // 취향 칩 — hasPrefs일 때만 표시
@@ -291,8 +234,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 variantIdx: _greetingVariantIdx,
               ),
 
-              const SizedBox(height: 24),
-
               // ── 혜택 카테고리 섹션 ────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -302,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Text(
                       '여행 혜택',
                       style: TextStyle(
-                        fontSize: 17,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A1A),
                       ),
@@ -347,6 +288,9 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 10),
 
               // 혜택 카드 리스트
+              if (_isLoading)
+                ...List.generate(2, (_) => const BenefitCardShimmer())
+              else
               ..._filteredBenefits.map(
                 (benefit) => _HomeBenefitCard(
                   benefit: benefit,
@@ -361,191 +305,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 24),
 
-              if (!_hasLocationPermission) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F7F7),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE5E5E5)),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.location_off_rounded, size: 48, color: Colors.grey),
-                        const SizedBox(height: 16),
-                        const Text(
-                          '앗! 현재 위치를 알 수 없어요 😢\n위치 권한을 허용해 주시면 주변의\n숨은 명소와 축제를 찾아드릴게요!',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1A1A1A),
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        OutlinedButton(
-                          onPressed: () async {
-                            var p = await Geolocator.checkPermission();
-                            if (p == LocationPermission.deniedForever) {
-                              await Geolocator.openAppSettings();
-                            } else {
-                              p = await Geolocator.requestPermission();
-                            }
-                            if (p == LocationPermission.always || p == LocationPermission.whileInUse) {
-                              _fetchData();
-                            }
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF2E7D6B),
-                            side: const BorderSide(color: Color(0xFF2E7D6B), width: 1.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text('위치 권한 허용하기 🚀', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                      ],
-                    ),
+              // ── 이번 주 근처 축제 섹션 ────────────────────
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  '이번 주 근처 축제',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A1A),
                   ),
                 ),
-              ] else ...[
-                // ── 주변 관광지 섹션 ──────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            '내 주변 관광지',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1A1A),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.gps_fixed,
-                                  size: 10,
-                                  color: colorScheme.primary,
-                                ),
-                                const SizedBox(width: 2),
-                                Text(
-                                  _currentLocationName,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+              ),
+              const SizedBox(height: 12),
+              _isLoading
+                  ? Column(
+                      children: List.generate(
+                        3,
+                        (_) => const FestivalItemShimmer(),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          if (_nearbySpotsList.isEmpty) return;
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => NearbySpotsScreen(
-                                spots: _nearbySpotsList,
-                                currentLat: _currentLat,
-                                currentLng: _currentLng,
-                                locationName: _currentLocationName,
-                              ),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          '전체보기',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF2E7D6B),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _isLoading
-                    ? const SizedBox(
-                        height: 210,
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    : SizedBox(
-                        height: 210,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.only(left: 16),
-                          itemCount: _nearbySpotsList.length,
-                          itemBuilder: (context, index) {
-                            final spot = _nearbySpotsList[index];
-                            return GestureDetector(
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => NearbySpotsScreen(
-                                    spots: _nearbySpotsList,
-                                    currentLat: _currentLat,
-                                    currentLng: _currentLng,
-                                    locationName: _currentLocationName,
-                                    initialSpotId: spot.id,
-                                  ),
-                                ),
-                              ),
-                              child: SpotCard(spot: spot),
-                            );
-                          },
-                        ),
-                      ),
-
-                const SizedBox(height: 24),
-
-                // ── 이번 주 근처 축제 섹션 ────────────────────
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    '이번 주 근처 축제',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1A1A1A),
+                    )
+                  : Column(
+                      children: _nearbyFestivalsList
+                          .map((f) => _FestivalListItem(festival: f))
+                          .toList(),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _isLoading
-                    ? const Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    : Column(
-                        children: _nearbyFestivalsList
-                            .map((f) => _FestivalListItem(festival: f))
-                            .toList(),
-                      ),
-              ],
 
               const SizedBox(height: 32),
             ],
@@ -575,6 +359,8 @@ class _TravelStartCard extends StatelessWidget {
     return variants[variantIdx % variants.length].$2;
   }
 
+  String? get _anchorHint => _preferredAnchor(userPrefs, variantIdx);
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -585,7 +371,10 @@ class _TravelStartCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => CourseLoadingScreen(prefs: userPrefs),
+              builder: (_) => CourseLoadingScreen(
+                prefs: userPrefs,
+                preferredAnchor: _anchorHint,
+              ),
             ),
           );
         } else {
@@ -606,7 +395,7 @@ class _TravelStartCard extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [colorScheme.primary, colorScheme.tertiary],
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
@@ -640,6 +429,7 @@ class _TravelStartCard extends StatelessWidget {
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                       height: 1.3,
+                      letterSpacing: -0.3,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -788,8 +578,11 @@ class _HomeBenefitCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade200),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
+            const BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
+          ],
         ),
         child: Row(
           children: [
@@ -818,12 +611,17 @@ class _HomeBenefitCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
+                      letterSpacing: -0.1,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     benefit.subtitle,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF6B7280),
+                      height: 1.4,
+                    ),
                   ),
                 ],
               ),
@@ -918,8 +716,11 @@ class _FestivalListItem extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
+          const BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
+        ],
       ),
       child: Row(
         children: [
@@ -947,6 +748,7 @@ class _FestivalListItem extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
                     color: Color(0xFF1A1A1A),
+                    letterSpacing: -0.1,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -957,9 +759,9 @@ class _FestivalListItem extends StatelessWidget {
                     Flexible(
                       child: Text(
                         festival['area'] ?? '지역 정보 없음',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: Color(0xFF6B7280),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

@@ -201,11 +201,15 @@ class ApiService {
     String duration = '',
     double? lat,
     double? lng,
+    String? preferredAnchor,
   }) async {
     final purposesParam = purposes.join(',');
     var url = '$baseUrl/courses?purposes=$purposesParam&duration=$duration';
     if (lat != null && lng != null) {
       url += '&lat=$lat&lng=$lng';
+    }
+    if (preferredAnchor != null && preferredAnchor.isNotEmpty) {
+      url += '&preferredAnchor=${Uri.encodeComponent(preferredAnchor)}';
     }
     debugPrint('Requesting: $url');
     try {

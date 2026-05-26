@@ -5,7 +5,8 @@ import 'travel_course_result_screen.dart';
 
 class CourseLoadingScreen extends StatefulWidget {
   final UserPrefs prefs;
-  const CourseLoadingScreen({super.key, required this.prefs});
+  final String? preferredAnchor;
+  const CourseLoadingScreen({super.key, required this.prefs, this.preferredAnchor});
 
   @override
   State<CourseLoadingScreen> createState() => _CourseLoadingScreenState();
@@ -69,6 +70,7 @@ class _CourseLoadingScreenState extends State<CourseLoadingScreen>
         duration: widget.prefs.duration,
         lat: lat,
         lng: lng,
+        preferredAnchor: widget.preferredAnchor,
       );
       if (mounted) {
         _courses = courses;

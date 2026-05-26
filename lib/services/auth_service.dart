@@ -98,7 +98,7 @@ class AuthService {
   Future<({bool success, bool isNewUser})> _loginWithSocialToken(
       SocialLoginToken providerToken) async {
     final response = await http.post(
-      Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/auth/social/login'),
+      Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/auth/oauth/login'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'provider': providerToken.provider.apiValue,
