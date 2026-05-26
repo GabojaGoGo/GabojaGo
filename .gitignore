@@ -23,21 +23,24 @@ migrate_working_dir/
 # is commented out by default.
 #.vscode/
 
-# Flutter/Dart/Pub related
+# Flutter/Dart/Pub related (gabojago-frontend/)
 **/doc/api/
 **/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins-dependencies
+**/.dart_tool/
+**/.flutter-plugins-dependencies
 .pub-cache/
 .pub/
+
 # Environment 파일 (민감한 정보: API 키, 데이터베이스 자격증명 등)
-.env
-.env.local
-.env.imac
-.env.tailscale
-.env.*.local
-/build/
-/coverage/
+**/.env
+**/.env.local
+**/.env.imac
+**/.env.tailscale
+**/.env.*.local
+
+# Build outputs
+**/build/
+**/coverage/
 
 # Symbolication related
 app.*.symbols
@@ -46,6 +49,6 @@ app.*.symbols
 app.*.map.json
 
 # Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+gabojago-frontend/android/app/debug
+gabojago-frontend/android/app/profile
+gabojago-frontend/android/app/release
