@@ -1,6 +1,7 @@
 // spot_card.dart
 import 'package:flutter/material.dart';
 import 'benefit_chip.dart';
+import 'shimmer_box.dart';
 
 class SpotData {
   final int id;
@@ -90,29 +91,30 @@ class SpotCard extends StatelessWidget {
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
+          BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(color: Color(0x14000000), blurRadius: 16, offset: Offset(0, 4)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 🖼️ 이미지 영역 (null 처리)
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Container(
-              height: 110,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: SizedBox(
+              height: 120,
               width: double.infinity,
-              color: spot.placeholderColor.withValues(alpha: 0.1),
               child: (spot.imageUrl != null && spot.imageUrl!.isNotEmpty)
                   ? Image.network(
                       spot.imageUrl!,
                       fit: BoxFit.cover,
-                      // 이미지 로딩 중일 때 표시할 위젯
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
-                        return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                        return const ShimmerBox(height: 120, radius: 0);
                       },
-                      // 이미지 로딩 실패 시 표시할 위젯
                       errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
                     )
                   : _buildPlaceholder(),
@@ -130,6 +132,7 @@ class SpotCard extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF1A1A1A),
+                    letterSpacing: -0.2,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -137,7 +140,7 @@ class SpotCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   spot.areaName,
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -158,9 +161,22 @@ class SpotCard extends StatelessWidget {
 
   Widget _buildPlaceholder() {
     return Container(
-      color: spot.placeholderColor.withValues(alpha: 0.1),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            spot.placeholderColor.withValues(alpha: 0.25),
+            spot.placeholderColor.withValues(alpha: 0.12),
+          ],
+        ),
+      ),
       child: Center(
-        child: Icon(Icons.image_not_supported_outlined, color: spot.placeholderColor, size: 30),
+        child: Icon(
+          Icons.landscape_outlined,
+          color: spot.placeholderColor.withValues(alpha: 0.45),
+          size: 30,
+        ),
       ),
     );
   }

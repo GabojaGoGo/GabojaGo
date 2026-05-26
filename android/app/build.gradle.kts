@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -13,6 +16,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -28,6 +32,28 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(FileInputStream(localPropertiesFile))
+        }
+        manifestPlaceholders["kakaoNativeAppKey"] =
+            localProperties.getProperty("KAKAO_NATIVE_APP_KEY")
+                ?: System.getenv("KAKAO_NATIVE_APP_KEY")
+                ?: ""
+        manifestPlaceholders["naverClientId"] =
+            localProperties.getProperty("NAVER_CLIENT_ID")
+                ?: System.getenv("NAVER_CLIENT_ID")
+                ?: ""
+        manifestPlaceholders["naverClientSecret"] =
+            localProperties.getProperty("NAVER_CLIENT_SECRET")
+                ?: System.getenv("NAVER_CLIENT_SECRET")
+                ?: ""
+        manifestPlaceholders["naverClientName"] =
+            localProperties.getProperty("NAVER_CLIENT_NAME")
+                ?: System.getenv("NAVER_CLIENT_NAME")
+                ?: "가보자GO"
     }
 
     buildTypes {
@@ -41,4 +67,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }

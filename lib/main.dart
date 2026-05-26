@@ -1,10 +1,10 @@
 // main.dart
 // 앱 진입점 — Material 3 테마 설정 및 BottomNavigationBar 4탭 구성
-// 탭: 홈 / 보조금 / 플래너 / 기록
+// 탭: 홈 / 내 주변 / 플래너 / 기록  (혜택은 홈 화면 전체보기 버튼으로 접근)
 
-import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:kakao_maps_flutter/kakao_maps_flutter.dart';
 import 'models/user_prefs.dart';
 import 'services/auth_service.dart';
@@ -14,10 +14,9 @@ import 'screens/login_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/subsidy_screen.dart';
+import 'screens/nearby_spots_screen.dart';
 import 'screens/planner_screen.dart';
 import 'screens/my_trip_screen.dart';
-
-final _appLinks = AppLinks();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +34,7 @@ void main() async {
   if (kakaoNativeAppKey == null || kakaoNativeAppKey.isEmpty) {
     throw StateError('KAKAO_NATIVE_APP_KEY is missing in .env');
   }
+  KakaoSdk.init(nativeAppKey: kakaoNativeAppKey);
   await KakaoMapsFlutter.init(kakaoNativeAppKey);
   runApp(const GabojaGoApp());
 }
@@ -58,50 +58,6 @@ class _GabojaGoAppState extends State<GabojaGoApp> {
   final _navKey = GlobalKey<NavigatorState>();
 
   @override
-  void initState() {
-    super.initState();
-    _initDeepLinks();
-  }
-
-  void _initDeepLinks() {
-    // 콜드스타트 딥링크
-    _appLinks.getInitialLink().then((uri) {
-      if (uri != null) _handleDeepLink(uri);
-    });
-    // 포그라운드 딥링크
-    _appLinks.uriLinkStream.listen(_handleDeepLink);
-  }
-
-  Future<void> _handleDeepLink(Uri uri) async {
-    if (!uri.scheme.contains('tripmate') || uri.host != 'auth') return;
-    if (uri.queryParameters.containsKey('error')) {
-      _navKey.currentState?.pushNamedAndRemoveUntil('/login', (_) => false);
-      return;
-    }
-    try {
-      final result = await AuthService.instance.handleDeepLink(uri);
-      if (!mounted) return;
-      // 로그인 완료 후 서버 데이터 sync — await해서 취향/족적 복원 후 화면 전환
-      await UserDataService.instance.syncFromServer();
-      // syncFromServer로 복원된 취향을 AuthService에도 반영
-      final udPrefs = UserDataService.instance.getPrefs();
-      final purposes = List<String>.from(udPrefs['purposes'] as List? ?? []);
-      final duration  = (udPrefs['duration'] as String?) ?? '';
-      if (purposes.isNotEmpty || duration.isNotEmpty) {
-        await AuthService.instance.updatePrefs(purposes: purposes, duration: duration);
-      }
-      if (!mounted) return;
-      if (result.isNewUser || !AuthService.instance.hasNickname) {
-        _navKey.currentState?.pushNamedAndRemoveUntil('/onboarding', (_) => false);
-      } else {
-        _navKey.currentState?.pushNamedAndRemoveUntil('/main', (_) => false);
-      }
-    } catch (e) {
-      _navKey.currentState?.pushNamedAndRemoveUntil('/login', (_) => false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: _navKey,
@@ -120,16 +76,17 @@ class _GabojaGoAppState extends State<GabojaGoApp> {
             color: Color(0xFF1A1A1A),
             fontSize: 20,
             fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
           ),
         ),
         scaffoldBackgroundColor: const Color(0xFFF8F9FA),
         cardTheme: CardThemeData(
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.grey),
+            borderRadius: BorderRadius.circular(16),
           ),
           color: Colors.white,
+          shadowColor: Colors.transparent,
         ),
       ),
       // 앱 시작 → 로그인 상태에 따라 분기
@@ -143,7 +100,7 @@ class _GabojaGoAppState extends State<GabojaGoApp> {
   }
 }
 
-/// 메인 쉘 — BottomNavigationBar로 4개 탭 전환 관리
+/// 메인 쉘 — BottomNavigationBar로 3개 탭 전환 관리
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -178,9 +135,12 @@ class _MainShellState extends State<MainShell> {
     final screens = [
       HomeScreen(
         userPrefs: _userPrefs,
-        onShowAllBenefits: () => setState(() => _currentIndex = 1),
+        onShowAllBenefits: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SubsidyScreen()),
+        ),
       ),
-      const SubsidyScreen(),
+      const NearbySpotsScreen(),
       const PlannerScreen(),
       const MyTripScreen(),
     ];
@@ -207,9 +167,9 @@ class _MainShellState extends State<MainShell> {
             label: '홈',
           ),
           NavigationDestination(
-            icon: Icon(Icons.redeem_outlined),
-            selectedIcon: Icon(Icons.redeem, color: Color(0xFF2E7D6B)),
-            label: '혜택',
+            icon: Icon(Icons.location_on_outlined),
+            selectedIcon: Icon(Icons.location_on, color: Color(0xFF2E7D6B)),
+            label: '내 주변',
           ),
           NavigationDestination(
             icon: Icon(Icons.map_outlined),

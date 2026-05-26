@@ -233,21 +233,20 @@ class _BenefitBannerCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
+            const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
+            const BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
+            const BoxShadow(color: Color(0x14000000), blurRadius: 16, offset: Offset(0, 4)),
           ],
         ),
-        child: Row(
+        child: IntrinsicHeight(
+          child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 좌측 아이콘 영역
             Container(
               width: 88,
-              height: 100,
+              constraints: const BoxConstraints(minHeight: 100),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [benefit.gradientStart, benefit.gradientEnd],
@@ -255,7 +254,7 @@ class _BenefitBannerCard extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(15)),
+                    left: Radius.circular(16)),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -307,9 +306,9 @@ class _BenefitBannerCard extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       benefit.subtitle,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: Color(0xFF6B7280),
                         height: 1.4,
                       ),
                       maxLines: 2,
@@ -325,7 +324,7 @@ class _BenefitBannerCard extends StatelessWidget {
                   color: Colors.grey.shade400, size: 20),
             ),
           ],
-        ),
+        )),
       ),
     );
   }

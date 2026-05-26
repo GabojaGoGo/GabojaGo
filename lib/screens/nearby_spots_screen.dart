@@ -3,9 +3,11 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:geolocator/geolocator.dart';
+import 'package:image/image.dart' as img;
 import 'package:kakao_maps_flutter/kakao_maps_flutter.dart';
 
 import '../services/api_service.dart';
@@ -24,10 +26,10 @@ class NearbySpotsScreen extends StatefulWidget {
 
   const NearbySpotsScreen({
     super.key,
-    required this.spots,
-    required this.currentLat,
-    required this.currentLng,
-    required this.locationName,
+    this.spots = const [],
+    this.currentLat = 0.0,
+    this.currentLng = 0.0,
+    this.locationName = '',
     this.initialSpotId,
   });
 
@@ -57,6 +59,12 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
   int _currentCardIndex = 0;
   int? _programmaticTargetPage;     // animateToPage 목표 페이지 — 도달 전까지 onPageChanged 무시
 
+  // 탭으로 사용될 때 자체 GPS 초기화 상태
+  late double _lat;
+  late double _lng;
+  late String _locName;
+  bool _isInitializing = false;
+
   // 카메라 이동 종료 스트림 구독 + 마커 탭 스트림 구독
   StreamSubscription<CameraMoveEndEvent>? _cameraSub;
   StreamSubscription<LabelClickEvent>? _labelSub;
@@ -74,23 +82,55 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
   @override
   void initState() {
     super.initState();
-    // 초기 목록: 홈에서 넘긴 데이터로 즉시 표시 (거리순 정렬)
-    _sortedSpots = [...widget.spots]
-      ..sort((a, b) {
-        final dA = Geolocator.distanceBetween(
-            widget.currentLat, widget.currentLng, a.latitude, a.longitude);
-        final dB = Geolocator.distanceBetween(
-            widget.currentLat, widget.currentLng, b.latitude, b.longitude);
-        return dA.compareTo(dB);
-      });
+    _lat = widget.currentLat;
+    _lng = widget.currentLng;
+    _locName = widget.locationName.isEmpty ? '위치 확인 중...' : widget.locationName;
     _cardController = PageController(viewportFraction: 0.88);
-    // 최초 fetch 중심 = 현재 GPS 위치
-    _lastFetchCenter =
-        LatLng(latitude: widget.currentLat, longitude: widget.currentLng);
-    // 진입 즉시 100개로 재요청
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchSpotsFull(widget.currentLat, widget.currentLng);
-    });
+
+    if (widget.currentLat == 0.0) {
+      // 탭으로 진입: GPS 자체 취득
+      _isInitializing = true;
+      _sortedSpots = [];
+      WidgetsBinding.instance.addPostFrameCallback((_) => _initFromGps());
+    } else {
+      // 파라미터로 진입: 넘긴 데이터 즉시 표시 후 풀 fetch
+      _sortedSpots = [...widget.spots]
+        ..sort((a, b) {
+          final dA = Geolocator.distanceBetween(_lat, _lng, a.latitude, a.longitude);
+          final dB = Geolocator.distanceBetween(_lat, _lng, b.latitude, b.longitude);
+          return dA.compareTo(dB);
+        });
+      _lastFetchCenter = LatLng(latitude: _lat, longitude: _lng);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fetchSpotsFull(_lat, _lng));
+    }
+  }
+
+  Future<void> _initFromGps() async {
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (mounted) setState(() => _isInitializing = false);
+        return;
+      }
+      final position = await ApiService.getCurrentLocation();
+      final address = await ApiService.getAddressFromLatLng(
+          position.latitude, position.longitude);
+      if (!mounted) return;
+      setState(() {
+        _lat = position.latitude;
+        _lng = position.longitude;
+        _locName = address;
+        _lastFetchCenter = LatLng(latitude: _lat, longitude: _lng);
+        _isInitializing = false;
+      });
+      await _fetchSpotsFull(_lat, _lng);
+    } catch (_) {
+      if (mounted) setState(() => _isInitializing = false);
+    }
   }
 
   Future<void> _fetchSpotsFull(double lat, double lng) async {
@@ -153,17 +193,25 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     final highCount = spots.where((s) => s.congestion == '높음').length;
     final isRelaxed = spots.isEmpty || lowCount >= highCount;
 
+    if (_isInitializing) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('내 주변 관광지')),
+        body: const Center(
+          child: CircularProgressIndicator(color: Color(0xFF1B8C6E)),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.locationName} 주변'),
+        title: Text('$_locName 주변'),
       ),
       // 지도 전체화면 — 배너·카드 모두 hover overlay
       body: Stack(
         children: [
           // ── 지도 (전체 body) ───────────────────────────────────
           KakaoMap(
-            initialPosition: LatLng(
-                latitude: widget.currentLat, longitude: widget.currentLng),
+            initialPosition: LatLng(latitude: _lat, longitude: _lng),
             initialLevel: 14,
             onMapCreated: _handleMapCreated,
           ),
@@ -537,13 +585,12 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
         markerOptions: [
           MarkerOption(
             id: _currentMarkerId,
-            latLng: LatLng(
-                latitude: widget.currentLat, longitude: widget.currentLng),
+            latLng: LatLng(latitude: _lat, longitude: _lng),
             styleId: _currentMarkerStyleId,
             rank: 10000,
             text: '내 위치',
           ),
-          ...widget.spots.asMap().entries.map(
+          ..._sortedSpots.asMap().entries.map(
             (entry) => MarkerOption(
               id: entry.value.id.toString(),
               latLng: LatLng(
@@ -617,8 +664,8 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     await controller.moveCamera(
       cameraUpdate: CameraUpdate(
         position: LatLng(
-          latitude: widget.currentLat - offset,
-          longitude: widget.currentLng,
+          latitude: _lat - offset,
+          longitude: _lng,
         ),
         zoomLevel: 14,
         type: 0,
@@ -794,8 +841,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
         markerOptions: [
           MarkerOption(
             id: _currentMarkerId,
-            latLng: LatLng(
-                latitude: widget.currentLat, longitude: widget.currentLng),
+            latLng: LatLng(latitude: _lat, longitude: _lng),
             styleId: _currentMarkerStyleId,
             rank: 10000,
             text: '내 위치',
@@ -856,7 +902,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     }
 
     final distM = Geolocator.distanceBetween(
-        widget.currentLat, widget.currentLng, spot.latitude, spot.longitude);
+        _lat, _lng, spot.latitude, spot.longitude);
     final distLabel = distM < 1000
         ? '${distM.round()}m'
         : '${(distM / 1000).toStringAsFixed(distM >= 10000 ? 0 : 1)}km';
@@ -882,12 +928,13 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
         borderRadius: BorderRadius.circular(16),
         border: isActive
             ? Border.all(color: const Color(0xFF1B8C6E), width: 1.5)
-            : Border.all(color: Colors.grey.shade200),
+            : null,
         boxShadow: [
+          const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
           BoxShadow(
-            color: Colors.black.withValues(alpha: isActive ? 0.14 : 0.07),
-            blurRadius: isActive ? 12 : 6,
-            offset: const Offset(0, 3),
+            color: Color(isActive ? 0x24000000 : 0x0A000000),
+            blurRadius: isActive ? 12 : 8,
+            offset: Offset(0, isActive ? 4 : 2),
           ),
         ],
       ),
@@ -1018,7 +1065,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     }
 
     final distM = Geolocator.distanceBetween(
-        widget.currentLat, widget.currentLng, spot.latitude, spot.longitude);
+        _lat, _lng, spot.latitude, spot.longitude);
     final distLabel = distM < 1000
         ? '${distM.round()}m'
         : '${(distM / 1000).toStringAsFixed(distM >= 10000 ? 0 : 1)}km';
@@ -1169,8 +1216,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
 
     final image =
         await recorder.endRecording().toImage(w.toInt(), h.toInt());
-    final data = await image.toByteData(format: ui.ImageByteFormat.png);
-    return data!.buffer.asUint8List();
+    return _toRgba8Png(image);
   }
 
   Path _pinPath(double cx, double cy, double r, double tipY) {
@@ -1207,8 +1253,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
 
     final image =
         await recorder.endRecording().toImage(w.toInt(), h.toInt());
-    final data = await image.toByteData(format: ui.ImageByteFormat.png);
-    return data!.buffer.asUint8List();
+    return _toRgba8Png(image);
   }
 
   /// 이전 하이라이트 마커를 일반 스타일로, 새 마커를 하이라이트 스타일로 교체.
@@ -1266,11 +1311,42 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
 
     final image =
         await recorder.endRecording().toImage(size.toInt(), size.toInt());
-    final byteData =
-        await image.toByteData(format: ui.ImageByteFormat.png);
-    if (byteData == null) throw StateError('marker bytes failed');
-    return byteData.buffer.asUint8List();
+    return _toRgba8Png(image);
   }
+
+  /// ui.Image → KakaoMaps SDK가 지원하는 8-bit RGBA PNG로 변환.
+  /// Flutter의 기본 png 인코더가 일부 iOS 버전에서 16-bit 채널 PNG를
+  /// 생성하여 KakaoMaps에서 "unsupport png pixel format: 7" 크래시가 발생하므로
+  /// image 패키지로 강제 8-bit 인코딩. encodePng는 CPU 집약적이므로 isolate에서 실행.
+  Future<Uint8List> _toRgba8Png(ui.Image uiImage) async {
+    final rawData =
+        await uiImage.toByteData(format: ui.ImageByteFormat.rawRgba);
+    if (rawData == null) throw StateError('marker rawRgba failed');
+    return compute(_encodePng8bit, _PngEncodeParams(
+      width: uiImage.width,
+      height: uiImage.height,
+      rgba: rawData.buffer.asUint8List(),
+    ));
+  }
+}
+
+// ── PNG 8-bit 인코딩 (isolate용 top-level) ────────────────────────
+
+class _PngEncodeParams {
+  final int width;
+  final int height;
+  final Uint8List rgba;
+  const _PngEncodeParams({required this.width, required this.height, required this.rgba});
+}
+
+Uint8List _encodePng8bit(_PngEncodeParams p) {
+  final image = img.Image.fromBytes(
+    width: p.width,
+    height: p.height,
+    bytes: p.rgba.buffer,
+    numChannels: 4,
+  );
+  return Uint8List.fromList(img.encodePng(image));
 }
 
 // ── 혼잡도 배너 위젯 ───────────────────────────────────────────────

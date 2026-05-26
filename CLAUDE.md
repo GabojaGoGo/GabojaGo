@@ -48,9 +48,9 @@ tripmate/
 │       ├── planner_screen.dart            # 플래너 (취향 기반 자동 코스추천 + AppBar 북마크로 내플래너)
 │       ├── subsidy_screen.dart            # 혜택·보조금 (is_repeatable 지원)
 │       └── benefit_detail_screen.dart     # 보조금 상세 (외부링크→앱복귀감지→신청완료확인)
-├── backend/
+├── gabojago-backend/              # ← 백엔드 기준 디렉터리 (backend/는 제거 예정)
 │   ├── .env                       # DB/카카오/JWT 키 (절대 커밋 금지)
-│   └── src/main/java/com/tripmate/backend/
+│   └── src/main/java/com/gabojago/
 │       ├── auth/                  # 카카오OAuth, JWT, 토큰갱신
 │       ├── user/                  # User, UserProfile, UserSession
 │       ├── userdata/              # Footprint, BucketItem, BenefitReport, Preference
@@ -122,11 +122,13 @@ tripmate/
 ### 백엔드 재빌드
 ```bash
 # 맥북 (Docker 로컬 실행 시)
-cd ~/tripmate/backend && docker compose up --build -d
+cd ~/tripmate/gabojago-backend && docker compose up --build -d
 docker compose logs -f backend
 
-# 아이맥 (Docker 원격 실행 시) — 변경 파일 먼저 동기화 후
-ssh imac "cd ~/tripmate/backend && docker compose up --build -d"
+# 아이맥 (Docker 원격 실행 시) — deploy-imac.sh 실행
+bash ~/tripmate/gabojago-backend/scripts/deploy-imac.sh
+# 또는 직접:
+ssh imac "cd ~/tripmate/gabojago-backend && docker compose up --build -d"
 ```
 
 ## API 엔드포인트 요약
@@ -222,7 +224,7 @@ static Future<T> getSomething(params) async {
 - `CourseDetailScreen(course, purposes)` — places 이미 있으면 재사용, 없으면 getCourseDetail 호출
 - 플래너 취향 변경 감지: `didChangeDependencies()`에서 `UserPrefsScope.of(context).prefs` 비교
 
-### 외부 API 키 위치 (backend/.env)
+### 외부 API 키 위치 (gabojago-backend/.env)
 - `KAKAO_REST_API_KEY` — Kakao Local + Kakao Direction + OAuth 공용
 - `TOUR_API_SERVICE_KEY` — 한국관광공사 TourAPI 공용 (areaBasedList2/detailIntro2/detailInfo2/detailCommon2)
 

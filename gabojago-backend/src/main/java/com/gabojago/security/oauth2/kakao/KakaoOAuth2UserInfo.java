@@ -28,20 +28,29 @@ public class KakaoOAuth2UserInfo implements OAuth2UserInfo {
 
     @Override
     public String getEmail() {
-        return (String) getKakaoAccount().get("email");
+        Map<String, Object> account = getKakaoAccount();
+        if (account == null) return null;
+        return (String) account.get("email");
     }
 
     @Override
     public String getNickname() {
         Map<String, Object> profile = getProfile();
+        if (profile == null) return null;
         return (String) profile.get("nickname");
     }
 
     private Map<String, Object> getKakaoAccount() {
-        return OBJECT_MAPPER.convertValue(attributes.get("kakao_account"), MAP_TYPE);
+        Object kakaoAccount = attributes.get("kakao_account");
+        if (kakaoAccount == null) return null;
+        return OBJECT_MAPPER.convertValue(kakaoAccount, MAP_TYPE);
     }
 
     private Map<String, Object> getProfile() {
-        return OBJECT_MAPPER.convertValue(getKakaoAccount().get("profile"), MAP_TYPE);
+        Map<String, Object> account = getKakaoAccount();
+        if (account == null) return null;
+        Object profile = account.get("profile");
+        if (profile == null) return null;
+        return OBJECT_MAPPER.convertValue(profile, MAP_TYPE);
     }
 }
