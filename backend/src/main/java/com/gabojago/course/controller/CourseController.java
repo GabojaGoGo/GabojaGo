@@ -1,9 +1,9 @@
-package com.tripmate.backend.course.controller;
+package com.gabojago.course.controller;
 
-import com.tripmate.backend.common.aop.TrackExecutionTime;
-import com.tripmate.backend.course.dto.CourseDetailDto;
-import com.tripmate.backend.course.dto.CourseDto;
-import com.tripmate.backend.course.service.CourseService;
+import com.gabojago.global.aop.TrackExecutionTime;
+import com.gabojago.course.dto.response.CourseDetailDto;
+import com.gabojago.course.dto.response.CourseDto;
+import com.gabojago.course.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

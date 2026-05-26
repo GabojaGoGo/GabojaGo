@@ -1,9 +1,9 @@
-package com.tripmate.backend.benefit.controller;
+package com.gabojago.benefit.controller;
 
-import com.tripmate.backend.benefit.dto.BenefitDto;
-import com.tripmate.backend.benefit.service.BenefitService;
-import com.tripmate.backend.benefit.service.VacationSupportSyncScheduler;
-import com.tripmate.backend.common.aop.TrackExecutionTime;
+import com.gabojago.benefit.dto.response.BenefitDto;
+import com.gabojago.benefit.service.BenefitService;
+import com.gabojago.benefit.service.VacationSupportSyncScheduler;
+import com.gabojago.global.aop.TrackExecutionTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

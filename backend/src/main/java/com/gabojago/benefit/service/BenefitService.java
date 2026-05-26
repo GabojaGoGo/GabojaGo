@@ -1,7 +1,7 @@
-package com.tripmate.backend.benefit.service;
+package com.gabojago.benefit.service;
 
-import com.tripmate.backend.benefit.domain.BenefitRepository;
-import com.tripmate.backend.benefit.dto.BenefitDto;
+import com.gabojago.benefit.repository.BenefitRepository;
+import com.gabojago.benefit.dto.response.BenefitDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

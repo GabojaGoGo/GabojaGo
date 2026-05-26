@@ -1,20 +1,21 @@
-package com.tripmate.backend.auth.controller;
+package com.gabojago.auth.controller;
 
-import com.tripmate.backend.auth.dto.*;
-import com.tripmate.backend.auth.service.AuthFacade;
-import com.tripmate.backend.auth.service.KakaoOAuthService;
-import com.tripmate.backend.auth.token.RefreshTokenService;
-import com.tripmate.backend.auth.token.TokenService;
+import com.gabojago.auth.dto.request.LogoutRequest;
+import com.gabojago.auth.dto.request.OAuthLoginRequest;
+import com.gabojago.auth.dto.request.RefreshRequest;
+import com.gabojago.auth.dto.response.OAuthLoginResponse;
+import com.gabojago.auth.service.AuthFacade;
+import com.gabojago.auth.service.OAuthLoginService;
+import com.gabojago.auth.service.RefreshTokenService;
+import com.gabojago.security.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
@@ -26,50 +27,18 @@ import java.util.Map;
 @Slf4j
 public class AuthController {
 
-    private final KakaoOAuthService kakaoOAuthService;
+    private final OAuthLoginService oauthLoginService;
     private final AuthFacade authFacade;
     private final RefreshTokenService refreshTokenService;
-    private final TokenService tokenService;
+    private final JwtUtils jwtUtils;
 
-    @Value("${app.deep-link-scheme}")
-    private String deepLinkScheme;
-
-    /** 1단계: 로그인 시작 */
-    @GetMapping("/kakao/start")
-    public ResponseEntity<LoginStartResponse> startKakaoLogin(
-            @RequestParam(defaultValue = "ANDROID") String platform,
-            HttpServletRequest request) {
-        LoginStartResponse response = kakaoOAuthService.startLogin(platform, request);
+    /** OAuth SDK 로그인: 앱이 받은 provider access token을 서버에서 검증한 뒤 자체 토큰 발급 */
+    @PostMapping("/oauth/login")
+    public ResponseEntity<OAuthLoginResponse> oauthLogin(@Valid @RequestBody OAuthLoginRequest req,
+                                                         HttpServletRequest request) {
+        String ipHash = hashIp(request.getRemoteAddr());
+        OAuthLoginResponse response = oauthLoginService.login(req.provider(), req.accessToken(), ipHash);
         return ResponseEntity.ok(response);
-    }
-
-    /** 2단계: 카카오 콜백 (카카오에서 직접 호출) */
-    @GetMapping("/kakao/callback")
-    public ResponseEntity<Void> kakaoCallback(
-            @RequestParam String code,
-            @RequestParam String state,
-            HttpServletRequest request) {
-        try {
-            String ipHash = hashIp(request.getRemoteAddr());
-            String loginRequestId = kakaoOAuthService.handleCallback(code, state, ipHash);
-            String redirectUri = deepLinkScheme + "?id=" + loginRequestId;
-            return ResponseEntity.status(302).location(URI.create(redirectUri)).build();
-        } catch (Exception e) {
-            log.error("카카오 콜백 처리 실패", e);
-            String errorRedirect = deepLinkScheme + "?error=callback_failed";
-            return ResponseEntity.status(302).location(URI.create(errorRedirect)).build();
-        }
-    }
-
-    /** 3단계: 앱에서 토큰 교환 */
-    @PostMapping("/mobile/exchange")
-    public ResponseEntity<TokenExchangeResponse> exchangeToken(@RequestParam String id) {
-        try {
-            TokenExchangeResponse response = kakaoOAuthService.exchangeToken(id);
-            return ResponseEntity.ok(response);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(410).build(); // Gone
-        }
     }
 
     /** Refresh Token 갱신 */
@@ -80,7 +49,7 @@ public class AuthController {
             String ipHash = hashIp(request.getRemoteAddr());
             RefreshTokenService.RotationResult result =
                     refreshTokenService.rotate(req.refreshToken(), null, ipHash);
-            String newAccessToken = tokenService.generateAccessToken(result.userId());
+            String newAccessToken = jwtUtils.generateAccessToken(result.userId());
             return ResponseEntity.ok(Map.of(
                     "accessToken", newAccessToken,
                     "refreshToken", result.newRefreshToken()
@@ -98,7 +67,7 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    /** 회원 탈퇴 + 카카오 unlink */
+    /** 회원 탈퇴 + provider unlink */
     @PostMapping("/unlink")
     public ResponseEntity<Void> unlink(@AuthenticationPrincipal String userId) {
         authFacade.unlink(userId);

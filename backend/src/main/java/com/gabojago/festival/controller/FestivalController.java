@@ -1,8 +1,8 @@
-package com.tripmate.backend.festival.controller;
+package com.gabojago.festival.controller;
 
-import com.tripmate.backend.common.aop.TrackExecutionTime;
-import com.tripmate.backend.festival.dto.FestivalDto;
-import com.tripmate.backend.festival.service.FestivalService;
+import com.gabojago.global.aop.TrackExecutionTime;
+import com.gabojago.festival.dto.response.FestivalDto;
+import com.gabojago.festival.service.FestivalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,4 +23,5 @@ public class FestivalController {
     public List<FestivalDto> getNearbyFestivals(@RequestParam double lat, @RequestParam double lng) {
         return festivalService.getNearbyFestivals(lat, lng);
     }
+
 }

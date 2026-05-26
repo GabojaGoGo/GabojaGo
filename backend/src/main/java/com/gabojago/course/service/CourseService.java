@@ -1,13 +1,13 @@
-package com.tripmate.backend.course.service;
+package com.gabojago.course.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.tripmate.backend.common.aop.TrackExecutionTime;
-import com.tripmate.backend.course.dto.CourseDetailDto;
-import com.tripmate.backend.course.dto.CourseDto;
-import com.tripmate.backend.infrastructure.kakao.KakaoDirectionClient;
-import com.tripmate.backend.infrastructure.kakao.KakaoLocalClient;
-import com.tripmate.backend.infrastructure.tourapi.TourApiClient;
-import com.tripmate.backend.infrastructure.tourapi.dto.TourApiResponse;
+import com.gabojago.global.aop.TrackExecutionTime;
+import com.gabojago.course.dto.response.CourseDetailDto;
+import com.gabojago.course.dto.response.CourseDto;
+import com.gabojago.infrastructure.kakao.KakaoDirectionClient;
+import com.gabojago.infrastructure.kakao.KakaoLocalClient;
+import com.gabojago.infrastructure.tourapi.TourApiClient;
+import com.gabojago.infrastructure.tourapi.dto.TourApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

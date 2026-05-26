@@ -1,8 +1,8 @@
-package com.tripmate.backend.user.controller;
+package com.gabojago.user.controller;
 
-import com.tripmate.backend.user.dto.MeResponse;
-import com.tripmate.backend.user.dto.UpdateProfileRequest;
-import com.tripmate.backend.user.service.UserService;
+import com.gabojago.user.dto.response.MeResponse;
+import com.gabojago.user.dto.request.UpdateProfileRequest;
+import com.gabojago.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

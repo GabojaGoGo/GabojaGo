@@ -1,4 +1,4 @@
-package com.tripmate.backend.infrastructure.tourapi.dto;
+package com.gabojago.infrastructure.tourapi.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import java.util.List;

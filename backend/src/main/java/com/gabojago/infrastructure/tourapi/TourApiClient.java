@@ -1,10 +1,10 @@
-package com.tripmate.backend.infrastructure.tourapi;
+package com.gabojago.infrastructure.tourapi;
 
-import com.tripmate.backend.common.aop.TrackExecutionTime;
+import com.gabojago.global.aop.TrackExecutionTime;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tripmate.backend.infrastructure.tourapi.dto.TourApiResponse;
-import com.tripmate.backend.infrastructure.tourapi.service.CongestionApiStorageService;
+import com.gabojago.infrastructure.tourapi.dto.TourApiResponse;
+import com.gabojago.infrastructure.tourapi.service.CongestionApiStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

@@ -1,9 +1,9 @@
-package com.tripmate.backend.infrastructure.tourapi.service;
-import com.tripmate.backend.common.aop.TrackExecutionTime;
-import com.tripmate.backend.infrastructure.tourapi.domain.AreaDailyTotal;
-import com.tripmate.backend.infrastructure.tourapi.domain.AreaDailyTotalRepository;
-import com.tripmate.backend.infrastructure.tourapi.domain.SigunguDailyTotal;
-import com.tripmate.backend.infrastructure.tourapi.domain.SigunguDailyTotalRepository;
+package com.gabojago.infrastructure.tourapi.service;
+import com.gabojago.global.aop.TrackExecutionTime;
+import com.gabojago.infrastructure.tourapi.domain.AreaDailyTotal;
+import com.gabojago.infrastructure.tourapi.repository.AreaDailyTotalRepository;
+import com.gabojago.infrastructure.tourapi.domain.SigunguDailyTotal;
+import com.gabojago.infrastructure.tourapi.repository.SigunguDailyTotalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
