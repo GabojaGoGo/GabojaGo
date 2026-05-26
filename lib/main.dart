@@ -10,6 +10,7 @@ import 'models/user_prefs.dart';
 import 'services/auth_service.dart';
 import 'services/user_data_service.dart';
 import 'services/notification_service.dart';
+import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
@@ -39,13 +40,6 @@ void main() async {
   runApp(const GabojaGoApp());
 }
 
-/// 로그인 상태 → 시작 라우트 결정
-String _startRoute() {
-  final auth = AuthService.instance;
-  if (!auth.isLoggedIn)  return '/login';
-  if (!auth.hasNickname) return '/onboarding';
-  return '/main';
-}
 
 class GabojaGoApp extends StatefulWidget {
   const GabojaGoApp({super.key});
@@ -89,9 +83,10 @@ class _GabojaGoAppState extends State<GabojaGoApp> {
           shadowColor: Colors.transparent,
         ),
       ),
-      // 앱 시작 → 로그인 상태에 따라 분기
-      initialRoute: _startRoute(),
+      // 앱 시작 → 스플래시 화면 (2초 후 로그인 상태에 따라 분기)
+      initialRoute: '/splash',
       routes: {
+        '/splash':     (_) => const SplashScreen(),
         '/login':      (_) => const LoginScreen(),
         '/onboarding': (_) => const OnboardingScreen(),
         '/main':       (_) => const MainShell(),
