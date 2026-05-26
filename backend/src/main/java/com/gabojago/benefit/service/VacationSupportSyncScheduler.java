@@ -1,11 +1,11 @@
-package com.tripmate.backend.benefit.service;
+package com.gabojago.benefit.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.tripmate.backend.benefit.domain.Benefit;
-import com.tripmate.backend.benefit.domain.BenefitRepository;
+import com.gabojago.benefit.domain.Benefit;
+import com.gabojago.benefit.repository.BenefitRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

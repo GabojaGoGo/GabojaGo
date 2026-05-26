@@ -1,4 +1,4 @@
-package com.tripmate.backend.userdata.domain;
+package com.gabojago.userdata.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

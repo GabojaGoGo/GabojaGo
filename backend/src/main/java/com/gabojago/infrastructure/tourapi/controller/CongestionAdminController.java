@@ -1,12 +1,12 @@
-package com.tripmate.backend.infrastructure.tourapi.controller;
+package com.gabojago.infrastructure.tourapi.controller;
 
-import com.tripmate.backend.common.aop.TrackExecutionTime;
-import com.tripmate.backend.infrastructure.tourapi.dto.CongestionBatchDetailDto;
-import com.tripmate.backend.infrastructure.tourapi.dto.CongestionBatchRowDto;
-import com.tripmate.backend.infrastructure.tourapi.dto.CongestionBatchSummaryDto;
-import com.tripmate.backend.infrastructure.tourapi.dto.CongestionDeleteResponse;
-import com.tripmate.backend.infrastructure.tourapi.dto.CongestionSaveResponse;
-import com.tripmate.backend.infrastructure.tourapi.service.CongestionAdminService;
+import com.gabojago.global.aop.TrackExecutionTime;
+import com.gabojago.infrastructure.tourapi.dto.CongestionBatchDetailDto;
+import com.gabojago.infrastructure.tourapi.dto.CongestionBatchRowDto;
+import com.gabojago.infrastructure.tourapi.dto.CongestionBatchSummaryDto;
+import com.gabojago.infrastructure.tourapi.dto.CongestionDeleteResponse;
+import com.gabojago.infrastructure.tourapi.dto.CongestionSaveResponse;
+import com.gabojago.infrastructure.tourapi.service.CongestionAdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

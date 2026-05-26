@@ -1,9 +1,9 @@
-package com.tripmate.backend.spot.controller;
+package com.gabojago.spot.controller;
 
-import com.tripmate.backend.common.aop.TrackExecutionTime;
-import com.tripmate.backend.spot.dto.SpotCongestionDto;
-import com.tripmate.backend.spot.dto.SpotDto;
-import com.tripmate.backend.spot.service.SpotService;
+import com.gabojago.global.aop.TrackExecutionTime;
+import com.gabojago.spot.dto.response.SpotCongestionDto;
+import com.gabojago.spot.dto.response.SpotDto;
+import com.gabojago.spot.service.SpotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

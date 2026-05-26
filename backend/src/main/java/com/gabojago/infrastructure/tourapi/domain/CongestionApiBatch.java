@@ -1,4 +1,4 @@
-package com.tripmate.backend.infrastructure.tourapi.domain;
+package com.gabojago.infrastructure.tourapi.domain;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

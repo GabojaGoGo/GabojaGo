@@ -1,4 +1,4 @@
-package com.tripmate.backend.benefit.domain;
+package com.gabojago.benefit.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

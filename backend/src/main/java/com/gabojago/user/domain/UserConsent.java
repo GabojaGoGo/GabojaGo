@@ -1,13 +1,13 @@
-package com.tripmate.backend.user.domain;
+package com.gabojago.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
 @Table(name = "user_consents")
-@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserConsent {
 

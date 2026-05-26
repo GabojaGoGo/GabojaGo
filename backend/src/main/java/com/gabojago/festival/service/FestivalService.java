@@ -1,9 +1,9 @@
-package com.tripmate.backend.festival.service;
+package com.gabojago.festival.service;
 
-import com.tripmate.backend.common.aop.TrackExecutionTime;
-import com.tripmate.backend.festival.dto.FestivalDto;
-import com.tripmate.backend.infrastructure.tourapi.TourApiClient;
-import com.tripmate.backend.infrastructure.tourapi.dto.TourApiResponse;
+import com.gabojago.global.aop.TrackExecutionTime;
+import com.gabojago.festival.dto.response.FestivalDto;
+import com.gabojago.infrastructure.tourapi.TourApiClient;
+import com.gabojago.infrastructure.tourapi.dto.TourApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

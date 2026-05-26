@@ -1,7 +1,7 @@
-package com.tripmate.backend.spot.service;
+package com.gabojago.spot.service;
 
-import com.tripmate.backend.common.aop.TrackExecutionTime;
-import com.tripmate.backend.infrastructure.tourapi.TourApiClient;
+import com.gabojago.global.aop.TrackExecutionTime;
+import com.gabojago.infrastructure.tourapi.TourApiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
