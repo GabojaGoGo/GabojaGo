@@ -1,30 +1,32 @@
-package com.tripmate.backend.user.domain;
+package com.gabojago.user.domain;
 
+import com.gabojago.global.domain.BaseTimeEntity;
+import com.gabojago.user.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Getter
 @Entity
 @Table(name = "users")
-@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends BaseTimeEntity {
 
     @Id
     @Column(length = 36)
     private String id;
 
-    @Convert(converter = UserStatusConverter.class)
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private UserStatus status;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(nullable = false, length = 100)
+    private String nickname;
 
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    @Column(length = 255)
+    private String email;
 
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
@@ -35,20 +37,18 @@ public class User {
     @PrePersist
     private void prePersist() {
         if (this.id == null) this.id = UUID.randomUUID().toString();
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
     }
 
-    @PreUpdate
-    private void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    public static User createNew() {
+    public static User createNew(String nickname, String email) {
         User user = new User();
         user.status = UserStatus.ACTIVE;
+        user.nickname = nickname;
+        user.email = email;
         return user;
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
     }
 
     public void recordLogin() {

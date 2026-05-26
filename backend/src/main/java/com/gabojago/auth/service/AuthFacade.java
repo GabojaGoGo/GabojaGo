@@ -1,9 +1,9 @@
-package com.tripmate.backend.auth.service;
+package com.gabojago.auth.service;
 
-import com.tripmate.backend.auth.token.RefreshTokenService;
-import com.tripmate.backend.social.domain.SocialAccountRepository;
-import com.tripmate.backend.user.domain.User;
-import com.tripmate.backend.user.domain.UserRepository;
+import com.gabojago.security.oauth2.OAuthProviderClientRegistry;
+import com.gabojago.user.domain.User;
+import com.gabojago.user.repository.SocialAccountRepository;
+import com.gabojago.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ public class AuthFacade {
     private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
     private final RefreshTokenService refreshTokenService;
-    private final KakaoOAuthService kakaoOAuthService;
+    private final OAuthProviderClientRegistry providerClientRegistry;
 
     @Transactional
     public void logout(String userId, String rawRefreshToken) {
@@ -30,11 +30,11 @@ public class AuthFacade {
         // 1. 모든 세션 폐기
         refreshTokenService.revokeAllForUser(userId);
 
-        // 2. 카카오 unlink
-        socialAccountRepository.findAll().stream()
-                .filter(sa -> sa.getUserId().equals(userId) && "KAKAO".equals(sa.getProvider()))
-                .findFirst()
-                .ifPresent(sa -> kakaoOAuthService.unlinkKakao(sa.getProviderUserId()));
+        // 2. Provider unlink
+        socialAccountRepository.findByUser_Id(userId).stream()
+                .forEach(socialAccount -> providerClientRegistry
+                        .get(socialAccount.getProvider())
+                        .unlink(socialAccount.getProviderUserId()));
 
         // 3. 사용자 소프트 삭제
         userRepository.findById(userId).ifPresent(User::softDelete);

@@ -41,12 +41,6 @@ jwt:
   access-expiry-ms: 900000
   refresh-expiry-ms: 1209600000
 
-encryption:
-  key: ${ENCRYPTION_KEY}
-
-app:
-  deep-link-scheme: ${APP_DEEP_LINK_SCHEME:tripmate://auth/callback}
-
 springdoc:
   api-docs:
     path: /v3/api-docs

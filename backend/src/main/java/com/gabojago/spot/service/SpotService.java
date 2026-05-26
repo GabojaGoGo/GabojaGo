@@ -1,19 +1,19 @@
-package com.tripmate.backend.spot.service;
-import com.tripmate.backend.common.aop.TrackExecutionTime;
-import com.tripmate.backend.infrastructure.region.RegionCodeMapper;
-import com.tripmate.backend.infrastructure.tourapi.TourApiClient;
-import com.tripmate.backend.infrastructure.tourapi.dto.TourApiResponse;
-import com.tripmate.backend.infrastructure.tourapi.service.CongestionDailyQueryService;
-import com.tripmate.backend.spot.domain.SpotCongestionLog;
-import com.tripmate.backend.spot.domain.SpotCongestionLogRepository;
-import com.tripmate.backend.spot.dto.SpotCongestionDto;
-import com.tripmate.backend.spot.dto.SpotDto;
+package com.gabojago.spot.service;
+
+import com.gabojago.global.aop.TrackExecutionTime;
+import com.gabojago.infrastructure.region.RegionCodeMapper;
+import com.gabojago.infrastructure.tourapi.TourApiClient;
+import com.gabojago.infrastructure.tourapi.dto.TourApiResponse;
+import com.gabojago.infrastructure.tourapi.service.CongestionDailyQueryService;
+import com.gabojago.spot.domain.SpotCongestionLog;
+import com.gabojago.spot.repository.SpotCongestionLogRepository;
+import com.gabojago.spot.dto.response.SpotCongestionDto;
+import com.gabojago.spot.dto.response.SpotDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -21,11 +21,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @TrackExecutionTime
 public class SpotService {
+
     private static final String SPOT_CONTENT_TYPE_ID = "12";
     private static final int SPOT_RADIUS_METER = 20000;
     private static final String DEFAULT_IMAGE_URL = "https://via.placeholder.com/150";
@@ -39,12 +41,14 @@ public class SpotService {
     private final CongestionPredictionService congestionPredictionService;
     private final CongestionDailyQueryService congestionDailyQueryService;
     private final SpotCongestionLogRepository spotCongestionLogRepository;
+
     public List<SpotDto> getNearbySpots(double lat, double lng, int limit) {
         List<TourApiResponse.Item> items = fetchNearbySpotItems(lat, lng, limit);
         return items.stream()
                 .map(this::toSpotDto)
                 .collect(Collectors.toList());
     }
+
     public List<SpotCongestionDto> getNearbySpotCongestions(double lat, double lng, int limit) {
         List<TourApiResponse.Item> items = fetchNearbySpotItems(lat, lng, limit);
         if (items.isEmpty()) {
@@ -106,6 +110,7 @@ public class SpotService {
         saveCongestionLogs(congestions);
         return congestions;
     }
+
     private CongestionSourceBundle resolveCongestionSources(Set<String> neededSigunguCodes, Set<String> neededAreaCodes) {
         CongestionDailyQueryService.DailySnapshot dailySnapshot = congestionDailyQueryService.findTodaySnapshot();
         if (dailySnapshot.hasData()) {
@@ -127,6 +132,7 @@ public class SpotService {
                 : tourApiClient.fetchAreaVisitorCount();
         return new CongestionSourceBundle(sigunguResult, areaResult);
     }
+
     private List<TourApiResponse.Item> fetchNearbySpotItems(double lat, double lng, int limit) {
         TourApiResponse response = tourApiClient.fetchNearby(lat, lng, SPOT_CONTENT_TYPE_ID, SPOT_RADIUS_METER, limit);
         if (response == null
@@ -138,6 +144,7 @@ public class SpotService {
         }
         return response.getResponse().getBody().getItems().getItem();
     }
+
     private SpotDto toSpotDto(TourApiResponse.Item item) {
         return new SpotDto(
                 parseContentId(item),
@@ -151,6 +158,7 @@ public class SpotService {
                 null
         );
     }
+
     private long parseContentId(TourApiResponse.Item item) {
         return Long.parseLong(item.getContentid());
     }

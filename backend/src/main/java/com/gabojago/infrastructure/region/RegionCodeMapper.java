@@ -1,4 +1,4 @@
-package com.tripmate.backend.infrastructure.region;
+package com.gabojago.infrastructure.region;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;

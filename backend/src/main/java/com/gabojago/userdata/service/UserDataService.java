@@ -1,6 +1,7 @@
-package com.tripmate.backend.userdata.service;
+package com.gabojago.userdata.service;
 
-import com.tripmate.backend.userdata.domain.*;
+import com.gabojago.userdata.domain.*;
+import com.gabojago.userdata.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

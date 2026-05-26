@@ -1,7 +1,7 @@
-package com.tripmate.backend.userdata.controller;
+package com.gabojago.userdata.controller;
 
-import com.tripmate.backend.userdata.domain.*;
-import com.tripmate.backend.userdata.service.UserDataService;
+import com.gabojago.userdata.domain.*;
+import com.gabojago.userdata.service.UserDataService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;

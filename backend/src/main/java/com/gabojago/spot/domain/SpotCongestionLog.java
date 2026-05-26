@@ -1,4 +1,4 @@
-package com.tripmate.backend.spot.domain;
+package com.gabojago.spot.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,4 +40,5 @@ public class SpotCongestionLog {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
 }

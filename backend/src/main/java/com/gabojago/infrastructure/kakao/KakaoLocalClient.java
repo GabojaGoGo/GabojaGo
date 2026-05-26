@@ -1,4 +1,4 @@
-package com.tripmate.backend.infrastructure.kakao;
+package com.gabojago.infrastructure.kakao;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
