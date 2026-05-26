@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  대한민국 행정구역 단순화 일러스트 (TripMate 지역 선택 화면용)
+  - 17개 시도를 모두 포함 (특별시·광역시·도)
+  - id="region_{areaCode}" — TourAPI areaCode와 1:1 매칭
+  - data-name="시도명" — UI 라벨로 활용
+  - 정확한 행정구역 경계가 아닌 단순화된 일러스트
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 620" width="400" height="620">
+
+  <defs>
+    <style>
+      .region {
+        stroke: #ffffff;
+        stroke-width: 1.5;
+        stroke-linejoin: round;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.2s;
+      }
+      .region:hover { opacity: 0.85; }
+      .label {
+        font-family: 'Noto Sans KR', sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        fill: #2b2b2b;
+        text-anchor: middle;
+        pointer-events: none;
+      }
+      .label-sm { font-size: 9px; }
+    </style>
+  </defs>
+
+  <!-- 배경 (바다) -->
+  <rect width="400" height="620" fill="#E6F3FA"/>
+
+  <!-- ─────────── 본토 17개 시·도 ─────────── -->
+
+  <!-- 강원특별자치도 (areaCode 32) -->
+  <path id="region_32" data-name="강원" class="region"
+        fill="#A8D8B9"
+        d="M205,75 L290,68 L348,92 L355,150 L340,190 L285,195 L235,180 L200,150 L195,105 Z"/>
+
+  <!-- 경기도 (areaCode 31) -->
+  <path id="region_31" data-name="경기" class="region"
+        fill="#FFD8A8"
+        d="M95,108 L195,112 L210,150 L215,200 L195,215 L130,212 L100,180 L88,140 Z"/>
+
+  <!-- 서울특별시 (areaCode 1) -->
+  <path id="region_1" data-name="서울" class="region"
+        fill="#FF9AA2"
+        d="M148,128 L178,128 L182,150 L150,150 Z"/>
+
+  <!-- 인천광역시 (areaCode 2) -->
+  <path id="region_2" data-name="인천" class="region"
+        fill="#FFB7B2"
+        d="M85,135 L130,138 L130,168 L98,170 L80,158 Z"/>
+
+  <!-- 충청북도 (areaCode 33) -->
+  <path id="region_33" data-name="충북" class="region"
+        fill="#C7CEEA"
+        d="M200,180 L262,178 L275,255 L228,265 L200,240 Z"/>
+
+  <!-- 충청남도 (areaCode 34) -->
+  <path id="region_34" data-name="충남" class="region"
+        fill="#FFDAC1"
+        d="M75,205 L195,210 L200,270 L130,283 L78,255 Z"/>
+
+  <!-- 대전광역시 (areaCode 3) -->
+  <path id="region_3" data-name="대전" class="region"
+        fill="#E2C2FF"
+        d="M178,253 L202,253 L202,272 L178,272 Z"/>
+
+  <!-- 세종특별자치시 (areaCode 8) -->
+  <path id="region_8" data-name="세종" class="region"
+        fill="#B5EAD7"
+        d="M180,232 L196,232 L196,250 L180,250 Z"/>
+
+  <!-- 경상북도 (areaCode 35) -->
+  <path id="region_35" data-name="경북" class="region"
+        fill="#FFE194"
+        d="M240,178 L345,180 L362,250 L355,315 L300,320 L260,278 L245,228 Z"/>
+
+  <!-- 대구광역시 (areaCode 4) -->
+  <path id="region_4" data-name="대구" class="region"
+        fill="#FF6F69"
+        d="M268,272 L308,272 L312,305 L268,305 Z"/>
+
+  <!-- 울산광역시 (areaCode 7) -->
+  <path id="region_7" data-name="울산" class="region"
+        fill="#96CEB4"
+        d="M328,295 L360,295 L360,330 L325,332 Z"/>
+
+  <!-- 부산광역시 (areaCode 6) -->
+  <path id="region_6" data-name="부산" class="region"
+        fill="#FFCCBC"
+        d="M295,338 L338,338 L342,378 L295,378 Z"/>
+
+  <!-- 경상남도 (areaCode 36) -->
+  <path id="region_36" data-name="경남" class="region"
+        fill="#B5D8EB"
+        d="M212,275 L290,282 L295,340 L290,375 L228,365 L208,330 Z"/>
+
+  <!-- 전라북도 (areaCode 37) -->
+  <path id="region_37" data-name="전북" class="region"
+        fill="#F8B195"
+        d="M95,270 L200,272 L218,278 L210,338 L108,340 L90,310 Z"/>
+
+  <!-- 전라남도 (areaCode 38) -->
+  <path id="region_38" data-name="전남" class="region"
+        fill="#C9E4CA"
+        d="M62,338 L213,340 L218,378 L195,432 L155,468 L88,452 L58,400 Z"/>
+
+  <!-- 광주광역시 (areaCode 5) -->
+  <path id="region_5" data-name="광주" class="region"
+        fill="#F3D250"
+        d="M138,358 L172,358 L175,382 L138,382 Z"/>
+
+  <!-- ─────────── 제주특별자치도 (별도 섬) ─────────── -->
+
+  <!-- 제주도 (areaCode 39) -->
+  <path id="region_39" data-name="제주" class="region"
+        fill="#FFB6B9"
+        d="M105,520 L165,510 L218,520 L218,560 L160,575 L108,565 Z"/>
+
+  <!-- ─────────── 라벨 (도/광역시 이름) ─────────── -->
+
+  <text class="label" x="270" y="135">강원</text>
+  <text class="label" x="155" y="172">경기</text>
+  <text class="label label-sm" x="165" y="143">서울</text>
+  <text class="label label-sm" x="105" y="155">인천</text>
+  <text class="label" x="232" y="225">충북</text>
+  <text class="label" x="138" y="245">충남</text>
+  <text class="label label-sm" x="190" y="266">대전</text>
+  <text class="label label-sm" x="188" y="245">세종</text>
+  <text class="label" x="295" y="240">경북</text>
+  <text class="label label-sm" x="290" y="293">대구</text>
+  <text class="label label-sm" x="343" y="316">울산</text>
+  <text class="label label-sm" x="318" y="362">부산</text>
+  <text class="label" x="252" y="328">경남</text>
+  <text class="label" x="155" y="305">전북</text>
+  <text class="label" x="138" y="395">전남</text>
+  <text class="label label-sm" x="156" y="375">광주</text>
+  <text class="label" x="160" y="548">제주</text>
+
+</svg>
