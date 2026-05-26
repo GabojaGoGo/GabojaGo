@@ -25,43 +25,75 @@
 - **인증**: 카카오 OAuth PKCE → JWT (access 메모리 / refresh SecureStorage)
 - **지도**: 카카오맵 Flutter SDK
 
-## 디렉토리
+## 디렉토리 (monorepo)
 ```
-tripmate/
-├── lib/
-│   ├── main.dart                  # 앱 진입, 딥링크, MainShell
-│   ├── models/user_prefs.dart     # UserPrefs, UserPrefsScope
-│   ├── services/
-│   │   ├── auth_service.dart      # 로그인/로그아웃/JWT
-│   │   ├── api_service.dart       # 백엔드 API 호출
-│   │   ├── user_data_service.dart # 족적/버킷/혜택 로컬+서버 sync
-│   │   └── tour_api_service.dart  # 관광공사 API 직접 호출
-│   └── screens/
-│       ├── home_screen.dart               # 홈 (주변관광지·축제·개인화 인사+CTA)
-│       ├── nearby_spots_screen.dart       # 지도 전체보기 (반경 20km, 최대 300개)
-│       ├── spot_detail_screen.dart        # 관광지 상세
-│       ├── my_trip_screen.dart            # 기록탭 (족적·버킷·혜택)
-│       ├── travel_setup_screen.dart       # 취향설정 (showCourseResult 파라미터)
-│       ├── course_loading_screen.dart     # 코스 로딩 화면 (돋보기 애니메이션+취향칩, 취향있을때 CTA→여기로)
-│       ├── travel_course_result_screen.dart # 맞춤 코스 추천 결과 (preloadedCourses 파라미터)
-│       ├── course_detail_screen.dart      # 코스 상세 (장소 목록, 저장/해제)
-│       ├── planner_screen.dart            # 플래너 (취향 기반 자동 코스추천 + AppBar 북마크로 내플래너)
-│       ├── subsidy_screen.dart            # 혜택·보조금 (is_repeatable 지원)
-│       └── benefit_detail_screen.dart     # 보조금 상세 (외부링크→앱복귀감지→신청완료확인)
-├── gabojago-backend/              # ← 백엔드 기준 디렉터리 (backend/는 제거 예정)
-│   ├── .env                       # DB/카카오/JWT 키 (절대 커밋 금지)
+tripmate/                              # ← repo root
+├── gabojago-frontend/                 # Flutter 앱 (← 모든 Flutter 명령은 여기서 실행)
+│   ├── .env                           # API_BASE_URL, KAKAO_NATIVE_APP_KEY (커밋 금지)
+│   ├── .env.imac / .env.tailscale     # 환경별 설정 (커밋 금지)
+│   ├── pubspec.yaml
+│   ├── lib/
+│   │   ├── main.dart                  # 앱 진입, 딥링크, MainShell
+│   │   ├── models/user_prefs.dart     # UserPrefs, UserPrefsScope
+│   │   ├── services/
+│   │   │   ├── auth_service.dart      # 로그인/로그아웃/JWT
+│   │   │   ├── api_service.dart       # 백엔드 API 호출
+│   │   │   ├── user_data_service.dart # 족적/버킷/혜택 로컬+서버 sync
+│   │   │   └── tour_api_service.dart  # 관광공사 API 직접 호출
+│   │   └── screens/
+│   │       ├── splash_screen.dart             # 스플래시 (그라디언트 + 로고 페이드인)
+│   │       ├── login_screen.dart              # 소셜 로그인
+│   │       ├── home_screen.dart               # 홈 (주변관광지·축제·개인화 인사+CTA)
+│   │       ├── nearby_spots_screen.dart       # 지도 전체보기 (반경 20km, 최대 300개)
+│   │       ├── spot_detail_screen.dart        # 관광지 상세
+│   │       ├── my_trip_screen.dart            # 기록탭 (족적·버킷·혜택)
+│   │       ├── travel_setup_screen.dart       # 취향설정 (showCourseResult 파라미터)
+│   │       ├── course_loading_screen.dart     # 코스 로딩 화면 (돋보기 애니메이션+취향칩)
+│   │       ├── travel_course_result_screen.dart # 맞춤 코스 추천 결과
+│   │       ├── course_detail_screen.dart      # 코스 상세 (장소 목록, 저장/해제)
+│   │       ├── planner_screen.dart            # 플래너 (취향 기반 자동 코스추천)
+│   │       ├── subsidy_screen.dart            # 혜택·보조금 (is_repeatable 지원)
+│   │       └── benefit_detail_screen.dart     # 보조금 상세
+│   ├── assets/images/
+│   │   ├── app_icon.png               # 앱 아이콘 (배경 포함)
+│   │   └── app_logo.png               # 스플래시 로고 (투명 배경)
+│   ├── ios/ android/                  # 네이티브 플랫폼
+│   └── test/
+│
+├── gabojago-backend/                  # Spring Boot 백엔드
+│   ├── .env                           # DB/카카오/JWT 키 (커밋 금지)
+│   ├── scripts/
+│   │   ├── deploy-imac.sh             # Tailscale 배포 (jyy용)
+│   │   ├── deploy-imac-wifi.sh        # 같은 WiFi 배포 (협업자용)
+│   │   └── restart-imac.sh
 │   └── src/main/java/com/gabojago/
-│       ├── auth/                  # 카카오OAuth, JWT, 토큰갱신
-│       ├── user/                  # User, UserProfile, UserSession
-│       ├── userdata/              # Footprint, BucketItem, BenefitReport, Preference
-│       ├── spot/                  # 관광지 목록·혼잡도
-│       ├── festival/              # 축제 목록
-│       ├── course/                # CourseController, CourseService, CourseDto, CourseDetailDto
+│       ├── auth/                      # 카카오OAuth, JWT, 토큰갱신
+│       ├── user/                      # User, UserProfile, UserSession
+│       ├── userdata/                  # Footprint, BucketItem, BenefitReport, Preference
+│       ├── spot/                      # 관광지 목록·혼잡도
+│       ├── festival/                  # 축제 목록
+│       ├── course/                    # CourseController/Service/Dto
+│       ├── security/oauth2/           # OAuth2 클라이언트 (카카오/네이버/구글)
 │       └── infrastructure/
-│           ├── tourapi/           # TourApiClient (areaBasedList2, detailIntro2, detailInfo2, detailCommon2), 혼잡도 스케줄러
-│           └── kakao/             # KakaoLocalClient (주변맛집/숙박), KakaoDirectionClient (이동시간)
-└── .env                           # Flutter용 (API_BASE_URL, KAKAO_NATIVE_APP_KEY)
+│           ├── tourapi/               # TourApiClient (4종 API + 혼잡도 스케줄러)
+│           └── kakao/                 # KakaoLocalClient, KakaoDirectionClient
+│
+├── docs/                              # 프로젝트 문서
+│   ├── DESIGN.md                      # 디자인 시스템 (Airbnb 스타일 기반)
+│   ├── PROJECT.md                     # 프로젝트 개요
+│   ├── TripMate_연구분석_보고서.md
+│   └── TripMate_프로젝트_전체코드.md
+│
+├── CLAUDE.md                          # Claude 지침서 (현재 파일)
+├── AGENTS.md                          # 에이전트 지침서
+├── README.md
+└── .gitignore                         # **/.env, **/.dart_tool, **/build 등 monorepo 패턴
 ```
+
+> ⚠️ Flutter 명령은 반드시 `gabojago-frontend/` 안에서 실행:
+> ```bash
+> cd gabojago-frontend && flutter run --dart-define=ENV=tailscale
+> ```
 
 ## 핵심 규칙
 
@@ -93,7 +125,7 @@ tripmate/
 | `imac` | `.env.imac` | `http://192.168.1.182:8080/api` | 아이맥 Docker (같은 WiFi) |
 | `tailscale` | `.env.tailscale` | `http://100.104.150.127:8080/api` | 외부 접속 (Tailscale VPN) |
 
-- 실행: `flutter run --dart-define=ENV=imac` / `--dart-define=ENV=tailscale`
+- 실행: `cd gabojago-frontend && flutter run --dart-define=ENV=imac` / `--dart-define=ENV=tailscale`
 - `UserDataService._base` = baseUrl에서 `/api` 제거
 - 실기기 테스트 시 localhost 절대 사용 금지
 - Tailscale: 아이맥 IP `100.104.150.127`, 폰도 Tailscale 앱 로그인 필요
