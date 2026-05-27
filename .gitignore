@@ -18,9 +18,7 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
+# VS Code
 #.vscode/
 
 # Flutter/Dart/Pub related (gabojago-frontend/)
@@ -28,10 +26,23 @@ migrate_working_dir/
 **/ios/Flutter/.last_build_id
 **/.dart_tool/
 **/.flutter-plugins-dependencies
+**/.flutter-plugins
+**/devtools_options.yaml
 .pub-cache/
 .pub/
 
-# Environment 파일 (민감한 정보: API 키, 데이터베이스 자격증명 등)
+# Xcode / Swift Package Manager 캐시
+**/swiftpm/
+**/*.xcworkspace/xcshareddata/swiftpm/
+
+# 루트 실수 방지: flutter create가 루트에서 실행돼도 추적 안 됨
+/android/
+/ios/
+/linux/
+/macos/
+/windows/
+
+# Environment 파일 (민감한 정보: API 키, DB 자격증명 등)
 **/.env
 **/.env.local
 **/.env.imac
@@ -52,3 +63,7 @@ app.*.map.json
 gabojago-frontend/android/app/debug
 gabojago-frontend/android/app/profile
 gabojago-frontend/android/app/release
+
+# Backend
+gabojago-backend/.gradle/
+gabojago-backend/out/
