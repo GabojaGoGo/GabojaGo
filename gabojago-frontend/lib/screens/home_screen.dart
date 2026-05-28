@@ -116,6 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final benefitsRaw = await ApiService.getBenefits();
       final benefits = benefitsRaw;
 
+      if (!mounted) return;
       setState(() {
         _nearbyFestivalsList = festivalsRaw.map((f) {
           final map = f as Map<String, dynamic>;
@@ -132,6 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } catch (e) {
       debugPrint('Data fetch error: $e');
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }

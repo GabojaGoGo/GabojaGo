@@ -141,42 +141,48 @@ class _MyTripScreenState extends State<MyTripScreen> {
     final titleCtrl = TextEditingController();
     final areaCtrl  = TextEditingController();
     final noteCtrl  = TextEditingController();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('버킷리스트 추가', style: TextStyle(fontWeight: FontWeight.w800)),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(
-            controller: titleCtrl,
-            decoration: const InputDecoration(labelText: '여행지 / 목표'),
-            autofocus: true,
-          ),
-          TextField(
-            controller: areaCtrl,
-            decoration: const InputDecoration(labelText: '지역 (예: 강원도 속초)'),
-          ),
-          TextField(
-            controller: noteCtrl,
-            decoration: const InputDecoration(labelText: '메모 (선택)'),
-          ),
-        ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('추가', style: TextStyle(fontWeight: FontWeight.w700, color: _kPrimary)),
-          ),
-        ],
-      ),
-    );
-    if (ok == true && titleCtrl.text.trim().isNotEmpty) {
-      await UserDataService.instance.addBucketItem(
-        title: titleCtrl.text.trim(),
-        area:  areaCtrl.text.trim(),
-        note:  noteCtrl.text.trim(),
+    try {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('버킷리스트 추가', style: TextStyle(fontWeight: FontWeight.w800)),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(
+              controller: titleCtrl,
+              decoration: const InputDecoration(labelText: '여행지 / 목표'),
+              autofocus: true,
+            ),
+            TextField(
+              controller: areaCtrl,
+              decoration: const InputDecoration(labelText: '지역 (예: 강원도 속초)'),
+            ),
+            TextField(
+              controller: noteCtrl,
+              decoration: const InputDecoration(labelText: '메모 (선택)'),
+            ),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('추가', style: TextStyle(fontWeight: FontWeight.w700, color: _kPrimary)),
+            ),
+          ],
+        ),
       );
-      _refresh();
+      if (ok == true && titleCtrl.text.trim().isNotEmpty) {
+        await UserDataService.instance.addBucketItem(
+          title: titleCtrl.text.trim(),
+          area:  areaCtrl.text.trim(),
+          note:  noteCtrl.text.trim(),
+        );
+        _refresh();
+      }
+    } finally {
+      titleCtrl.dispose();
+      areaCtrl.dispose();
+      noteCtrl.dispose();
     }
   }
 

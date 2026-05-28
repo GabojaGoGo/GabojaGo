@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -158,15 +159,22 @@ class ApiService {
     String contentId, {
     List<String> purposes = const [],
   }) async {
-    final purposesParam = purposes.join(',');
-    final url = '$baseUrl/courses/$contentId/detail?purposes=$purposesParam';
-    final response = await http
-        .get(Uri.parse(url))
-        .timeout(const Duration(seconds: 30));
-    if (response.statusCode == 200) {
-      return json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    try {
+      final purposesParam = purposes.join(',');
+      final url = '$baseUrl/courses/$contentId/detail?purposes=$purposesParam';
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 30));
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      }
+      throw Exception('Server error: ${response.statusCode}');
+    } on TimeoutException {
+      throw Exception('코스 상세 요청 시간 초과');
+    } catch (e) {
+      debugPrint('[ApiService] getCourseDetail error: $e');
+      rethrow;
     }
-    throw Exception('Server error: ${response.statusCode}');
   }
 
   /// 코스 목록 + 각 코스 상세(places/distance/taketime)를 병렬로 로드
