@@ -4,7 +4,7 @@ import com.gabojago.global.aop.TrackExecutionTime;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gabojago.infrastructure.tourapi.dto.TourApiResponse;
-import com.gabojago.infrastructure.tourapi.service.CongestionApiStorageService;
+import com.gabojago.tourism.data.service.CongestionApiStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

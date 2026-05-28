@@ -1,3 +1,5 @@
+# bash gabojago-backend/scripts/deploy-imac-wifi.sh 실행
+
 #!/bin/bash
 set -e
 
