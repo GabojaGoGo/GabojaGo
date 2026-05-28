@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_prefs.dart';
 import '../services/auth_service.dart';
 import '../services/user_data_service.dart';
+import '../utils/app_theme.dart';
 import 'travel_course_result_screen.dart';
 
 class TravelSetupScreen extends StatefulWidget {
@@ -101,23 +102,30 @@ class _TravelSetupScreenState extends State<TravelSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
           onPressed: _goBack,
         ),
         title: Text(
           _currentPage == 0 ? '여행 목적 선택' : '여행 기간 선택',
-          style: const TextStyle(fontWeight: FontWeight.w700),
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
         ),
       ),
-      body: Column(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: kAppGradient,
+        child: SafeArea(
+          child: Column(
         children: [
           // 진행 바
           _StepProgressBar(currentStep: _currentPage, totalSteps: 2),
@@ -146,27 +154,27 @@ class _TravelSetupScreenState extends State<TravelSetupScreen> {
             ),
           ),
           // 하단 버튼
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: FilledButton(
-                  onPressed: _canProceed ? _goNext : null,
-                  child: Text(
-                    _currentPage == 1
-                        ? (widget.showCourseResult ? '추천 코스 보기' : '저장')
-                        : '다음',
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w700),
-                  ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            child: SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton(
+                onPressed: _canProceed ? _goNext : null,
+                child: Text(
+                  _currentPage == 1
+                      ? (widget.showCourseResult ? '추천 코스 보기' : '저장')
+                      : '다음',
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
           ),
         ],
-      ),
+          ), // Column
+        ), // SafeArea
+      ), // Container (gradient)
     );
   }
 }
@@ -274,21 +282,18 @@ class _PurposeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: disabled ? null : onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           color: isSelected
-              ? colorScheme.primaryContainer
+              ? kChipSelectedColor
               : disabled
-                  ? colorScheme.surfaceContainerLowest
-                  : colorScheme.surfaceContainerLow,
+                  ? kChipUnselectedColor.withValues(alpha: 0.5)
+                  : kChipUnselectedColor,
           border: Border.all(
-            color: isSelected
-                ? colorScheme.primary
-                : Colors.transparent,
+            color: isSelected ? kPrimaryColor : Colors.transparent,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(16),
@@ -304,10 +309,10 @@ class _PurposeChip extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: isSelected
-                    ? colorScheme.primary
+                    ? kPrimaryColor
                     : disabled
-                        ? colorScheme.onSurface.withValues(alpha: 0.38)
-                        : colorScheme.onSurface,
+                        ? Colors.black.withValues(alpha: 0.3)
+                        : const Color(0xFF1A1A1A),
               ),
             ),
           ],
@@ -376,18 +381,15 @@ class _DurationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.primaryContainer
-              : colorScheme.surfaceContainerLow,
+          color: isSelected ? kChipSelectedColor : kChipUnselectedColor,
           border: Border.all(
-            color: isSelected ? colorScheme.primary : Colors.transparent,
+            color: isSelected ? kPrimaryColor : Colors.transparent,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(16),
@@ -403,9 +405,7 @@ class _DurationCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? colorScheme.primary
-                          : colorScheme.onSurface,
+                      color: isSelected ? kPrimaryColor : const Color(0xFF1A1A1A),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -414,7 +414,7 @@ class _DurationCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       color: isSelected
-                          ? colorScheme.primary.withValues(alpha: 0.7)
+                          ? kPrimaryColor.withValues(alpha: 0.7)
                           : Colors.grey[600],
                     ),
                   ),
@@ -422,8 +422,8 @@ class _DurationCard extends StatelessWidget {
               ),
             ),
             if (isSelected)
-              Icon(Icons.check_circle_rounded,
-                  color: colorScheme.primary, size: 22),
+              const Icon(Icons.check_circle_rounded,
+                  color: kPrimaryColor, size: 22),
           ],
         ),
       ),

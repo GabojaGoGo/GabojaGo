@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import '../models/user_prefs.dart';
 import '../services/auth_service.dart';
 import '../services/user_data_service.dart';
+import '../utils/app_theme.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -155,8 +156,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: kAppGradient,
+        child: SafeArea(
         child: Column(
           children: [
             // ── 진행바 ─────────────────────────────────────
@@ -236,7 +241,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onPressed: _saving ? null : _finish,
                       child: Text(
                         '나중에 설정할게요',
-                        style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                       ),
                     ),
                 ],
@@ -244,7 +249,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ],
         ),
-      ),
+        ), // SafeArea
+      ), // Container (gradient)
     );
   }
 }
@@ -352,7 +358,7 @@ class _NicknamePage extends StatelessWidget {
               ),
               counterText: '',
               filled: true,
-              fillColor: const Color(0xFFF5F7F7),
+              fillColor: kInputFillColor,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide.none,
@@ -512,10 +518,10 @@ class _PurposeChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFFE6F4F1)
+              ? kChipSelectedColor
               : disabled
-              ? const Color(0xFFF9F9F9)
-              : const Color(0xFFF5F7F7),
+              ? kChipUnselectedColor.withValues(alpha: 0.5)
+              : kChipUnselectedColor,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: selected ? const Color(0xFF2E7D6B) : Colors.transparent,
@@ -610,9 +616,7 @@ class _DurationPage extends StatelessWidget {
                       vertical: 18,
                     ),
                     decoration: BoxDecoration(
-                      color: isSel
-                          ? const Color(0xFFE6F4F1)
-                          : const Color(0xFFF5F7F7),
+                      color: isSel ? kChipSelectedColor : kChipUnselectedColor,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isSel
