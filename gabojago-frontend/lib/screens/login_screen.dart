@@ -1,8 +1,14 @@
 // login_screen.dart
-// 로그인 화면 — 카카오 로그인 + 비회원 둘러보기
+// 로그인 화면 — 그라디언트 배경 + 글래스 카드 로고, SSO 풀폭 버튼
+// (카카오·네이버·구글, iOS는 애플 추가) + 비회원 둘러보기
 
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../services/auth_service.dart';
+import '../utils/app_theme.dart';
 import '../services/social_login_clients.dart';
 import '../services/user_data_service.dart';
 
@@ -23,7 +29,6 @@ class _LoginScreenState extends State<LoginScreen>
   String? _errorMessage;
 
   static const _primary = Color(0xFF2E7D6B);
-  static const _bg = Color(0xFFF8F9FA);
 
   @override
   void initState() {
@@ -79,134 +84,190 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  void _showComingSoon(String label) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('$label 로그인은 곧 지원될 예정이에요.'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+  }
+
+  bool get _showAppleLogin {
+    if (kIsWeb) return false;
+    return Platform.isIOS;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: SlideTransition(
-            position: _slideAnim,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 56),
+      // 그라디언트 배경 (스플래시와 톤 매칭, 채도는 살짝 낮춤)
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: kAppGradient,
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnim,
+            child: SlideTransition(
+              position: _slideAnim,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // ── 상단 여백 (중앙쯤으로 내림) ──
+                            const Spacer(flex: 5),
 
-                  // ── 로고 + 헤드라인 ─────────────────────
-                  _Logo(),
-                  const SizedBox(height: 48),
+                            // ── 헤드라인 (그라디언트 위 직접 노출) ──
+                            const _HeroHeadline(),
 
-                  // ── 카카오 로그인 버튼 ───────────────────
-                  _SocialLoginButton(
-                    isLoading: _isLoading,
-                    onTap: _isLoading
-                        ? null
-                        : () => _socialLogin(SocialLoginProvider.kakao),
-                    backgroundColor: const Color(0xFFFEE500),
-                    foregroundColor: const Color(0xFF191919),
-                    icon: const Text('💬', style: TextStyle(fontSize: 20)),
-                    label: '카카오로 계속하기',
-                  ),
-                  const SizedBox(height: 10),
-                  _SocialLoginButton(
-                    isLoading: false,
-                    onTap: _isLoading
-                        ? null
-                        : () => _socialLogin(SocialLoginProvider.naver),
-                    backgroundColor: const Color(0xFF03C75A),
-                    foregroundColor: Colors.white,
-                    icon: const Text(
-                      'N',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                            // ── 헤드라인과 버튼 사이 여백 ──
+                            const Spacer(flex: 4),
+
+                            // ── 소셜 로그인 버튼들 ────────────
+                            _SocialLoginButton(
+                              isLoading: _isLoading,
+                              onTap: _isLoading
+                                  ? null
+                                  : () => _socialLogin(
+                                      SocialLoginProvider.kakao),
+                              backgroundColor: const Color(0xFFFEE500),
+                              foregroundColor: const Color(0xFF191919),
+                              icon: const _KakaoIcon(),
+                              label: '카카오로 계속하기',
+                            ),
+                            const SizedBox(height: 10),
+                            _SocialLoginButton(
+                              isLoading: false,
+                              onTap: _isLoading
+                                  ? null
+                                  : () => _socialLogin(
+                                      SocialLoginProvider.naver),
+                              backgroundColor: const Color(0xFF03C75A),
+                              foregroundColor: Colors.white,
+                              icon: const _NaverIcon(),
+                              label: '네이버로 계속하기',
+                            ),
+                            const SizedBox(height: 10),
+                            _SocialLoginButton(
+                              isLoading: false,
+                              onTap: _isLoading
+                                  ? null
+                                  : () => _socialLogin(
+                                      SocialLoginProvider.google),
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF191919),
+                              borderColor: const Color(0xFFE0E0E0),
+                              icon: const _GoogleIcon(),
+                              label: 'Google로 계속하기',
+                            ),
+                            if (_showAppleLogin) ...[
+                              const SizedBox(height: 10),
+                              _SocialLoginButton(
+                                isLoading: false,
+                                onTap: _isLoading
+                                    ? null
+                                    : () => _showComingSoon('Apple'),
+                                backgroundColor: const Color(0xFF000000),
+                                foregroundColor: Colors.white,
+                                icon: const _AppleIcon(),
+                                label: 'Apple로 계속하기',
+                              ),
+                            ],
+
+                            // ── 에러 메시지 ─────────────────
+                            if (_errorMessage != null) ...[
+                              const SizedBox(height: 12),
+                              Text(
+                                _errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFFD32F2F),
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
+
+                            // ── 브라우저 대기 안내 ────────────
+                            if (_isLoading) ...[
+                              const SizedBox(height: 16),
+                              Text(
+                                '소셜 로그인 화면으로 이동 중입니다.\n로그인 완료 후 자동으로 돌아옵니다.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.black.withValues(alpha: 0.55),
+                                  height: 1.6,
+                                ),
+                              ),
+                            ],
+
+                            // ── 약관 안내 ───────────────────
+                            Padding(
+                              padding: const EdgeInsets.only(top: 20),
+                              child: Text(
+                                '계속 진행하면 서비스 이용약관과\n개인정보 처리방침에 동의하는 것으로 간주됩니다.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.black.withValues(alpha: 0.45),
+                                  height: 1.55,
+                                ),
+                              ),
+                            ),
+
+                            // ── 비회원 둘러보기 ────────────────
+                            TextButton(
+                              onPressed: _isLoading
+                                  ? null
+                                  : () async {
+                                      await AuthService.instance
+                                          .setGuestMode();
+                                      if (mounted) {
+                                        Navigator.of(context)
+                                            .pushReplacementNamed('/main');
+                                      }
+                                    },
+                              child: Text(
+                                '로그인 없이 둘러보기',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black.withValues(alpha: 0.65),
+                                  decoration: TextDecoration.underline,
+                                  decorationColor:
+                                      Colors.black.withValues(alpha: 0.3),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
                       ),
                     ),
-                    label: '네이버로 계속하기',
-                  ),
-                  const SizedBox(height: 10),
-                  _SocialLoginButton(
-                    isLoading: false,
-                    onTap: _isLoading
-                        ? null
-                        : () => _socialLogin(SocialLoginProvider.google),
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF191919),
-                    borderColor: const Color(0xFFE0E0E0),
-                    icon: const Text(
-                      'G',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF4285F4),
-                      ),
-                    ),
-                    label: 'Google로 계속하기',
-                  ),
-
-                  // ── 에러 메시지 ────────────────���─────────
-                  if (_errorMessage != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      _errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFFD32F2F),
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-
-                  // ── 브라우저 대기 안내 ────────────────────
-                  if (_isLoading) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      '소셜 로그인 화면으로 이동 중입니다.\n로그인 완료 후 자동으로 돌아옵니다.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[500],
-                        height: 1.6,
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 32),
-
-                  // ── 비회원 둘러보기 ───────────────────────
-                  TextButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () async {
-                            await AuthService.instance.setGuestMode();
-                            if (mounted) {
-                              Navigator.of(context).pushReplacementNamed('/main');
-                            }
-                          },
-                    child: Text(
-                      '로그인 없이 둘러보기',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[400],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
+                  );
+                },
               ),
             ),
           ),
         ),
       ),
       bottomSheet: _isLoading
-          ? Container(
+          ? const SizedBox(
               height: 3,
-              child: const LinearProgressIndicator(
+              child: LinearProgressIndicator(
                 backgroundColor: Color(0xFFE0E0E0),
                 valueColor: AlwaysStoppedAnimation(_primary),
               ),
@@ -216,58 +277,19 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-// ── 로고 위젯 ──────────────────────────────────────────────
-class _Logo extends StatelessWidget {
+// ── 헤드라인 (로고 이미지만, 박스·서브카피 없음) ──────────
+class _HeroHeadline extends StatelessWidget {
+  const _HeroHeadline();
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: const Color(0xFF2E7D6B),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Center(
-                child: Text('🚝', style: TextStyle(fontSize: 26)),
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              '가보자Go',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1A1A1A),
-                letterSpacing: -0.5,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        const Text(
-          '나만의 여행 혜택 도우미',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF1A1A1A),
-            height: 1.3,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          '로그인하면 취향 기반 코스 추천과\n모든 여행 혜택을 한눈에 볼 수 있어요.',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[500],
-            height: 1.55,
-          ),
-        ),
-      ],
+    return Center(
+      child: Image.asset(
+        'assets/images/app_logo.png',
+        width: 160,
+        height: 160,
+        fit: BoxFit.contain,
+      ),
     );
   }
 }
@@ -300,22 +322,37 @@ class _SocialLoginButton extends StatelessWidget {
         opacity: onTap == null ? 0.6 : 1.0,
         duration: const Duration(milliseconds: 200),
         child: Container(
-          height: 56,
+          height: 54,
           decoration: BoxDecoration(
             color: backgroundColor,
             borderRadius: BorderRadius.circular(14),
-            border: borderColor == null ? null : Border.all(color: borderColor!),
+            border:
+                borderColor == null ? null : Border.all(color: borderColor!),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
+              // 아이콘 좌측 고정
+              Positioned(
+                left: 18,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: Center(child: icon),
+                  ),
+                ),
+              ),
+              // 라벨 중앙
               if (isLoading)
                 SizedBox(
                   width: 20,
@@ -325,22 +362,82 @@ class _SocialLoginButton extends StatelessWidget {
                     strokeWidth: 2.5,
                   ),
                 )
-              else ...[
-                icon,
-                const SizedBox(width: 10),
+              else
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 15.5,
                     fontWeight: FontWeight.w700,
                     color: foregroundColor,
+                    letterSpacing: -0.2,
                   ),
                 ),
-              ],
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── 브랜드 아이콘 ────────────────────────────────────────
+
+/// 카카오 공식 말풍선 로고 (KakaoTalk symbol)
+class _KakaoIcon extends StatelessWidget {
+  const _KakaoIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/images/social/kakao.png',
+      width: 22,
+      height: 22,
+      fit: BoxFit.contain,
+    );
+  }
+}
+
+/// Naver 공식 N 로고 (흰색 SVG)
+class _NaverIcon extends StatelessWidget {
+  const _NaverIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.asset(
+      'assets/images/social/naver.svg',
+      width: 18,
+      height: 18,
+      fit: BoxFit.contain,
+    );
+  }
+}
+
+/// Google 공식 G 로고 (4색 브랜드)
+class _GoogleIcon extends StatelessWidget {
+  const _GoogleIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/images/social/google.png',
+      width: 22,
+      height: 22,
+      fit: BoxFit.contain,
+    );
+  }
+}
+
+/// Apple 공식 로고 (흰색 SVG)
+class _AppleIcon extends StatelessWidget {
+  const _AppleIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.asset(
+      'assets/images/social/apple.svg',
+      width: 22,
+      height: 22,
+      fit: BoxFit.contain,
     );
   }
 }

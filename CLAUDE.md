@@ -42,7 +42,7 @@ tripmate/                              # ← repo root
 │   │   │   └── tour_api_service.dart  # 관광공사 API 직접 호출
 │   │   └── screens/
 │   │       ├── splash_screen.dart             # 스플래시 (그라디언트 + 로고 페이드인)
-│   │       ├── login_screen.dart              # 소셜 로그인
+│   │       ├── login_screen.dart              # 소셜 로그인 (카카오/네이버/구글 + iOS 한정 애플)
 │   │       ├── home_screen.dart               # 홈 (주변관광지·축제·개인화 인사+CTA)
 │   │       ├── nearby_spots_screen.dart       # 지도 전체보기 (반경 20km, 최대 300개)
 │   │       ├── spot_detail_screen.dart        # 관광지 상세
@@ -56,7 +56,15 @@ tripmate/                              # ← repo root
 │   │       └── benefit_detail_screen.dart     # 보조금 상세
 │   ├── assets/images/
 │   │   ├── app_icon.png               # 앱 아이콘 (배경 포함)
-│   │   └── app_logo.png               # 스플래시 로고 (투명 배경)
+│   │   ├── app_logo.png               # 스플래시 로고 (투명 배경)
+│   │   └── social/                    # 소셜 로그인 브랜드 로고 (PNG + SVG)
+│   │       ├── kakao.png              # KakaoTalk 공식 말풍선 (다크)
+│   │       ├── google.png             # Google 공식 4색 G
+│   │       ├── naver.svg              # simpleicons 흰색 N
+│   │       └── apple.svg              # simpleicons 흰색 사과
+│   ├── scripts/
+│   │   └── capture-screens.sh         # Figma 업로드용 화면 일괄 캡처 (iOS Simulator)
+│   ├── mockups/                       # 캡처된 PNG (Figma 드래그용, git ignore)
 │   ├── ios/ android/                  # 네이티브 플랫폼
 │   └── test/
 │
@@ -151,6 +159,19 @@ tripmate/                              # ← repo root
 - `@Enumerated(EnumType.STRING)` → MySQL ENUM 타입 매핑 (VARCHAR 컬럼과 충돌)
 - VARCHAR 컬럼엔 반드시 `@Convert(converter = ...)` 사용
 
+### DB 이름 (중요)
+- **MySQL database: `gabojago`** (`docker-compose.yml`의 `MYSQL_DATABASE`)
+- `.env`의 `DB_URL`은 반드시 `jdbc:mysql://mysql:3306/gabojago?...`로 통일
+- 과거 `tripmate` DB 사용한 흔적 있음 — 환경 옮길 때 `.env` 체크 필수
+- `.env`는 rsync에서 제외됨 → iMac/맥북/협업자 각자 로컬에서 동일하게 맞춰야 함
+
+### Docker 리셋 시 데이터 보존 여부
+`reset-imac.sh`(`docker compose down -v`) 실행 시:
+- **자동 복구**: 혜택(V5/V10), korail apply_url(V11), is_repeatable(V12), vacation_support(V7~V9 + 매일 6시 크롤러), 전체 스키마
+- **영구 소실**: User, Preference, Footprint, BucketItem, BenefitReport, congestion_logs
+- → 데모 직전이나 실 사용자 데이터 있을 땐 `reset-imac.sh` 대신 `deploy-imac.sh`(코드만 재배포) 사용
+
+
 ### 백엔드 재빌드
 ```bash
 # 맥북 (Docker 로컬 실행 시)
@@ -183,6 +204,15 @@ GET  /me/benefit-reports
 POST /me/benefit-reports
 ```
 
+## 공통 테마 (lib/utils/app_theme.dart)
+- `kAppGradient` — 로그인·온보딩·취향설정 공통 배경 `BoxDecoration` (연 분홍→흰→연 하늘→연 파랑)
+- `kPrimaryColor` — `Color(0xFF2E7D6B)` 브랜드 메인 그린
+- `kChipUnselectedColor` — `Color(0xB3FFFFFF)` 그라디언트 배경 위 반투명 흰 칩
+- `kChipSelectedColor` — `Color(0xF0FFFFFF)` 선택된 칩 (더 불투명)
+- `kInputFillColor` — `Color(0xBFFFFFFF)` 입력 필드 배경
+- 그라디언트 배경 적용 패턴: `Scaffold(backgroundColor: Colors.transparent)` + `Container(decoration: kAppGradient, child: SafeArea(...))`
+- AppBar 있는 화면: `extendBodyBehindAppBar: true` + `AppBar(backgroundColor: Colors.transparent)`
+
 ## 자주 쓰는 패턴
 
 ### Flutter 새 API 연동
@@ -200,6 +230,31 @@ static Future<T> getSomething(params) async {
 - 읽기: SharedPrefs에서 즉시 반환 (동기)
 - 쓰기: 로컬 갱신 → 비동기 서버 sync (실패해도 로컬 유지)
 - 로그인 후: `syncFromServer()` → 서버 데이터로 로컬 덮어쓰기
+
+### 소셜 로그인 화면 (login_screen.dart)
+- **플랫폼 분기**: `Platform.isIOS`에서만 Apple 버튼 노출 (`_showAppleLogin` getter, `kIsWeb` 가드 포함)
+  - Android: 카카오/네이버/구글 3개
+  - iOS: 카카오/네이버/구글/애플 4개
+- **배경**: 그라디언트 (스플래시 톤 매칭, 채도 ↓) — `Alignment(-0.9,-1.0)→(0.9,1.0)`, 연 분홍→흰→연 하늘→연 파랑
+- **헤드라인** (`_HeroHeadline`): `app_logo.png` (160×160, 박스·서브카피 없이 그라디언트 위 직접)
+  - 레이아웃: `Spacer(flex:5)` ⇢ 로고 ⇢ `Spacer(flex:4)` ⇢ 버튼 그룹 (로고는 화면 중앙 약간 위, 버튼은 하단 근접)
+- **소셜 버튼 구조**: `_SocialLoginButton` (Stack 기반, 아이콘 좌측 18px 고정·라벨 중앙, 높이 54px, radius 14)
+- **브랜드 아이콘 위젯** (PNG + SVG 혼합):
+  - `_KakaoIcon` → `assets/images/social/kakao.png` (공식 KakaoTalk 다크 말풍선, 22×22)
+  - `_GoogleIcon` → `assets/images/social/google.png` (공식 Google G 4색, 22×22)
+  - `_NaverIcon` → `assets/images/social/naver.svg` (simpleicons 흰색 N, `SvgPicture.asset`, 18×18 — N은 시각적 무게 높아 작게)
+  - `_AppleIcon` → `assets/images/social/apple.svg` (simpleicons 흰색 사과, `SvgPicture.asset`, 22×22)
+- **flutter_svg 의존성**: `pubspec.yaml`에 `flutter_svg: ^2.0.10+1` 추가 (Naver/Apple SVG 렌더링)
+- **소셜 로고 출처**:
+  - Google PNG: `developers.google.com/identity/images/g-logo.png`
+  - Kakao PNG: `img.icons8.com/color/96/kakaotalk--v3.png`
+  - Naver/Apple SVG: `cdn.simpleicons.org/{brand}/ffffff` (흰색 fill)
+- **새 SVG 브랜드 추가 패턴**: simpleicons CDN(`cdn.simpleicons.org/{slug}/{hexcolor}`)에서 다운로드 → `assets/images/social/`에 저장 → `pubspec.yaml` assets에 등록 → `SvgPicture.asset()`로 렌더링
+- **애플 버튼 동작**: 디자인 only — 탭 시 `_showComingSoon('Apple')` 스낵바 ("곧 지원될 예정")
+  - 실제 Sign in with Apple 구현 시 `SocialLoginProvider`에 `apple` 추가하고 `SocialLoginClient` 구현 필요
+- **레이아웃**: `LayoutBuilder` + `IntrinsicHeight` + `Spacer`로 약관·둘러보기 하단 고정 (스크롤 가능)
+- **로딩 UX**: `_isLoading=true`일 때 카카오 버튼만 스피너, 나머지는 opacity 0.6 + 안내 텍스트 + 하단 LinearProgressIndicator
+- **약관 안내**: 버튼 그룹 하단에 "계속 진행하면 ... 동의" 11px grey 카피 (실제 동의 체크박스 없음 — UI 표시용)
 
 ### 코스 추천 흐름 (취향 설정 완료 시)
 1. 홈 CTA 탭 → `CourseLoadingScreen(prefs: userPrefs)` (취향 없으면 `TravelSetupScreen`)

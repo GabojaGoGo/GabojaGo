@@ -27,6 +27,7 @@ dependencies:
   flutter_local_notifications: ^18.0.0
   timezone: ^0.9.4
   image: ^4.3.0
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:
@@ -42,6 +43,10 @@ flutter:
     - .env.tailscale
     - assets/images/app_icon.png
     - assets/images/app_logo.png
+    - assets/images/social/kakao.png
+    - assets/images/social/google.png
+    - assets/images/social/naver.svg
+    - assets/images/social/apple.svg
 
 # 앱 아이콘 설정 (파일 맨 아래에 독립적으로 위치해야 함)
 flutter_launcher_icons:
