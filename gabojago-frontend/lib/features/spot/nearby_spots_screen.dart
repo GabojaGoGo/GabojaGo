@@ -1,20 +1,16 @@
 import 'dart:async';
-import 'dart:math' as math;
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:geolocator/geolocator.dart';
-import 'package:image/image.dart' as img;
 import 'package:kakao_maps_flutter/kakao_maps_flutter.dart';
 
 import 'package:tripmate/infrastructure/api_service.dart';
-
-import 'package:tripmate/core/widgets/benefit_chip.dart';
 import 'package:tripmate/core/widgets/spot_card.dart';
-import 'package:tripmate/features/spot/spot_detail_screen.dart';
+import 'package:tripmate/features/spot/widgets/congestion_banner.dart';
+import 'package:tripmate/features/spot/widgets/spot_card_carousel.dart';
+import 'package:tripmate/features/spot/widgets/spot_list_tile.dart';
+import 'package:tripmate/features/spot/widgets/spot_marker_builder.dart';
 
 class NearbySpotsScreen extends StatefulWidget {
   final List<SpotData> spots;
@@ -44,39 +40,31 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
   static const String _currentMarkerStyleId = 'tripmate_current_location_marker';
   static const String _currentMarkerId = 'tripmate_current_location';
 
-  /// 하단 카드 패널 높이 (px) — 카메라 오프셋 계산에도 사용
   static const double _kCardPanelH = 156.0;
-  /// 상단 배너 영역 높이 (top padding 12 + 배너 본체 ~44)
   static const double _kBannerH = 56.0;
+  static const double _kSearchBtnThreshold = 300.0;
 
   KakaoMapController? _mapController;
   late final PageController _cardController;
 
   bool _isMarkersReady = false;
-  bool _isRefreshing = false;       // 새 관광지 fetch 중 표시
-  bool _programmaticMove = false;   // 코드 이동과 사용자 패닝 구분
-  bool _showSearchHereBtn = false;  // "이 지역 검색" 버튼 노출 여부
+  bool _isRefreshing = false;
+  bool _programmaticMove = false;
+  bool _showSearchHereBtn = false;
   int _currentCardIndex = 0;
-  int? _programmaticTargetPage;     // animateToPage 목표 페이지 — 도달 전까지 onPageChanged 무시
+  int? _programmaticTargetPage;
 
-  // 탭으로 사용될 때 자체 GPS 초기화 상태
   late double _lat;
   late double _lng;
   late String _locName;
   bool _isInitializing = false;
 
-  // 카메라 이동 종료 스트림 구독 + 마커 탭 스트림 구독
   StreamSubscription<CameraMoveEndEvent>? _cameraSub;
   StreamSubscription<LabelClickEvent>? _labelSub;
 
-  /// 현재 카메라 중심 좌표 (onCameraMoveEnd 에서 업데이트)
   LatLng? _cameraCenterLatLng;
-  /// 마지막으로 fetch한 중심 좌표 — "이 지역 검색" 버튼 표시 기준
   LatLng? _lastFetchCenter;
-  /// "이 지역 검색" 버튼을 띄우는 최소 이동 거리 (m)
-  static const double _kSearchBtnThreshold = 300.0;
 
-  /// 거리순 정렬된 관광지 목록 (카드 순서, 업데이트 가능)
   List<SpotData> _sortedSpots = [];
 
   @override
@@ -88,12 +76,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     _cardController = PageController(viewportFraction: 0.88);
 
     if (widget.currentLat == 0.0) {
-      // 탭으로 진입: GPS 자체 취득
       _isInitializing = true;
-      _sortedSpots = [];
       WidgetsBinding.instance.addPostFrameCallback((_) => _initFromGps());
     } else {
-      // 파라미터로 진입: 넘긴 데이터 즉시 표시 후 풀 fetch
       _sortedSpots = [...widget.spots]
         ..sort((a, b) {
           final dA = Geolocator.distanceBetween(_lat, _lng, a.latitude, a.longitude);
@@ -102,78 +87,6 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
         });
       _lastFetchCenter = LatLng(latitude: _lat, longitude: _lng);
       WidgetsBinding.instance.addPostFrameCallback((_) => _fetchSpotsFull(_lat, _lng));
-    }
-  }
-
-  Future<void> _initFromGps() async {
-    try {
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        if (mounted) setState(() => _isInitializing = false);
-        return;
-      }
-      final position = await ApiService.getCurrentLocation();
-      final address = await ApiService.getAddressFromLatLng(
-          position.latitude, position.longitude);
-      if (!mounted) return;
-      setState(() {
-        _lat = position.latitude;
-        _lng = position.longitude;
-        _locName = address;
-        _lastFetchCenter = LatLng(latitude: _lat, longitude: _lng);
-        _isInitializing = false;
-      });
-      await _fetchSpotsFull(_lat, _lng);
-    } catch (_) {
-      if (mounted) setState(() => _isInitializing = false);
-    }
-  }
-
-  Future<void> _fetchSpotsFull(double lat, double lng) async {
-    try {
-      final results = await Future.wait([
-        ApiService.getNearbySpots(lat, lng, limit: 300),
-        ApiService.getNearbySpotCongestions(lat, lng, limit: 300),
-      ]);
-      if (!mounted) return;
-
-      final spotsRaw = results[0];
-      final congestionRaw = results[1];
-
-      final congestionById = <int, Map<String, dynamic>>{
-        for (final item in congestionRaw)
-          ((item as Map<String, dynamic>)['id'] as num?)?.toInt() ?? -1: item,
-      };
-
-      var spots = spotsRaw
-          .map((json) => SpotData.fromJson(json as Map<String, dynamic>))
-          .toList();
-      spots = spots.map((spot) {
-        final c = congestionById[spot.id];
-        if (c == null) return spot;
-        return spot.copyWith(
-          congestion: (c['congestion'] as String?)?.trim(),
-          congestionSource: c['congestionSource'] as String?,
-          congestionBaseYmd: c['congestionBaseYmd'] as String?,
-        );
-      }).toList()
-        ..sort((a, b) {
-          final dA = Geolocator.distanceBetween(lat, lng, a.latitude, a.longitude);
-          final dB = Geolocator.distanceBetween(lat, lng, b.latitude, b.longitude);
-          return dA.compareTo(dB);
-        });
-
-      setState(() => _sortedSpots = spots);
-      // 마커를 새 목록으로 갱신 (setState 완료 후 다음 프레임에서 실행)
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _updateMapMarkers();
-      });
-    } catch (_) {
-      // 실패해도 기존 목록 유지
     }
   }
 
@@ -188,8 +101,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
   @override
   Widget build(BuildContext context) {
     final spots = _sortedSpots;
-    final lowCount =
-        spots.where((s) => s.congestion == '낮음' || s.congestion == '예측중').length;
+    final lowCount = spots.where((s) => s.congestion == '낮음' || s.congestion == '예측중').length;
     final highCount = spots.where((s) => s.congestion == '높음').length;
     final isRelaxed = spots.isEmpty || lowCount >= highCount;
 
@@ -203,26 +115,18 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('$_locName 주변'),
-      ),
-      // 지도 전체화면 — 배너·카드 모두 hover overlay
+      appBar: AppBar(title: Text('$_locName 주변')),
       body: Stack(
         children: [
-          // ── 지도 (전체 body) ───────────────────────────────────
           KakaoMap(
             initialPosition: LatLng(latitude: _lat, longitude: _lng),
             initialLevel: 14,
             onMapCreated: _handleMapCreated,
           ),
-
-          // ── 혼잡도 배너 (상단 overlay) ─────────────────────────
           Positioned(
             top: 12, left: 16, right: 16,
-            child: _CongestionBanner(isRelaxed: isRelaxed),
+            child: CongestionBanner(isRelaxed: isRelaxed),
           ),
-
-          // ── 마커 로딩 오버레이 ─────────────────────────────────
           if (!_isMarkersReady)
             Positioned.fill(
               child: IgnorePointer(
@@ -235,9 +139,6 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                 ),
               ),
             ),
-
-          // ── "이 지역 관광지 검색" 수동 버튼 ──────────────────────
-          // 카메라가 마지막 fetch 위치에서 _kSearchBtnThreshold 이상 벗어나면 표시
           AnimatedPositioned(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOut,
@@ -252,8 +153,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                   child: GestureDetector(
                     onTap: _onSearchHere,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 18, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1B8C6E),
                         borderRadius: BorderRadius.circular(22),
@@ -268,8 +168,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.search_rounded,
-                              size: 16, color: Colors.white),
+                          Icon(Icons.search_rounded, size: 16, color: Colors.white),
                           SizedBox(width: 6),
                           Text(
                             '이 지역 관광지 검색',
@@ -287,13 +186,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
               ),
             ),
           ),
-
-          // ── 새 관광지 fetch 중 — 반투명 스피너 ─────────────────
           if (_isRefreshing)
             Positioned(
-              top: _kBannerH + 12,
-              left: 0,
-              right: 0,
+              top: _kBannerH + 12, left: 0, right: 0,
               child: Center(
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -302,16 +197,14 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8),
+                          color: Colors.black.withValues(alpha: 0.1), blurRadius: 8),
                     ],
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       SizedBox(
-                        width: 14,
-                        height: 14,
+                        width: 14, height: 14,
                         child: CircularProgressIndicator(
                             color: Color(0xFF1B8C6E), strokeWidth: 2),
                       ),
@@ -326,8 +219,6 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                 ),
               ),
             ),
-
-          // ── 현재 위치 버튼 + 목록 버튼 ────────────────────────
           Positioned(
             right: 16,
             bottom: _kCardPanelH + 44,
@@ -382,21 +273,25 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
               ),
             ),
           ),
-
-          // ── 카드 캐러셀 (하단 hover) ───────────────────────────
           Positioned(
             left: 0, right: 0, bottom: 30,
             height: _kCardPanelH,
             child: _sortedSpots.isEmpty
                 ? _buildEmptyCard()
-                : _buildCardPanel(),
+                : SpotCardCarousel(
+                    spots: _sortedSpots,
+                    currentIndex: _currentCardIndex,
+                    lat: _lat,
+                    lng: _lng,
+                    pageController: _cardController,
+                    onPageChanged: _onCarouselPageChanged,
+                  ),
           ),
         ],
       ),
     );
   }
 
-  /// 관광지가 없을 때 표시되는 빈 상태 카드
   Widget _buildEmptyCard() {
     return Center(
       child: Container(
@@ -413,8 +308,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off_rounded,
-                color: Color(0xFF607D8B), size: 20),
+            Icon(Icons.search_off_rounded, color: Color(0xFF607D8B), size: 20),
             SizedBox(width: 10),
             Text('이 지역 주변에 관광지 정보가 없어요',
                 style: TextStyle(
@@ -427,7 +321,19 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     );
   }
 
-  // 목록 modal bottom sheet
+  void _onCarouselPageChanged(int idx) {
+    if (_programmaticTargetPage != null) {
+      if (idx == _programmaticTargetPage) _programmaticTargetPage = null;
+      return;
+    }
+    final prevIdx = _currentCardIndex;
+    setState(() => _currentCardIndex = idx);
+    _updateHighlightedMarker(prevIdx, idx);
+    _moveCameraToSpot(_sortedSpots[idx]);
+  }
+
+  // ── 목록 바텀시트 ─────────────────────────────────────────────
+
   void _showListSheet() {
     showModalBottomSheet(
       context: context,
@@ -444,7 +350,6 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
           ),
           child: Column(
             children: [
-              // 핸들 + 헤더
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
                 child: Column(
@@ -484,14 +389,19 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                 child: ListView.builder(
                   controller: scrollController,
                   itemCount: _sortedSpots.length,
-                  itemBuilder: (ctx, i) => _buildListTile(
-                    ctx,
-                    _sortedSpots[i],
-                    onTapOverride: () {
-                      Navigator.pop(ctx);
-                      _onSpotTapped(_sortedSpots[i]);
-                    },
-                  ),
+                  itemBuilder: (ctx, i) {
+                    final spot = _sortedSpots[i];
+                    return SpotListTile(
+                      spot: spot,
+                      isSelected: i == _currentCardIndex,
+                      lat: _lat,
+                      lng: _lng,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _onSpotTapped(spot);
+                      },
+                    );
+                  },
                 ),
               ),
             ],
@@ -501,17 +411,122 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     );
   }
 
+  // ── GPS 초기화 ────────────────────────────────────────────────
+
+  Future<void> _initFromGps() async {
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (mounted) setState(() => _isInitializing = false);
+        return;
+      }
+      final position = await ApiService.getCurrentLocation();
+      final address = await ApiService.getAddressFromLatLng(
+          position.latitude, position.longitude);
+      if (!mounted) return;
+      setState(() {
+        _lat = position.latitude;
+        _lng = position.longitude;
+        _locName = address;
+        _lastFetchCenter = LatLng(latitude: _lat, longitude: _lng);
+        _isInitializing = false;
+      });
+      await _fetchSpotsFull(_lat, _lng);
+    } catch (_) {
+      if (mounted) setState(() => _isInitializing = false);
+    }
+  }
+
+  // ── 데이터 fetch ──────────────────────────────────────────────
+
+  Future<void> _fetchSpotsFull(double lat, double lng) async {
+    try {
+      final results = await Future.wait([
+        ApiService.getNearbySpots(lat, lng, limit: 300),
+        ApiService.getNearbySpotCongestions(lat, lng, limit: 300),
+      ]);
+      if (!mounted) return;
+
+      final spots = _mergeSpotCongestion(results[0], results[1], lat, lng);
+      setState(() => _sortedSpots = spots);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _updateMapMarkers();
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _fetchNewSpots(double lat, double lng) async {
+    if (!mounted) return;
+    setState(() {
+      _isRefreshing = true;
+      _showSearchHereBtn = false;
+    });
+    try {
+      final results = await Future.wait([
+        ApiService.getNearbySpots(lat, lng, limit: 300),
+        ApiService.getNearbySpotCongestions(lat, lng, limit: 300),
+      ]);
+      if (!mounted) return;
+
+      final newSpots = _mergeSpotCongestion(results[0], results[1], lat, lng);
+      _lastFetchCenter = LatLng(latitude: lat, longitude: lng);
+
+      setState(() {
+        _sortedSpots = newSpots;
+        _currentCardIndex = 0;
+        _isRefreshing = false;
+      });
+
+      if (_cardController.hasClients && newSpots.isNotEmpty) {
+        _cardController.animateToPage(0,
+            duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+      }
+      await _updateMapMarkers();
+    } catch (e) {
+      debugPrint('[NearbySpotsScreen] fetchNewSpots error: $e');
+      if (mounted) setState(() => _isRefreshing = false);
+    }
+  }
+
+  List<SpotData> _mergeSpotCongestion(
+    List<dynamic> spotsRaw,
+    List<dynamic> congestionRaw,
+    double lat,
+    double lng,
+  ) {
+    final congestionById = <int, Map<String, dynamic>>{
+      for (final item in congestionRaw)
+        ((item as Map<String, dynamic>)['id'] as num?)?.toInt() ?? -1: item,
+    };
+    return spotsRaw
+        .map((json) => SpotData.fromJson(json as Map<String, dynamic>))
+        .map((spot) {
+          final c = congestionById[spot.id];
+          if (c == null) return spot;
+          return spot.copyWith(
+            congestion: (c['congestion'] as String?)?.trim(),
+            congestionSource: c['congestionSource'] as String?,
+            congestionBaseYmd: c['congestionBaseYmd'] as String?,
+          );
+        })
+        .toList()
+      ..sort((a, b) {
+        final dA = Geolocator.distanceBetween(lat, lng, a.latitude, a.longitude);
+        final dB = Geolocator.distanceBetween(lat, lng, b.latitude, b.longitude);
+        return dA.compareTo(dB);
+      });
+  }
+
   // ── 지도 초기화 ───────────────────────────────────────────────
 
   Future<void> _handleMapCreated(KakaoMapController controller) async {
     _mapController = controller;
-
-    // ── 스트림 구독 ──────────────────────────────────────────────
-    // 카메라 이동 종료 → 가장 가까운 관광지 하이라이트 + 새 관광지 fetch 트리거
     _cameraSub = controller.onCameraMoveEndStream.listen(_onCameraMoveEnd);
-    // 마커(레이블) 탭 → 해당 카드 선택 + 카메라 이동
     _labelSub = controller.onLabelClickedStream.listen(_onMarkerTapped);
-
     await _initializeMarkers(controller);
   }
 
@@ -520,9 +535,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     int attempt = 0,
   }) async {
     try {
-      final markerBytes = await _buildSpotMarkerBytes();
-      final highlightedMarkerBytes = await _buildSpotMarkerHighlightedBytes();
-      final currentBytes = await _buildCurrentLocationMarkerBytes();
+      final markerBytes = await SpotMarkerBuilder.buildSpotMarker();
+      final highlightedBytes = await SpotMarkerBuilder.buildSpotMarkerHighlighted();
+      final currentBytes = await SpotMarkerBuilder.buildCurrentLocationMarker();
 
       await controller.registerMarkerStyles(
         styles: [
@@ -545,7 +560,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
             styleId: _spotHighlightedMarkerStyleId,
             perLevels: [
               MarkerPerLevelStyle.fromBytes(
-                bytes: highlightedMarkerBytes,
+                bytes: highlightedBytes,
                 textStyle: const MarkerTextStyle(
                   fontSize: 16,
                   fontColorArgb: 0xFFFF6D00,
@@ -575,11 +590,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
       );
 
       await controller.addMarkerLayer(
-        layerId: _markerLayerId,
-        zOrder: 1000,
-        clickable: true,
-      );
-
+          layerId: _markerLayerId, zOrder: 1000, clickable: true);
       await controller.addMarkers(
         layerId: _markerLayerId,
         markerOptions: [
@@ -607,7 +618,6 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
       );
 
       if (mounted) setState(() => _isMarkersReady = true);
-      // initialSpotId가 있으면 해당 관광지로 이동, 없으면 현재 위치로
       if (widget.initialSpotId != null) {
         _jumpToInitialSpot();
       } else {
@@ -626,47 +636,21 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
 
   // ── 카메라 이동 ───────────────────────────────────────────────
 
-  void _jumpToInitialSpot() {
-    final id = widget.initialSpotId;
-    if (id == null) return;
-    final idx = _sortedSpots.indexWhere((s) => s.id == id);
-    if (idx < 0) return;
-    final prevIdx = _currentCardIndex;
-    setState(() => _currentCardIndex = idx);
-    // 첫 프레임 이후 페이지 이동
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_cardController.hasClients) {
-        _cardController.jumpToPage(idx);
-      }
-    });
-    _updateHighlightedMarker(prevIdx, idx);
-    _moveCameraToSpot(_sortedSpots[idx]);
-  }
-
-  /// 화면 전체가 지도지만 배너(상단)·카드(하단)가 가리므로
-  /// 실제 가시 중심 = 화면 중심보다 위쪽 → 카메라 타깃을 남쪽으로 보정해
-  /// 마커가 가시 영역 정중앙에 오도록 만든다.
-  ///
+  /// 배너(상단)·카드(하단)가 지도를 가리므로 마커가 가시 영역 정중앙에 오도록 보정.
   /// offset_deg = pixelOffset × metersPerPixel / 111_139
-  ///   pixelOffset = (_kCardPanelH - _kBannerH) / 2   (~50px)
-  ///   metersPerPixel ≈ 4 (Kakao zoom 14, 위도 37°N 기준)
   double _latOffset() {
-    const offsetPx = (_kCardPanelH - _kBannerH) / 2; // ≈ 50 px
-    const metersPerPx = 4.0; // zoom 14 근사값
-    return offsetPx * metersPerPx / 111139.0; // ≈ 0.0018°
+    const offsetPx = (_kCardPanelH - _kBannerH) / 2;
+    const metersPerPx = 4.0;
+    return offsetPx * metersPerPx / 111139.0;
   }
 
   Future<void> _moveCameraToCurrentLocation() async {
     final controller = _mapController;
     if (controller == null) return;
     _programmaticMove = true;
-    final offset = _latOffset();
     await controller.moveCamera(
       cameraUpdate: CameraUpdate(
-        position: LatLng(
-          latitude: _lat - offset,
-          longitude: _lng,
-        ),
+        position: LatLng(latitude: _lat - _latOffset(), longitude: _lng),
         zoomLevel: 14,
         type: 0,
       ),
@@ -679,19 +663,30 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     final controller = _mapController;
     if (controller == null) return;
     _programmaticMove = true;
-    final offset = _latOffset();
     await controller.moveCamera(
       cameraUpdate: CameraUpdate(
         position: LatLng(
-          latitude: spot.latitude - offset,
-          longitude: spot.longitude,
-        ),
+            latitude: spot.latitude - _latOffset(), longitude: spot.longitude),
         zoomLevel: 15,
         type: 0,
       ),
       animation: const CameraAnimation(
           duration: 350, autoElevation: true, isConsecutive: false),
     );
+  }
+
+  void _jumpToInitialSpot() {
+    final id = widget.initialSpotId;
+    if (id == null) return;
+    final idx = _sortedSpots.indexWhere((s) => s.id == id);
+    if (idx < 0) return;
+    final prevIdx = _currentCardIndex;
+    setState(() => _currentCardIndex = idx);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_cardController.hasClients) _cardController.jumpToPage(idx);
+    });
+    _updateHighlightedMarker(prevIdx, idx);
+    _moveCameraToSpot(_sortedSpots[idx]);
   }
 
   void _onSpotTapped(SpotData spot) {
@@ -704,20 +699,17 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     _moveCameraToSpot(spot);
   }
 
-  // ── 카메라 이동 종료 핸들러 ────────────────────────────────────
+  // ── 이벤트 핸들러 ─────────────────────────────────────────────
 
   void _onCameraMoveEnd(CameraMoveEndEvent event) {
-    // 현재 카메라 중심 항상 기록
     _cameraCenterLatLng =
         LatLng(latitude: event.latitude, longitude: event.longitude);
 
     if (_programmaticMove) {
-      // 카드 스와이프 / 내 위치 버튼 등 코드 이동 → 버튼·하이라이트 건너뜀
       _programmaticMove = false;
       return;
     }
 
-    // 마지막 fetch 위치에서 임계값 이상 벗어났으면 "이 지역 검색" 버튼 표시
     final prev = _lastFetchCenter;
     if (prev != null) {
       final dist = Geolocator.distanceBetween(
@@ -729,17 +721,15 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     }
   }
 
-  // ── 마커 탭 핸들러 (onLabelClickedStream) ─────────────────────
-
   void _onMarkerTapped(LabelClickEvent event) {
-    if (event.labelId == _currentMarkerId) return; // 내 위치 마커 제외
+    if (event.labelId == _currentMarkerId) return;
     final spotId = int.tryParse(event.labelId);
     if (spotId == null) return;
     final idx = _sortedSpots.indexWhere((s) => s.id == spotId);
     if (idx < 0) return;
     final prevIdx = _currentCardIndex;
-    _programmaticMove = true; // 카드 선택 시 카메라 이동은 코드 이동
-    _programmaticTargetPage = idx; // 목표 도달 전까지 onPageChanged 무시
+    _programmaticMove = true;
+    _programmaticTargetPage = idx;
     setState(() => _currentCardIndex = idx);
     _updateHighlightedMarker(prevIdx, idx);
     if (_cardController.hasClients) {
@@ -749,8 +739,6 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     _moveCameraToSpot(_sortedSpots[idx]);
   }
 
-  // ── "이 지역 검색" 버튼 탭 핸들러 ────────────────────────────────
-
   void _onSearchHere() {
     final center = _cameraCenterLatLng;
     if (center == null) return;
@@ -758,83 +746,12 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     _fetchNewSpots(center.latitude, center.longitude);
   }
 
-  // ── 새 관광지 수동 fetch ──────────────────────────────────────
-
-  Future<void> _fetchNewSpots(double lat, double lng) async {
-    if (!mounted) return;
-    setState(() {
-      _isRefreshing = true;
-      _showSearchHereBtn = false; // 버튼 숨김 (fetch 시작)
-    });
-
-    try {
-      // 관광지 + 혼잡도 병렬 요청
-      final results = await Future.wait([
-        ApiService.getNearbySpots(lat, lng, limit: 300),
-        ApiService.getNearbySpotCongestions(lat, lng, limit: 300),
-      ]);
-
-      if (!mounted) return;
-
-      final spotsRaw = results[0];
-      final congestionRaw = results[1];
-
-      // 혼잡도 ID 맵 구성
-      final congestionById = <int, Map<String, dynamic>>{
-        for (final item in congestionRaw)
-          ((item as Map<String, dynamic>)['id'] as num?)?.toInt() ?? -1: item,
-      };
-
-      // SpotData 파싱 + 혼잡도 병합
-      var newSpots = spotsRaw
-          .map((json) => SpotData.fromJson(json as Map<String, dynamic>))
-          .toList();
-      newSpots = newSpots.map((spot) {
-        final c = congestionById[spot.id];
-        if (c == null) return spot;
-        return spot.copyWith(
-          congestion: (c['congestion'] as String?)?.trim(),
-          congestionSource: c['congestionSource'] as String?,
-          congestionBaseYmd: c['congestionBaseYmd'] as String?,
-        );
-      }).toList();
-
-      // 새 중심 기준 거리순 정렬
-      newSpots.sort((a, b) {
-        final dA = Geolocator.distanceBetween(lat, lng, a.latitude, a.longitude);
-        final dB = Geolocator.distanceBetween(lat, lng, b.latitude, b.longitude);
-        return dA.compareTo(dB);
-      });
-
-      _lastFetchCenter = LatLng(latitude: lat, longitude: lng);
-
-      setState(() {
-        _sortedSpots = newSpots;
-        _currentCardIndex = 0;
-        _isRefreshing = false;
-      });
-
-      // 카드 첫 번째로 이동
-      if (_cardController.hasClients && newSpots.isNotEmpty) {
-        _cardController.animateToPage(0,
-            duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
-      }
-
-      // 지도 마커 갱신
-      await _updateMapMarkers();
-    } catch (e) {
-      debugPrint('[NearbySpotsScreen] fetchNewSpots error: $e');
-      if (mounted) setState(() => _isRefreshing = false);
-    }
-  }
-
-  // ── 마커 전체 갱신 ────────────────────────────────────────────
+  // ── 마커 갱신 ─────────────────────────────────────────────────
 
   Future<void> _updateMapMarkers() async {
     final controller = _mapController;
     if (controller == null) return;
     try {
-      // 기존 마커 전부 제거 후 재등록
       await controller.clearMarkers(layerId: _markerLayerId);
       await controller.addMarkers(
         layerId: _markerLayerId,
@@ -864,405 +781,10 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     }
   }
 
-  // ── 카드 캐러셀 ───────────────────────────────────────────────
-
-  Widget _buildCardPanel() {
-    return Container(
-      color: Colors.transparent,
-      child: PageView.builder(
-        controller: _cardController,
-        onPageChanged: (idx) {
-          // 마커 탭으로 animateToPage 중이면 목표 페이지 도달 전까지 무시
-          if (_programmaticTargetPage != null) {
-            if (idx == _programmaticTargetPage) _programmaticTargetPage = null;
-            return;
-          }
-          // 사용자 직접 스와이프
-          final prevIdx = _currentCardIndex;
-          setState(() => _currentCardIndex = idx);
-          _updateHighlightedMarker(prevIdx, idx);
-          _moveCameraToSpot(_sortedSpots[idx]);
-        },
-        itemCount: _sortedSpots.length,
-        itemBuilder: (context, idx) =>
-            _buildSpotPageCard(_sortedSpots[idx], idx == _currentCardIndex),
-      ),
-    );
-  }
-
-  Widget _buildSpotPageCard(SpotData spot, bool isActive) {
-    Color congestionColor() {
-      switch (spot.congestion) {
-        case '낮음': return const Color(0xFF1B8C6E);
-        case '보통': return const Color(0xFFF57C00);
-        case '높음': return const Color(0xFFD84315);
-        case '예측중': return const Color(0xFF607D8B);
-        default: return const Color(0xFF616161);
-      }
-    }
-
-    final distM = Geolocator.distanceBetween(
-        _lat, _lng, spot.latitude, spot.longitude);
-    final distLabel = distM < 1000
-        ? '${distM.round()}m'
-        : '${(distM / 1000).toStringAsFixed(distM >= 10000 ? 0 : 1)}km';
-
-    return GestureDetector(
-      // 탭 → 상세 화면으로 이동
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SpotDetailScreen(spot: spot),
-        ),
-      ),
-      child: AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-      margin: EdgeInsets.only(
-        left: 8, right: 8,
-        top: isActive ? 8 : 20,   // 활성 카드는 위로 올라옴
-        bottom: isActive ? 8 : 4,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: isActive
-            ? Border.all(color: const Color(0xFF1B8C6E), width: 1.5)
-            : null,
-        boxShadow: [
-          const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
-          BoxShadow(
-            color: Color(isActive ? 0x24000000 : 0x0A000000),
-            blurRadius: isActive ? 12 : 8,
-            offset: Offset(0, isActive ? 4 : 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
-        child: Row(
-          children: [
-            // 썸네일
-            SizedBox(
-              width: 110,
-              child: (spot.imageUrl != null && spot.imageUrl!.isNotEmpty)
-                  ? Image.network(spot.imageUrl!,
-                      fit: BoxFit.cover,
-                      height: double.infinity,
-                      errorBuilder: (_, __, ___) => _cardPlaceholder(spot))
-                  : _cardPlaceholder(spot),
-            ),
-            // 정보
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      spot.spotName,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: isActive
-                            ? const Color(0xFF1B8C6E)
-                            : const Color(0xFF1A1A1A),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.place_outlined,
-                            size: 11, color: Colors.grey.shade500),
-                        const SizedBox(width: 2),
-                        Expanded(
-                          child: Text(spot.areaName,
-                              style: TextStyle(
-                                  fontSize: 11, color: Colors.grey.shade500),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        Icon(Icons.directions_walk,
-                            size: 11, color: Colors.grey.shade600),
-                        const SizedBox(width: 2),
-                        Text(distLabel,
-                            style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade700)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: congestionColor().withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.people_outline,
-                              size: 11, color: congestionColor()),
-                          const SizedBox(width: 3),
-                          Text('혼잡도 ${spot.congestion}',
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: congestionColor())),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),   // AnimatedContainer
-    );   // GestureDetector
-  }
-
-  Widget _cardPlaceholder(SpotData spot) {
-    return Container(
-      color: spot.placeholderColor.withValues(alpha: 0.1),
-      child: Center(
-        child: Icon(Icons.image_not_supported_outlined,
-            color: spot.placeholderColor, size: 24),
-      ),
-    );
-  }
-
-  // ── 리스트 아이템 ─────────────────────────────────────────────
-
-  Widget _buildListTile(BuildContext context, SpotData spot,
-      {VoidCallback? onTapOverride}) {
-    final isSelected = _sortedSpots.indexOf(spot) == _currentCardIndex;
-
-    Color congestionColor() {
-      switch (spot.congestion) {
-        case '예측중':
-          return const Color(0xFF607D8B);
-        case '낮음':
-          return const Color(0xFF1B8C6E);
-        case '보통':
-          return const Color(0xFFF57C00);
-        case '높음':
-          return const Color(0xFFD84315);
-        default:
-          return const Color(0xFF616161);
-      }
-    }
-
-    final distM = Geolocator.distanceBetween(
-        _lat, _lng, spot.latitude, spot.longitude);
-    final distLabel = distM < 1000
-        ? '${distM.round()}m'
-        : '${(distM / 1000).toStringAsFixed(distM >= 10000 ? 0 : 1)}km';
-
-    return InkWell(
-      onTap: onTapOverride ?? () => _onSpotTapped(spot),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        color: isSelected
-            ? const Color(0xFF1B8C6E).withValues(alpha: 0.07)
-            : Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            // 썸네일
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    color: spot.placeholderColor.withValues(alpha: 0.1),
-                    child: (spot.imageUrl != null && spot.imageUrl!.isNotEmpty)
-                        ? Image.network(spot.imageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                _buildPlaceholder(spot))
-                        : _buildPlaceholder(spot),
-                  ),
-                ),
-                if (isSelected)
-                  Positioned(
-                    top: 4,
-                    right: 4,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF1B8C6E),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.check,
-                          color: Colors.white, size: 10),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    spot.spotName,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? const Color(0xFF1B8C6E)
-                          : const Color(0xFF1A1A1A),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      Icon(Icons.place_outlined,
-                          size: 12, color: Colors.grey.shade500),
-                      const SizedBox(width: 2),
-                      Expanded(
-                        child: Text(
-                          spot.areaName,
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade500),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(Icons.directions_walk,
-                          size: 12, color: Colors.grey.shade600),
-                      const SizedBox(width: 2),
-                      Text(
-                        distLabel,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 7),
-                  BenefitChip(
-                    label: '혼잡도 ${spot.congestion}',
-                    backgroundColor:
-                        congestionColor().withValues(alpha: 0.1),
-                    textColor: congestionColor(),
-                    icon: Icons.people_outline,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(Icons.chevron_right_rounded,
-                color: isSelected
-                    ? const Color(0xFF1B8C6E)
-                    : Colors.grey.shade400,
-                size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholder(SpotData spot) {
-    return Center(
-      child: Icon(Icons.image_not_supported_outlined,
-          color: spot.placeholderColor, size: 22),
-    );
-  }
-
-  // ── 마커 이미지 빌더 ──────────────────────────────────────────
-
-  Future<Uint8List> _buildSpotMarkerBytes() async {
-    const double w = 48, h = 68;
-    const double cx = w / 2;
-    const double headR = 18.0;
-    const double headCy = headR + 2;
-    const double tipY = h - 3;
-
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-
-    canvas.drawPath(
-      _pinPath(cx, headCy + 1.5, headR, tipY + 1.5),
-      Paint()
-        ..color = const Color(0x40000000)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
-    );
-    canvas.drawPath(
-      _pinPath(cx, headCy, headR, tipY),
-      Paint()..color = const Color(0xFF1B8C6E),
-    );
-    canvas.drawCircle(
-        Offset(cx, headCy), 7, Paint()..color = const Color(0xFFFFFFFF));
-
-    final image =
-        await recorder.endRecording().toImage(w.toInt(), h.toInt());
-    return _toRgba8Png(image);
-  }
-
-  Path _pinPath(double cx, double cy, double r, double tipY) {
-    return Path()
-      ..arcTo(Rect.fromCircle(center: Offset(cx, cy), radius: r), 0,
-          -math.pi, false)
-      ..quadraticBezierTo(cx - r * 0.5, cy + r * 1.6, cx, tipY)
-      ..quadraticBezierTo(cx + r * 0.5, cy + r * 1.6, cx + r, cy)
-      ..close();
-  }
-
-  Future<Uint8List> _buildSpotMarkerHighlightedBytes() async {
-    const double w = 48, h = 68;
-    const double cx = w / 2;
-    const double headR = 18.0;
-    const double headCy = headR + 2;
-    const double tipY = h - 3;
-
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-
-    canvas.drawPath(
-      _pinPath(cx, headCy + 1.5, headR, tipY + 1.5),
-      Paint()
-        ..color = const Color(0x40000000)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
-    );
-    canvas.drawPath(
-      _pinPath(cx, headCy, headR, tipY),
-      Paint()..color = const Color(0xFFFF6D00), // 주황색 하이라이트
-    );
-    canvas.drawCircle(
-        Offset(cx, headCy), 7, Paint()..color = const Color(0xFFFFFFFF));
-
-    final image =
-        await recorder.endRecording().toImage(w.toInt(), h.toInt());
-    return _toRgba8Png(image);
-  }
-
-  /// 이전 하이라이트 마커를 일반 스타일로, 새 마커를 하이라이트 스타일로 교체.
-  /// prevIdx == -1 이면 이전 복원 생략 (최초 설정 시).
   Future<void> _updateHighlightedMarker(int prevIdx, int newIdx) async {
     final controller = _mapController;
     if (controller == null) return;
     try {
-      // 이전 하이라이트 → 일반 스타일로 복원
       if (prevIdx >= 0 && prevIdx != newIdx && prevIdx < _sortedSpots.length) {
         final prev = _sortedSpots[prevIdx];
         await controller.removeMarker(
@@ -1278,7 +800,6 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
           layerId: _markerLayerId,
         );
       }
-      // 새 하이라이트 → 하이라이트 스타일 적용
       if (newIdx >= 0 && newIdx < _sortedSpots.length) {
         final next = _sortedSpots[newIdx];
         await controller.removeMarker(
@@ -1297,158 +818,5 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     } on PlatformException catch (e) {
       debugPrint('[NearbySpotsScreen] updateHighlightedMarker error: $e');
     }
-  }
-
-  Future<Uint8List> _buildCurrentLocationMarkerBytes() async {
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    const size = 88.0;
-    const center = Offset(size / 2, size / 2);
-
-    canvas.drawCircle(center, 24, Paint()..color = const Color(0x881565C0));
-    canvas.drawCircle(center, 16, Paint()..color = const Color(0xFFFFFFFF));
-    canvas.drawCircle(center, 10, Paint()..color = const Color(0xFF1565C0));
-
-    final image =
-        await recorder.endRecording().toImage(size.toInt(), size.toInt());
-    return _toRgba8Png(image);
-  }
-
-  /// ui.Image → KakaoMaps SDK가 지원하는 8-bit RGBA PNG로 변환.
-  /// Flutter의 기본 png 인코더가 일부 iOS 버전에서 16-bit 채널 PNG를
-  /// 생성하여 KakaoMaps에서 "unsupport png pixel format: 7" 크래시가 발생하므로
-  /// image 패키지로 강제 8-bit 인코딩. encodePng는 CPU 집약적이므로 isolate에서 실행.
-  Future<Uint8List> _toRgba8Png(ui.Image uiImage) async {
-    final rawData =
-        await uiImage.toByteData(format: ui.ImageByteFormat.rawRgba);
-    if (rawData == null) throw StateError('marker rawRgba failed');
-    return compute(_encodePng8bit, _PngEncodeParams(
-      width: uiImage.width,
-      height: uiImage.height,
-      rgba: rawData.buffer.asUint8List(),
-    ));
-  }
-}
-
-// ── PNG 8-bit 인코딩 (isolate용 top-level) ────────────────────────
-
-class _PngEncodeParams {
-  final int width;
-  final int height;
-  final Uint8List rgba;
-  const _PngEncodeParams({required this.width, required this.height, required this.rgba});
-}
-
-Uint8List _encodePng8bit(_PngEncodeParams p) {
-  final image = img.Image.fromBytes(
-    width: p.width,
-    height: p.height,
-    bytes: p.rgba.buffer,
-    numChannels: 4,
-  );
-  return Uint8List.fromList(img.encodePng(image));
-}
-
-// ── 혼잡도 배너 위젯 ───────────────────────────────────────────────
-
-class _CongestionBanner extends StatelessWidget {
-  final bool isRelaxed;
-  const _CongestionBanner({required this.isRelaxed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-      decoration: BoxDecoration(
-        color: isRelaxed ? const Color(0xFFE8F5E9) : const Color(0xFFFBE9E7),
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.10),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isRelaxed
-                ? Icons.sentiment_satisfied_alt_rounded
-                : Icons.sentiment_dissatisfied_rounded,
-            color: isRelaxed
-                ? const Color(0xFF1B8C6E)
-                : const Color(0xFFD84315),
-            size: 20,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            isRelaxed
-                ? '지금 주변은 대체로 여유로워요'
-                : '지금 주변은 다소 혼잡한 편이에요',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: isRelaxed
-                  ? const Color(0xFF1B6B51)
-                  : const Color(0xFFBF360C),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── 지도 중앙 크로스헤어 위젯 ─────────────────────────────────────────
-
-// ── 정렬 토글 위젯 ─────────────────────────────────────────────────
-
-class _SortToggle extends StatelessWidget {
-  final bool byDistance;
-  final ValueChanged<bool> onToggle;
-
-  const _SortToggle({required this.byDistance, required this.onToggle});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 30,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F0F0),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _chip('거리순', byDistance, () => onToggle(true)),
-          _chip('혼잡도순', !byDistance, () => onToggle(false)),
-        ],
-      ),
-    );
-  }
-
-  Widget _chip(String label, bool active, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: active ? const Color(0xFF1B8C6E) : Colors.transparent,
-          borderRadius: BorderRadius.circular(7),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: active ? Colors.white : Colors.grey.shade600,
-          ),
-        ),
-      ),
-    );
   }
 }
