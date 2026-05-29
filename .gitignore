@@ -71,6 +71,7 @@ gabojago-backend/out/
 # AI assistant 설정 (개인 로컬 도구)
 .claude/
 .codex/
+.agents/
 CLAUDE.md
 AGENTS.md
 CURSOR.md
