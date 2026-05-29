@@ -1,7 +1,6 @@
 package com.gabojago.member.user.domain;
 
 import com.gabojago.global.domain.BaseTimeEntity;
-import com.gabojago.global.security.oauth2.OAuth2UserInfo;
 import com.gabojago.member.user.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -41,14 +40,12 @@ public class User extends BaseTimeEntity {
         this.email = email;
     }
 
-    public static User from(OAuth2UserInfo userInfo) {
-        String nickname = userInfo.getNickname() != null
-                ? userInfo.getNickname()
-                : "여행자";
+    public static User create(String nickname, String email) {
+        String resolvedNickname = nickname != null ? nickname : "여행자";
 
         return User.builder()
-                .nickname(nickname)
-                .email(userInfo.getEmail())
+                .nickname(resolvedNickname)
+                .email(email)
                 .build();
     }
 

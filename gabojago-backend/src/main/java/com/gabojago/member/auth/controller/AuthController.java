@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -53,26 +54,24 @@ public class AuthController {
 
     /** 로그아웃 */
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest req,
-                                       @AuthenticationPrincipal String userId,
-                                       HttpServletRequest request) {
-        authFacade.logout(userId, req.refreshToken(), resolveBearerToken(request));
+    public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest req, @AuthenticationPrincipal String userId,
+                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        authFacade.logout(userId, req.refreshToken(), resolveBearerToken(authorization));
         return ResponseEntity.noContent().build();
     }
 
     /** 회원 탈퇴 + provider unlink */
     @PostMapping("/unlink")
     public ResponseEntity<Void> unlink(@AuthenticationPrincipal String userId,
-                                       HttpServletRequest request) {
-        authFacade.unlink(userId, resolveBearerToken(request));
+                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        authFacade.unlink(userId, resolveBearerToken(authorization));
         return ResponseEntity.noContent().build();
     }
 
-    private static String resolveBearerToken(HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
-        if (header == null || !header.startsWith("Bearer ")) {
+    private static String resolveBearerToken(String authorization) {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
             return null;
         }
-        return header.substring(7);
+        return authorization.substring(7);
     }
 }

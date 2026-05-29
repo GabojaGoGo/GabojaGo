@@ -57,20 +57,31 @@ public class RedisRefreshTokenStore implements RefreshTokenStore {
         return findRecord(revokedKey(tokenHash));
     }
 
-    /** 활성 token을 revoked 영역으로 옮기고 active key는 삭제한다. */
+    /**
+     * 활성 refresh token을 폐기한다.
+     * 원래 active record는 지우고, 같은 hash를 revoked 영역에 잠시 남겨 재사용 공격을 탐지한다.
+     */
     @Override
     public void revoke(String tokenHash, RefreshTokenRecord record, String reason) {
         String activeKey = activeKey(tokenHash);
         String revokedKey = revokedKey(tokenHash);
+
+        // 기존 active key의 남은 수명만큼 revoked 기록도 유지한다.
+        // 그래야 만료 전 탈취된 과거 token이 다시 들어왔을 때 재사용으로 판단할 수 있다.
         Duration ttl = revokedTtl(activeKey);
 
         executeTransaction(operations -> {
+            // 1. revoked hash에 소유자/family/reason을 저장해 나중에 findRevoked()로 추적한다.
             operations.opsForHash().putAll(revokedKey, Map.of(
                 "userId", nullToEmpty(record.userId()),
                 "familyId", nullToEmpty(record.familyId()),
                 "reason", reason
             ));
+
+            // 2. revoked 기록도 TTL을 걸어 Redis에 영구 누적되지 않게 한다.
             operations.expire(revokedKey, ttl);
+
+            // 3. active key를 삭제해 이 refresh token으로는 더 이상 rotate할 수 없게 한다.
             operations.delete(activeKey);
         });
     }

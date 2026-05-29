@@ -2,7 +2,6 @@ package com.gabojago.member.auth.service;
 
 import com.gabojago.global.security.jwt.JwtUtils;
 import com.gabojago.global.security.jwt.RefreshTokenService;
-import com.gabojago.global.security.oauth2.OAuthProviderClientRouter;
 import com.gabojago.global.security.jwt.RedisJwtTokenBlacklist;
 import com.gabojago.member.user.domain.User;
 import com.gabojago.member.user.repository.SocialAccountRepository;
@@ -24,7 +23,7 @@ public class AuthFacade {
     private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
     private final RefreshTokenService refreshTokenService;
-    private final OAuthProviderClientRouter providerClientRouter;
+    private final OAuthLoginService oauthLoginService;
     private final JwtUtils jwtUtils;
     private final RedisJwtTokenBlacklist jwtTokenBlacklist;
 
@@ -44,7 +43,7 @@ public class AuthFacade {
 
         // 2. Provider unlink
         socialAccountRepository.findByUser_Id(userPk).stream()
-                .forEach(socialAccount -> providerClientRouter
+                .forEach(socialAccount -> oauthLoginService
                         .unlink(socialAccount.getProvider(), socialAccount.getProviderUserId()));
 
         // 3. 사용자 소프트 삭제
