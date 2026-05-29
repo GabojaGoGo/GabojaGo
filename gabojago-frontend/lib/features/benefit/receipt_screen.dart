@@ -3,7 +3,7 @@
 // 버튼 클릭 시 1.5초 로딩 후 더미 OCR 결과를 애니메이션과 함께 표시
 
 import 'package:flutter/material.dart';
-import '../widgets/benefit_chip.dart';
+import 'package:tripmate/core/widgets/benefit_chip.dart';
 
 // ─────────────────────────────────────────────
 // 더미 OCR 결과 데이터

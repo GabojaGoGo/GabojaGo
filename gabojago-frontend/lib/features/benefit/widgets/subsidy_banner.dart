@@ -3,7 +3,7 @@
 // 제목, 부제, 상태 칩(마감 D-day / 잔여 예산), CTA 버튼 포함
 
 import 'package:flutter/material.dart';
-import 'benefit_chip.dart';
+import 'package:tripmate/core/widgets/benefit_chip.dart';
 
 class SubsidyBanner extends StatelessWidget {
   final String title;

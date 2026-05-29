@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/user_prefs.dart';
-import '../services/api_service.dart';
-import '../services/user_data_service.dart';
-import '../widgets/shimmer_box.dart';
-import 'course_detail_screen.dart';
-import 'receipt_screen.dart';
-import 'travel_setup_screen.dart';
+import 'package:tripmate/core/models/user_prefs.dart';
+import 'package:tripmate/infrastructure/api_service.dart';
+import 'package:tripmate/core/services/user_data_service.dart';
+import 'package:tripmate/core/widgets/shimmer_box.dart';
+import 'package:tripmate/features/course/course_detail_screen.dart';
+import 'package:tripmate/features/benefit/receipt_screen.dart';
+import 'package:tripmate/features/auth/travel_setup_screen.dart';
 
 // ══════════════════════════════════════════════════════════
 // 플래너 화면

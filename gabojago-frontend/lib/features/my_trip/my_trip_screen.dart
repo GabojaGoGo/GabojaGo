@@ -4,11 +4,11 @@
 //   로그인  : 프로필 헤더, 실제 취향 프로필, 족적, 혜택 리포트, 버킷리스트, 설정
 
 import 'package:flutter/material.dart';
-import '../models/user_prefs.dart';
-import '../services/auth_service.dart';
-import '../services/social_login_clients.dart';
-import '../services/user_data_service.dart';
-import 'travel_setup_screen.dart';
+import 'package:tripmate/core/models/user_prefs.dart';
+import 'package:tripmate/core/services/auth_service.dart';
+import 'package:tripmate/core/services/social_login_clients.dart';
+import 'package:tripmate/core/services/user_data_service.dart';
+import 'package:tripmate/features/auth/travel_setup_screen.dart';
 
 // ── 색상 상수 ──────────────────────────────────────────────
 const _kPrimary   = Color(0xFF2E7D6B);

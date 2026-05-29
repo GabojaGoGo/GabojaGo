@@ -1,7 +1,7 @@
 // spot_card.dart
 import 'package:flutter/material.dart';
-import 'benefit_chip.dart';
-import 'shimmer_box.dart';
+import 'package:tripmate/core/widgets/benefit_chip.dart';
+import 'package:tripmate/core/widgets/shimmer_box.dart';
 
 class SpotData {
   final int id;

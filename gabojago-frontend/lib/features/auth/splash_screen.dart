@@ -4,10 +4,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../services/auth_service.dart';
-import 'login_screen.dart';
-import 'onboarding_screen.dart';
-import '../main.dart';
+import 'package:tripmate/core/services/auth_service.dart';
+import 'package:tripmate/features/auth/login_screen.dart';
+import 'package:tripmate/features/auth/onboarding_screen.dart';
+import 'package:tripmate/main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

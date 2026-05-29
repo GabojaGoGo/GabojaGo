@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/user_prefs.dart';
-import '../services/api_service.dart';
-import 'travel_course_result_screen.dart';
+import 'package:tripmate/core/models/user_prefs.dart';
+import 'package:tripmate/infrastructure/api_service.dart';
+import 'package:tripmate/features/course/travel_course_result_screen.dart';
 
 class CourseLoadingScreen extends StatefulWidget {
   final UserPrefs prefs;

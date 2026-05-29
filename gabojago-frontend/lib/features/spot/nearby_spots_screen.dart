@@ -10,11 +10,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image/image.dart' as img;
 import 'package:kakao_maps_flutter/kakao_maps_flutter.dart';
 
-import '../services/api_service.dart';
+import 'package:tripmate/infrastructure/api_service.dart';
 
-import '../widgets/benefit_chip.dart';
-import '../widgets/spot_card.dart';
-import 'spot_detail_screen.dart';
+import 'package:tripmate/core/widgets/benefit_chip.dart';
+import 'package:tripmate/core/widgets/spot_card.dart';
+import 'package:tripmate/features/spot/spot_detail_screen.dart';
 
 class NearbySpotsScreen extends StatefulWidget {
   final List<SpotData> spots;

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/user_prefs.dart';
-import '../services/auth_service.dart';
-import '../services/user_data_service.dart';
-import '../utils/app_theme.dart';
-import 'travel_course_result_screen.dart';
+import 'package:tripmate/core/models/user_prefs.dart';
+import 'package:tripmate/core/services/auth_service.dart';
+import 'package:tripmate/core/services/user_data_service.dart';
+import 'package:tripmate/core/theme/app_theme.dart';
+import 'package:tripmate/features/course/travel_course_result_screen.dart';
 
 class TravelSetupScreen extends StatefulWidget {
   /// true(기본값): 완료 후 코스 추천 화면으로 이동

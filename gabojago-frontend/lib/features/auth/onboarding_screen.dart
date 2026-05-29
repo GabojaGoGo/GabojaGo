@@ -4,10 +4,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import '../models/user_prefs.dart';
-import '../services/auth_service.dart';
-import '../services/user_data_service.dart';
-import '../utils/app_theme.dart';
+import 'package:tripmate/core/models/user_prefs.dart';
+import 'package:tripmate/core/services/auth_service.dart';
+import 'package:tripmate/core/services/user_data_service.dart';
+import 'package:tripmate/core/theme/app_theme.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

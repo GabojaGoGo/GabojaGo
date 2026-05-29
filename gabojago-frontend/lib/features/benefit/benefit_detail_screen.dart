@@ -5,10 +5,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../services/user_data_service.dart';
-import '../services/notification_service.dart';
-import '../widgets/benefit_chip.dart';
-import 'subsidy_screen.dart' show BenefitItem;
+import 'package:tripmate/core/services/user_data_service.dart';
+import 'package:tripmate/core/services/notification_service.dart';
+import 'package:tripmate/core/widgets/benefit_chip.dart';
+import 'package:tripmate/features/benefit/subsidy_screen.dart' show BenefitItem;
 
 class BenefitDetailScreen extends StatefulWidget {
   final BenefitItem benefit;

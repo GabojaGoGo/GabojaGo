@@ -5,14 +5,14 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import '../models/user_prefs.dart';
-import '../widgets/benefit_chip.dart';
-import '../widgets/shimmer_box.dart';
-import '../services/api_service.dart';
-import 'travel_setup_screen.dart';
-import 'course_loading_screen.dart';
-import 'benefit_detail_screen.dart';
-import 'subsidy_screen.dart' show BenefitItem, StatusType;
+import 'package:tripmate/core/models/user_prefs.dart';
+import 'package:tripmate/core/widgets/benefit_chip.dart';
+import 'package:tripmate/core/widgets/shimmer_box.dart';
+import 'package:tripmate/infrastructure/api_service.dart';
+import 'package:tripmate/features/auth/travel_setup_screen.dart';
+import 'package:tripmate/features/course/course_loading_screen.dart';
+import 'package:tripmate/features/benefit/benefit_detail_screen.dart';
+import 'package:tripmate/features/benefit/subsidy_screen.dart' show BenefitItem, StatusType;
 
 // ─────────────────────────────────────────────
 // 홈 화면 위젯

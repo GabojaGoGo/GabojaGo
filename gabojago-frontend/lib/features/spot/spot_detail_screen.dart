@@ -12,8 +12,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../services/tour_api_service.dart';
-import '../widgets/spot_card.dart';
+import 'package:tripmate/infrastructure/tour_api_service.dart';
+import 'package:tripmate/core/widgets/spot_card.dart';
 
 class SpotDetailScreen extends StatefulWidget {
   final SpotData spot;

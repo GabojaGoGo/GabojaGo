@@ -9,10 +9,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import '../models/user_prefs.dart';
-import 'api_service.dart';
-import 'social_login_clients.dart';
-import 'user_data_service.dart';
+import 'package:tripmate/core/models/user_prefs.dart';
+import 'package:tripmate/infrastructure/api_service.dart';
+import 'package:tripmate/core/services/social_login_clients.dart';
+import 'package:tripmate/core/services/user_data_service.dart';
 
 class AuthService {
   AuthService._();

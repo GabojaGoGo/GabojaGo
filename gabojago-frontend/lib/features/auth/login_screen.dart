@@ -7,10 +7,10 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../services/auth_service.dart';
-import '../utils/app_theme.dart';
-import '../services/social_login_clients.dart';
-import '../services/user_data_service.dart';
+import 'package:tripmate/core/services/auth_service.dart';
+import 'package:tripmate/core/theme/app_theme.dart';
+import 'package:tripmate/core/services/social_login_clients.dart';
+import 'package:tripmate/core/services/user_data_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

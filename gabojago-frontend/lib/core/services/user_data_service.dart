@@ -8,8 +8,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'auth_service.dart';
-import 'api_service.dart';
+import 'package:tripmate/core/services/auth_service.dart';
+import 'package:tripmate/infrastructure/api_service.dart';
 
 class UserDataService {
   UserDataService._();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import '../services/user_data_service.dart';
+import 'package:tripmate/infrastructure/api_service.dart';
+import 'package:tripmate/core/services/user_data_service.dart';
 
 class CourseDetailScreen extends StatefulWidget {
   final Map<String, dynamic> course;

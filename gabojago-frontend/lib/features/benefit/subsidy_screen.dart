@@ -2,9 +2,9 @@
 // 혜택 목록 화면 — 백엔드 DB에서 혜택 목록을 가져와 표시
 
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import '../widgets/benefit_chip.dart';
-import 'benefit_detail_screen.dart';
+import 'package:tripmate/infrastructure/api_service.dart';
+import 'package:tripmate/core/widgets/benefit_chip.dart';
+import 'package:tripmate/features/benefit/benefit_detail_screen.dart';
 
 // ─────────────────────────────────────────────
 // BenefitItem 모델
