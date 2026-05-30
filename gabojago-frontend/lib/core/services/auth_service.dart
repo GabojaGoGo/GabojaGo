@@ -35,6 +35,13 @@ class AuthService {
   String? _accessToken;
   DateTime? _accessTokenExpiry;
 
+  // 동시 refresh 방지 — 진행 중인 refresh Future를 공유
+  Future<String?>? _pendingRefresh;
+
+  // 앱 사용 중 세션 만료(refresh 401) 감지 시 호출되는 콜백
+  // main.dart에서 등록 → 로그인 화면으로 강제 이동
+  void Function()? onSessionExpired;
+
   // ── 초기화 ─────────────────────────────────────────────────
 
   Future<void> init() async {
@@ -67,15 +74,28 @@ class AuthService {
   );
 
   // ── 유효한 Access Token 반환 (만료 30초 전이면 자동 갱신) ──
+  // 동시 호출 시 동일한 Future를 공유해 refresh 중복 방지 (RT Rotation 보호)
 
   Future<String?> getValidAccessToken() async {
     if (_accessToken != null && _accessTokenExpiry != null) {
       final remaining = _accessTokenExpiry!.difference(DateTime.now());
       if (remaining.inSeconds > 30) return _accessToken;
     }
-    // 만료 임박 또는 null → refresh
+    // 이미 refresh 진행 중 → 동일한 Future 대기 (중복 호출 방지)
+    if (_pendingRefresh != null) return _pendingRefresh;
+
     final rt = await _storage.read(key: _kRefreshToken);
     if (rt == null) return null;
+
+    _pendingRefresh = _doRefresh(rt);
+    try {
+      return await _pendingRefresh;
+    } finally {
+      _pendingRefresh = null;
+    }
+  }
+
+  Future<String?> _doRefresh(String rt) async {
     try {
       await _refreshAccessToken(rt);
       return _accessToken;
@@ -216,8 +236,9 @@ class AuthService {
     ).timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 401) {
-      // refresh token 무효 → 로컬 삭제
+      // refresh token 무효(재사용/만료) → 로컬 삭제 후 로그인 화면 이동 트리거
       await _clearLocal();
+      onSessionExpired?.call();
       throw Exception('세션 만료');
     }
     if (response.statusCode != 200) throw Exception('갱신 실패: ${response.statusCode}');

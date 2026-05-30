@@ -52,6 +52,30 @@ class _GabojaGoAppState extends State<GabojaGoApp> {
   final _navKey = GlobalKey<NavigatorState>();
 
   @override
+  void initState() {
+    super.initState();
+    // 앱 사용 중 세션 만료(refresh 401) 감지 시 로그인 화면으로 강제 이동
+    AuthService.instance.onSessionExpired = () {
+      final nav = _navKey.currentState;
+      if (nav == null) return;
+      // 이미 로그인 화면이면 중복 이동 방지
+      var alreadyOnLogin = false;
+      nav.popUntil((route) {
+        if (route.settings.name == '/login') alreadyOnLogin = true;
+        return true;
+      });
+      if (alreadyOnLogin) return;
+      nav.pushNamedAndRemoveUntil('/login', (_) => false);
+    };
+  }
+
+  @override
+  void dispose() {
+    AuthService.instance.onSessionExpired = null;
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: _navKey,

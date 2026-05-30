@@ -10,12 +10,14 @@ class SettingsMenuSection extends StatelessWidget {
   final bool isGuest;
   final VoidCallback onLogout;
   final VoidCallback onEditPrefs;
+  final VoidCallback? onWithdraw;
 
   const SettingsMenuSection({
     super.key,
     required this.isGuest,
     required this.onLogout,
     required this.onEditPrefs,
+    this.onWithdraw,
   });
 
   @override
@@ -52,6 +54,15 @@ class SettingsMenuSection extends StatelessWidget {
           onTap: onLogout,
           showChevron: false,
         ),
+        if (!isGuest && onWithdraw != null)
+          _MenuItem(
+            icon: Icons.person_remove_outlined,
+            label: '회원탈퇴',
+            textColor: _kText3,
+            iconColor: _kText3,
+            onTap: onWithdraw!,
+            showChevron: false,
+          ),
       ]),
     );
   }
@@ -99,11 +110,13 @@ class _MenuItem extends StatelessWidget {
 class SettingsSheet extends StatelessWidget {
   final VoidCallback onLogout;
   final VoidCallback onEditPrefs;
+  final VoidCallback? onWithdraw;
 
   const SettingsSheet({
     super.key,
     required this.onLogout,
     required this.onEditPrefs,
+    this.onWithdraw,
   });
 
   @override
@@ -133,6 +146,12 @@ class SettingsSheet extends StatelessWidget {
               style: TextStyle(color: Colors.red.shade400)),
           onTap: onLogout,
         ),
+        if (onWithdraw != null)
+          ListTile(
+            leading: const Icon(Icons.person_remove_outlined, color: _kText3),
+            title: const Text('회원탈퇴', style: TextStyle(color: _kText3)),
+            onTap: onWithdraw,
+          ),
         const SizedBox(height: 8),
       ]),
     );

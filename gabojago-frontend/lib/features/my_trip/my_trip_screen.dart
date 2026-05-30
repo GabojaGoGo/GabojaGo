@@ -62,6 +62,37 @@ class _MyTripScreenState extends State<MyTripScreen> {
     }
   }
 
+  Future<void> _withdraw() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('회원탈퇴',
+            style: TextStyle(fontWeight: FontWeight.w800)),
+        content: const Text(
+            '탈퇴하면 계정 연동이 해제되고\n저장된 모든 정보가 삭제됩니다.\n이 작업은 되돌릴 수 없어요. 계속할까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소', style: TextStyle(color: _kText2)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('탈퇴하기',
+                style: TextStyle(
+                    color: Colors.red, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && mounted) {
+      await AuthService.instance.unlink();
+      if (!mounted) return;
+      UserPrefsScope.maybeOf(context)?.onUpdate(const UserPrefs());
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+    }
+  }
+
   Future<void> _linkAccount(String provider) async {
     final socialProvider = switch (provider) {
       'kakao'  => SocialLoginProvider.kakao,
@@ -172,10 +203,17 @@ class _MyTripScreenState extends State<MyTripScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => SettingsSheet(
-        onLogout: () { Navigator.pop(context); _logout(); },
-        onEditPrefs: () { Navigator.pop(context); _goToTravelSetup(); },
-      ),
+      builder: (_) {
+        final isGuest = AuthService.instance.provider == 'guest' ||
+            !AuthService.instance.isLoggedIn;
+        return SettingsSheet(
+          onLogout: () { Navigator.pop(context); _logout(); },
+          onEditPrefs: () { Navigator.pop(context); _goToTravelSetup(); },
+          onWithdraw: isGuest
+              ? null
+              : () { Navigator.pop(context); _withdraw(); },
+        );
+      },
     );
   }
 
@@ -279,6 +317,7 @@ class _MyTripScreenState extends State<MyTripScreen> {
               isGuest: isGuest,
               onLogout: _logout,
               onEditPrefs: _goToTravelSetup,
+              onWithdraw: isGuest ? null : _withdraw,
             ),
 
             const SizedBox(height: 40),
