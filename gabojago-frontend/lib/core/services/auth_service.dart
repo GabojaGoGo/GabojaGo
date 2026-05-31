@@ -87,6 +87,8 @@ class AuthService {
     final rt = await _storage.read(key: _kRefreshToken);
     if (rt == null) return null;
 
+    if (_pendingRefresh != null) return _pendingRefresh;
+
     _pendingRefresh = _doRefresh(rt);
     try {
       return await _pendingRefresh;
