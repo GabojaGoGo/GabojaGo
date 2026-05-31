@@ -165,7 +165,7 @@ class AuthService {
     // 백엔드 닉네임 동기화
     final token = await getValidAccessToken();
     if (token != null) {
-      await http.patch(
+      final response = await http.patch(
         Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/me/profile'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -173,6 +173,9 @@ class AuthService {
         },
         body: json.encode({'nickname': nickname.trim()}),
       ).timeout(const Duration(seconds: 10));
+      if (response.statusCode != 200) {
+        throw Exception('닉네임 서버 저장 실패: ${response.statusCode}');
+      }
     }
   }
 

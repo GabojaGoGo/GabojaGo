@@ -102,23 +102,34 @@ class _MyTripScreenState extends State<MyTripScreen> {
     };
     if (socialProvider == null) return;
 
-    final result = await AuthService.instance.loginWithProvider(socialProvider);
-    await UserDataService.instance.syncFromServer();
-    final udPrefs   = UserDataService.instance.getPrefs();
-    final purposes  = List<String>.from(udPrefs['purposes'] as List? ?? []);
-    final duration  = (udPrefs['duration'] as String?) ?? '';
-    if (purposes.isNotEmpty || duration.isNotEmpty) {
-      await AuthService.instance.updatePrefs(purposes: purposes, duration: duration);
-    }
-    if (!mounted) return;
-    if (result.isNewUser || !AuthService.instance.hasNickname) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/onboarding', (_) => false);
-    } else {
-      UserPrefsScope.maybeOf(context)?.onUpdate(
-        AuthService.instance.toUserPrefs().copyWith(
-          loginProvider: AuthService.instance.provider,
-        ),
-      );
+    try {
+      final result = await AuthService.instance.loginWithProvider(socialProvider);
+      await UserDataService.instance.syncFromServer();
+      final udPrefs   = UserDataService.instance.getPrefs();
+      final purposes  = List<String>.from(udPrefs['purposes'] as List? ?? []);
+      final duration  = (udPrefs['duration'] as String?) ?? '';
+      if (purposes.isNotEmpty || duration.isNotEmpty) {
+        await AuthService.instance.updatePrefs(purposes: purposes, duration: duration);
+      }
+      if (!mounted) return;
+      if (result.isNewUser || !AuthService.instance.hasNickname) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/onboarding', (_) => false);
+      } else {
+        UserPrefsScope.maybeOf(context)?.onUpdate(
+          AuthService.instance.toUserPrefs().copyWith(
+            loginProvider: AuthService.instance.provider,
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      // TODO: 커스텀 상단 토스트로 교체
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+          content: Text('로그인에 실패했습니다. 다시 시도해주세요.'),
+          behavior: SnackBarBehavior.floating,
+        ));
     }
   }
 
