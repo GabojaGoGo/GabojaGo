@@ -1,5 +1,7 @@
 package com.gabojago.member.auth.service;
 
+import com.gabojago.global.exception.BusinessException;
+import com.gabojago.global.exception.ErrorCode;
 import com.gabojago.global.security.jwt.JwtUtils;
 import com.gabojago.global.security.jwt.RefreshTokenService;
 import com.gabojago.global.security.oauth2.OAuth2UserInfo;
@@ -51,7 +53,7 @@ public class OAuthLoginService {
         } else {
             user = socialAccount.getUser();
             if (!user.isActive()) {
-                throw new IllegalStateException("비활성 사용자");
+                throw new BusinessException(ErrorCode.USER_INACTIVE);
             }
             user.recordLogin();
             log.info("기존 사용자 로그인: userId={}", user.getId());

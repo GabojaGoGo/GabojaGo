@@ -8,7 +8,6 @@ import com.gabojago.member.auth.service.AuthFacade;
 import com.gabojago.member.auth.service.OAuthLoginService;
 import com.gabojago.global.security.jwt.RefreshTokenService;
 import com.gabojago.global.security.jwt.JwtUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +18,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@Slf4j
 public class AuthController {
 
     private final OAuthLoginService oauthLoginService;
@@ -37,19 +36,15 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    /** Refresh Token 갱신 */
+    /** Refresh Token 갱신 (실패 시 BusinessException → GlobalExceptionHandler가 401 응답) */
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@Valid @RequestBody RefreshRequest req) {
-        try {
-            RefreshTokenService.RotationResult result = refreshTokenService.rotate(req.refreshToken());
-            String newAccessToken = jwtUtils.generateAccessToken(String.valueOf(result.userId()));
-            return ResponseEntity.ok(Map.of(
-                    "accessToken", newAccessToken,
-                    "refreshToken", result.newRefreshToken()
-            ));
-        } catch (RefreshTokenService.InvalidRefreshTokenException e) {
-            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
-        }
+        RefreshTokenService.RotationResult result = refreshTokenService.rotate(req.refreshToken());
+        String newAccessToken = jwtUtils.generateAccessToken(String.valueOf(result.userId()));
+        return ResponseEntity.ok(Map.of(
+                "accessToken", newAccessToken,
+                "refreshToken", result.newRefreshToken()
+        ));
     }
 
     /** 로그아웃 */

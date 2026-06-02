@@ -1,5 +1,7 @@
 package com.gabojago.global.security.jwt;
 
+import com.gabojago.global.exception.BusinessException;
+import com.gabojago.global.exception.ErrorCode;
 import com.gabojago.global.security.jwt.RefreshTokenStore.RefreshTokenRecord;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,10 +56,11 @@ public class RefreshTokenService {
             String familyId = revokedSession.get().familyId();
             log.warn("[보안] refresh token 재사용 탐지 — userId={}, familyId={} 전체 세션 폐기", revokedSession.get().userId(), familyId);
             refreshTokenStore.revokeFamily(familyId, "REUSE_DETECTED");
-            throw new InvalidRefreshTokenException("재사용된 refresh token — 전체 세션 폐기");
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN, "재사용된 refresh token — 전체 세션 폐기");
         }
 
-        RefreshTokenRecord record = refreshTokenStore.findActive(hash).orElseThrow(() -> new InvalidRefreshTokenException("존재하지 않는 refresh token"));
+        RefreshTokenRecord record = refreshTokenStore.findActive(hash)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN, "존재하지 않는 refresh token"));
 
         // 새 token을 먼저 발급한 뒤 기존 token을 폐기한다.
         // 순서를 반대로 하면 issue 실패 시 사용자가 토큰을 모두 잃고 강제 로그아웃된다.
@@ -91,8 +94,4 @@ public class RefreshTokenService {
     }
 
     public record RotationResult(Long userId, String newRefreshToken) {}
-
-    public static class InvalidRefreshTokenException extends RuntimeException {
-        public InvalidRefreshTokenException(String msg) { super(msg); }
-    }
 }

@@ -1,6 +1,8 @@
 package com.gabojago.tourism.data.controller;
 
 import com.gabojago.global.aop.TrackExecutionTime;
+import com.gabojago.global.exception.BusinessException;
+import com.gabojago.global.exception.ErrorCode;
 import com.gabojago.tourism.data.dto.CongestionBatchDetailDto;
 import com.gabojago.tourism.data.dto.CongestionBatchRowDto;
 import com.gabojago.tourism.data.dto.CongestionBatchSummaryDto;
@@ -10,7 +12,6 @@ import com.gabojago.tourism.data.service.CongestionAdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -59,11 +59,7 @@ public class CongestionAdminController {
     @GetMapping("/batches/{batchId}")
     @Operation(summary = "배치 상세 조회", description = "선택한 배치의 raw JSON과 item 목록을 조회합니다.")
     public CongestionBatchDetailDto getBatch(@Parameter(description = "배치 ID") @PathVariable Long batchId) {
-        try {
-            return congestionAdminService.getBatch(batchId);
-        } catch (EntityNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+        return congestionAdminService.getBatch(batchId);
     }
 
     @DeleteMapping("/all")
@@ -80,7 +76,7 @@ public class CongestionAdminController {
         try {
             return LocalDate.parse(ymd, DateTimeFormatter.BASIC_ISO_DATE);
         } catch (DateTimeParseException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid ymd format. Use yyyyMMdd.");
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER, "Invalid ymd format. Use yyyyMMdd.");
         }
     }
 }
