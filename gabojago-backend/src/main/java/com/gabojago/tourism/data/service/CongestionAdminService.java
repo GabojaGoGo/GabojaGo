@@ -12,7 +12,7 @@ import com.gabojago.tourism.data.dto.CongestionBatchSummaryDto;
 import com.gabojago.tourism.data.dto.CongestionDeleteResponse;
 import com.gabojago.tourism.data.dto.CongestionItemDto;
 import com.gabojago.tourism.data.dto.CongestionSaveResponse;
-import jakarta.persistence.EntityNotFoundException;
+import com.gabojago.tourism.data.exception.CongestionBatchNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,7 +88,7 @@ public class CongestionAdminService {
     // 상세 조회 버튼용 로직: 원본 JSON과 파싱된 item 목록을 함께 반환한다.
     public CongestionBatchDetailDto getBatch(Long batchId) {
         CongestionApiBatch batch = batchRepository.findById(batchId)
-                .orElseThrow(() -> new EntityNotFoundException("Congestion batch not found: " + batchId));
+                .orElseThrow(() -> new CongestionBatchNotFoundException(batchId));
 
         List<CongestionItemDto> items = batch.getItems().stream()
                 .map(this::toItemDto)

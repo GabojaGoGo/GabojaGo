@@ -2,6 +2,7 @@ package com.gabojago.member.user.service;
 
 import com.gabojago.member.user.domain.*;
 import com.gabojago.member.user.dto.response.MeResponse;
+import com.gabojago.member.user.exception.UserNotFoundException;
 import com.gabojago.member.user.repository.SocialAccountRepository;
 import com.gabojago.member.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class UserService {
     public MeResponse getMe(String userId) {
         Long userPk = parseUserId(userId);
         User user = userRepository.findById(userPk)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+                .orElseThrow(() -> new UserNotFoundException(userPk));
 
         String provider = socialAccountRepository.findByUser_Id(userPk).stream()
                 .map(SocialAccount::getProvider)
@@ -33,8 +34,9 @@ public class UserService {
 
     @Transactional
     public void updateNickname(String userId, String nickname) {
-        User user = userRepository.findById(parseUserId(userId))
-                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+        Long userPk = parseUserId(userId);
+        User user = userRepository.findById(userPk)
+                .orElseThrow(() -> new UserNotFoundException(userPk));
         user.updateNickname(nickname);
     }
 

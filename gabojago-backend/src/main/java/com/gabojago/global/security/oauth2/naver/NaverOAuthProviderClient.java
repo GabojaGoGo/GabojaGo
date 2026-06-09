@@ -2,6 +2,8 @@ package com.gabojago.global.security.oauth2.naver;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gabojago.global.exception.BusinessException;
+import com.gabojago.global.exception.ErrorCode;
 import com.gabojago.global.security.oauth2.OAuth2UserInfo;
 import com.gabojago.global.security.oauth2.OAuthProviderClient;
 import com.gabojago.member.user.enums.OAuthProvider;
@@ -45,7 +47,7 @@ public class NaverOAuthProviderClient implements OAuthProviderClient {
                     parseNickname(profile)
             );
         } catch (Exception e) {
-            throw new RuntimeException("네이버 사용자 정보 조회 실패", e);
+            throw new BusinessException(ErrorCode.OAUTH_USERINFO_FAILED, "네이버 사용자 정보 조회 실패", e);
         }
     }
 

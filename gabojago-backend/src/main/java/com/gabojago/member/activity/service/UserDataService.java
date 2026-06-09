@@ -1,6 +1,7 @@
 package com.gabojago.member.activity.service;
 
 import com.gabojago.member.activity.domain.*;
+import com.gabojago.member.activity.exception.BucketItemNotFoundException;
 import com.gabojago.member.activity.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,7 +76,7 @@ public class UserDataService {
         Long userPk = parseUserId(userId);
         UserBucketItem item = bucketRepo.findById(id)
                 .filter(b -> b.getUserId().equals(userPk))
-                .orElseThrow(() -> new IllegalArgumentException("not found"));
+                .orElseThrow(() -> new BucketItemNotFoundException(id));
         if (title != null)  item.update(title, area, note);
         if (Boolean.TRUE.equals(completed)) item.complete();
         return bucketRepo.save(item);
