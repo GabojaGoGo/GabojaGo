@@ -284,10 +284,9 @@ class _HeroHeadline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Image.asset(
-        'assets/images/app_logo.png',
-        width: 160,
-        height: 160,
+      child: SvgPicture.asset(
+        'assets/images/logo.svg',
+        width: 200,
         fit: BoxFit.contain,
       ),
     );
