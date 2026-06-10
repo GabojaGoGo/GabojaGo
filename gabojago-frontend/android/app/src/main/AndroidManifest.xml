@@ -40,7 +40,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.kakao.sdk.flutter.auth.AppsHandlerActivity"
+            android:name="com.kakao.sdk.flutter.AuthCodeCustomTabsActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
