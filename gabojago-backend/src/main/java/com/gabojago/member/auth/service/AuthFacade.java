@@ -3,6 +3,8 @@ package com.gabojago.member.auth.service;
 import com.gabojago.global.security.jwt.JwtUtils;
 import com.gabojago.global.security.jwt.RefreshTokenService;
 import com.gabojago.global.security.jwt.RedisJwtTokenBlacklist;
+import com.gabojago.member.activity.service.UserDataService;
+import com.gabojago.member.user.domain.SocialAccount;
 import com.gabojago.member.user.domain.User;
 import com.gabojago.member.user.repository.SocialAccountRepository;
 import com.gabojago.member.user.repository.UserRepository;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ public class AuthFacade {
 
     private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
+    private final UserDataService userDataService;
     private final RefreshTokenService refreshTokenService;
     private final OAuthLoginService oauthLoginService;
     private final JwtUtils jwtUtils;
@@ -42,11 +46,15 @@ public class AuthFacade {
         blacklistAccessToken(accessToken);
 
         // 2. Provider unlink
-        socialAccountRepository.findByUser_Id(userPk).stream()
-                .forEach(socialAccount -> oauthLoginService
-                        .unlink(socialAccount.getProvider(), socialAccount.getProviderUserId()));
+        List<SocialAccount> socialAccounts = socialAccountRepository.findByUser_Id(userPk);
+        socialAccounts.forEach(socialAccount -> oauthLoginService
+                .unlink(socialAccount.getProvider(), socialAccount.getProviderUserId()));
 
-        // 3. 사용자 소프트 삭제
+        // 3. 사용자 데이터 및 로컬 소셜 연결 삭제
+        userDataService.deleteAllForUser(userId);
+        socialAccountRepository.deleteAll(socialAccounts);
+
+        // 4. 사용자 소프트 삭제
         userRepository.findById(userPk).ifPresent(User::softDelete);
 
         log.info("회원 탈퇴 완료: userId={}", userId);
