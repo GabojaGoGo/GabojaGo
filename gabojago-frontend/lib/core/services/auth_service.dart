@@ -113,14 +113,18 @@ class AuthService {
 
   Future<({bool success, bool isNewUser})> loginWithProvider(
       SocialLoginProvider provider) async {
+    debugPrint('[AuthService] ${provider.apiValue} SDK login start');
     final providerToken = await _clientFor(provider).login();
+    debugPrint('[AuthService] ${provider.apiValue} SDK token received');
     return _loginWithSocialToken(providerToken);
   }
 
   Future<({bool success, bool isNewUser})> _loginWithSocialToken(
       SocialLoginToken providerToken) async {
+    final uri = Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/auth/oauth/login');
+    debugPrint('[AuthService] POST $uri provider=${providerToken.provider.apiValue}');
     final response = await http.post(
-      Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/auth/oauth/login'),
+      uri,
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'provider': providerToken.provider.apiValue,
@@ -128,9 +132,9 @@ class AuthService {
       }),
     ).timeout(const Duration(seconds: 15));
 
-    if (response.statusCode == 401) throw Exception('소셜 토큰 검증 실패');
+    debugPrint('[AuthService] OAuth login response: ${response.statusCode}');
     if (response.statusCode != 200) {
-      throw Exception('소셜 로그인 실패: ${response.statusCode}');
+      throw Exception('소셜 로그인 실패: ${response.statusCode} ${utf8.decode(response.bodyBytes)}');
     }
 
     final data = json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
@@ -173,8 +177,10 @@ class AuthService {
         },
         body: json.encode({'nickname': nickname.trim()}),
       ).timeout(const Duration(seconds: 10));
-      if (response.statusCode != 200) {
-        throw Exception('닉네임 서버 저장 실패: ${response.statusCode}');
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception(
+          '닉네임 서버 저장 실패: ${response.statusCode} ${utf8.decode(response.bodyBytes)}',
+        );
       }
     }
   }

@@ -59,8 +59,13 @@ class _LoginScreenState extends State<LoginScreen>
       _errorMessage = null;
     });
     try {
+      debugPrint('[LoginScreen] ${provider.apiValue} login start');
       final result = await AuthService.instance.loginWithProvider(provider);
-      await UserDataService.instance.syncFromServer();
+      debugPrint('[LoginScreen] ${provider.apiValue} token exchange done: isNewUser=${result.isNewUser}');
+      await UserDataService.instance.syncFromServer()
+          .timeout(const Duration(seconds: 12), onTimeout: () {
+        debugPrint('[LoginScreen] syncFromServer timeout; continue navigation');
+      });
       final udPrefs = UserDataService.instance.getPrefs();
       final purposes = List<String>.from(udPrefs['purposes'] as List? ?? []);
       final duration = (udPrefs['duration'] as String?) ?? '';
@@ -74,12 +79,15 @@ class _LoginScreenState extends State<LoginScreen>
       final route = result.isNewUser || !AuthService.instance.hasNickname
           ? '/onboarding'
           : '/main';
+      debugPrint('[LoginScreen] navigate to $route');
       Navigator.of(context).pushNamedAndRemoveUntil(route, (_) => false);
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[LoginScreen] ${provider.apiValue} login failed: $e');
+      debugPrint('$st');
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = '로그인을 완료할 수 없습니다.\n잠시 후 다시 시도해주세요.';
+        _errorMessage = '로그인을 완료할 수 없습니다.\n$e';
       });
     }
   }
@@ -284,10 +292,9 @@ class _HeroHeadline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Image.asset(
-        'assets/images/app_logo.png',
-        width: 160,
-        height: 160,
+      child: SvgPicture.asset(
+        'assets/images/logo.svg',
+        width: 200,
         fit: BoxFit.contain,
       ),
     );
