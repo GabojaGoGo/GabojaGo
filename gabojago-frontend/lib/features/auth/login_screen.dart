@@ -25,7 +25,9 @@ class _LoginScreenState extends State<LoginScreen>
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;
 
-  bool _isLoading = false;
+  // 어느 provider가 로그인 진행 중인지 — 눌린 버튼에만 스피너를 띄우기 위함
+  SocialLoginProvider? _loadingProvider;
+  bool get _isLoading => _loadingProvider != null;
   String? _errorMessage;
 
   static const _primary = Color(0xFF2E7D6B);
@@ -55,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   Future<void> _socialLogin(SocialLoginProvider provider) async {
     setState(() {
-      _isLoading = true;
+      _loadingProvider = provider;
       _errorMessage = null;
     });
     try {
@@ -84,13 +86,13 @@ class _LoginScreenState extends State<LoginScreen>
     } on SocialLoginCancelledException {
       debugPrint('[LoginScreen] ${provider.apiValue} login cancelled by user');
       if (!mounted) return;
-      setState(() => _isLoading = false);
+      setState(() => _loadingProvider = null);
     } catch (e, st) {
       debugPrint('[LoginScreen] ${provider.apiValue} login failed: $e');
       debugPrint('$st');
       if (!mounted) return;
       setState(() {
-        _isLoading = false;
+        _loadingProvider = null;
         _errorMessage = '로그인을 완료할 수 없습니다.\n$e';
       });
     }
@@ -149,7 +151,8 @@ class _LoginScreenState extends State<LoginScreen>
 
                             // ── 소셜 로그인 버튼들 ────────────
                             _SocialLoginButton(
-                              isLoading: _isLoading,
+                              isLoading: _loadingProvider ==
+                                  SocialLoginProvider.kakao,
                               onTap: _isLoading
                                   ? null
                                   : () => _socialLogin(
@@ -161,7 +164,8 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             const SizedBox(height: 10),
                             _SocialLoginButton(
-                              isLoading: false,
+                              isLoading: _loadingProvider ==
+                                  SocialLoginProvider.naver,
                               onTap: _isLoading
                                   ? null
                                   : () => _socialLogin(
@@ -173,7 +177,8 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             const SizedBox(height: 10),
                             _SocialLoginButton(
-                              isLoading: false,
+                              isLoading: _loadingProvider ==
+                                  SocialLoginProvider.google,
                               onTap: _isLoading
                                   ? null
                                   : () => _socialLogin(
