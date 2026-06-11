@@ -4,6 +4,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tripmate/core/services/auth_service.dart';
 import 'package:tripmate/features/auth/login_screen.dart';
 import 'package:tripmate/features/auth/onboarding_screen.dart';
@@ -108,10 +109,9 @@ class _SplashScreenState extends State<SplashScreen>
                 child: child,
               ),
             ),
-            child: Image.asset(
-              'assets/images/app_logo.png',
-              width: 190,
-              height: 190,
+            child: SvgPicture.asset(
+              'assets/images/logo.svg',
+              width: 220,
               fit: BoxFit.contain,
             ),
           ),
