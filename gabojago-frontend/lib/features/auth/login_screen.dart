@@ -81,6 +81,10 @@ class _LoginScreenState extends State<LoginScreen>
           : '/main';
       debugPrint('[LoginScreen] navigate to $route');
       Navigator.of(context).pushNamedAndRemoveUntil(route, (_) => false);
+    } on SocialLoginCancelledException {
+      debugPrint('[LoginScreen] ${provider.apiValue} login cancelled by user');
+      if (!mounted) return;
+      setState(() => _isLoading = false);
     } catch (e, st) {
       debugPrint('[LoginScreen] ${provider.apiValue} login failed: $e');
       debugPrint('$st');

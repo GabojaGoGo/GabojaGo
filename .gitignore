@@ -48,6 +48,7 @@ migrate_working_dir/
 **/.env.imac
 **/.env.tailscale
 **/.env.*.local
+**/ios/Flutter/Env.xcconfig
 
 # Build outputs
 **/build/

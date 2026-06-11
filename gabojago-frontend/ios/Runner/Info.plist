@@ -82,6 +82,8 @@
 		<string>kakaomap</string>
 		<string>kakaokompassauth</string>
 		<string>kakaolink</string>
+		<string>naversearchapp</string>
+		<string>naversearchthirdlogin</string>
 		<string>tel</string>
 	</array>
 	<key>CFBundleURLTypes</key>
@@ -92,16 +94,30 @@
 		</dict>
 		<dict>
 			<key>CFBundleURLSchemes</key>
+			<array><string>$(NAVER_URL_SCHEME)</string></array>
+		</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array><string>$(GOOGLE_IOS_REVERSED_CLIENT_ID)</string></array>
+		</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
 			<array><string>tripmate</string></array>
 		</dict>
 	</array>
-	<key>NAVER_CLIENT_ID</key>
+	<!-- flutter_naver_login 2.x가 요구하는 키 이름 (Nid* 형식) -->
+	<key>NidClientID</key>
 	<string>$(NAVER_CLIENT_ID)</string>
-	<key>NAVER_CLIENT_SECRET</key>
+	<key>NidClientSecret</key>
 	<string>$(NAVER_CLIENT_SECRET)</string>
-	<key>NAVER_CLIENT_NAME</key>
+	<key>NidAppName</key>
 	<string>$(NAVER_CLIENT_NAME)</string>
-	<key>NAVER_URL_SCHEME</key>
+	<key>NidUrlScheme</key>
 	<string>$(NAVER_URL_SCHEME)</string>
+	<!-- google_sign_in: GoogleService-Info.plist 없이 Info.plist로 설정 -->
+	<key>GIDClientID</key>
+	<string>$(GOOGLE_IOS_CLIENT_ID)</string>
+	<key>GIDServerClientID</key>
+	<string>$(GOOGLE_WEB_CLIENT_ID)</string>
 </dict>
 </plist>
