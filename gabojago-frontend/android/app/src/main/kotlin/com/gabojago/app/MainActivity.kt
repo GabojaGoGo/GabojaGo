@@ -1,4 +1,4 @@
-package com.example.tripmate
+package com.gabojago.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
