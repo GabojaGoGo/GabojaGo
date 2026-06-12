@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.tripmate"
+    namespace = "com.gabojago.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -25,7 +25,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.tripmate"
+        applicationId = "com.gabojago.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -38,21 +38,29 @@ android {
         if (localPropertiesFile.exists()) {
             localProperties.load(FileInputStream(localPropertiesFile))
         }
+
+        val envProperties = Properties()
+        val envPropertiesFile = rootProject.projectDir.parentFile.resolve(".env")
+        if (envPropertiesFile.exists()) {
+            envProperties.load(FileInputStream(envPropertiesFile))
+        }
+
+        fun resolveConfig(name: String): String? =
+            localProperties.getProperty(name)
+                ?: envProperties.getProperty(name)
+                ?: System.getenv(name)
+
         manifestPlaceholders["kakaoNativeAppKey"] =
-            localProperties.getProperty("KAKAO_NATIVE_APP_KEY")
-                ?: System.getenv("KAKAO_NATIVE_APP_KEY")
+            resolveConfig("KAKAO_NATIVE_APP_KEY")
                 ?: ""
         manifestPlaceholders["naverClientId"] =
-            localProperties.getProperty("NAVER_CLIENT_ID")
-                ?: System.getenv("NAVER_CLIENT_ID")
+            resolveConfig("NAVER_CLIENT_ID")
                 ?: ""
         manifestPlaceholders["naverClientSecret"] =
-            localProperties.getProperty("NAVER_CLIENT_SECRET")
-                ?: System.getenv("NAVER_CLIENT_SECRET")
+            resolveConfig("NAVER_CLIENT_SECRET")
                 ?: ""
         manifestPlaceholders["naverClientName"] =
-            localProperties.getProperty("NAVER_CLIENT_NAME")
-                ?: System.getenv("NAVER_CLIENT_NAME")
+            resolveConfig("NAVER_CLIENT_NAME")
                 ?: "가보자GO"
     }
 

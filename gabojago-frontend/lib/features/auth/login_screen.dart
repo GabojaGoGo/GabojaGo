@@ -25,7 +25,9 @@ class _LoginScreenState extends State<LoginScreen>
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;
 
-  bool _isLoading = false;
+  // 어느 provider가 로그인 진행 중인지 — 눌린 버튼에만 스피너를 띄우기 위함
+  SocialLoginProvider? _loadingProvider;
+  bool get _isLoading => _loadingProvider != null;
   String? _errorMessage;
 
   static const _primary = Color(0xFF2E7D6B);
@@ -55,12 +57,17 @@ class _LoginScreenState extends State<LoginScreen>
 
   Future<void> _socialLogin(SocialLoginProvider provider) async {
     setState(() {
-      _isLoading = true;
+      _loadingProvider = provider;
       _errorMessage = null;
     });
     try {
+      debugPrint('[LoginScreen] ${provider.apiValue} login start');
       final result = await AuthService.instance.loginWithProvider(provider);
-      await UserDataService.instance.syncFromServer();
+      debugPrint('[LoginScreen] ${provider.apiValue} token exchange done: isNewUser=${result.isNewUser}');
+      await UserDataService.instance.syncFromServer()
+          .timeout(const Duration(seconds: 12), onTimeout: () {
+        debugPrint('[LoginScreen] syncFromServer timeout; continue navigation');
+      });
       final udPrefs = UserDataService.instance.getPrefs();
       final purposes = List<String>.from(udPrefs['purposes'] as List? ?? []);
       final duration = (udPrefs['duration'] as String?) ?? '';
@@ -74,12 +81,19 @@ class _LoginScreenState extends State<LoginScreen>
       final route = result.isNewUser || !AuthService.instance.hasNickname
           ? '/onboarding'
           : '/main';
+      debugPrint('[LoginScreen] navigate to $route');
       Navigator.of(context).pushNamedAndRemoveUntil(route, (_) => false);
-    } catch (e) {
+    } on SocialLoginCancelledException {
+      debugPrint('[LoginScreen] ${provider.apiValue} login cancelled by user');
+      if (!mounted) return;
+      setState(() => _loadingProvider = null);
+    } catch (e, st) {
+      debugPrint('[LoginScreen] ${provider.apiValue} login failed: $e');
+      debugPrint('$st');
       if (!mounted) return;
       setState(() {
-        _isLoading = false;
-        _errorMessage = '로그인을 완료할 수 없습니다.\n잠시 후 다시 시도해주세요.';
+        _loadingProvider = null;
+        _errorMessage = '로그인을 완료할 수 없습니다.\n$e';
       });
     }
   }
@@ -137,7 +151,8 @@ class _LoginScreenState extends State<LoginScreen>
 
                             // ── 소셜 로그인 버튼들 ────────────
                             _SocialLoginButton(
-                              isLoading: _isLoading,
+                              isLoading: _loadingProvider ==
+                                  SocialLoginProvider.kakao,
                               onTap: _isLoading
                                   ? null
                                   : () => _socialLogin(
@@ -149,7 +164,8 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             const SizedBox(height: 10),
                             _SocialLoginButton(
-                              isLoading: false,
+                              isLoading: _loadingProvider ==
+                                  SocialLoginProvider.naver,
                               onTap: _isLoading
                                   ? null
                                   : () => _socialLogin(
@@ -161,7 +177,8 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             const SizedBox(height: 10),
                             _SocialLoginButton(
-                              isLoading: false,
+                              isLoading: _loadingProvider ==
+                                  SocialLoginProvider.google,
                               onTap: _isLoading
                                   ? null
                                   : () => _socialLogin(
