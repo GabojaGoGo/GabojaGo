@@ -1,7 +1,5 @@
 package com.gabojago.member.auth.service;
 
-import com.gabojago.global.exception.BusinessException;
-import com.gabojago.global.exception.ErrorCode;
 import com.gabojago.global.security.jwt.JwtUtils;
 import com.gabojago.global.security.jwt.RefreshTokenService;
 import com.gabojago.global.security.oauth2.OAuth2UserInfo;
@@ -41,6 +39,13 @@ public class OAuthLoginService {
         boolean isNewUser = false;
         User user;
 
+        if (socialAccount != null && !socialAccount.getUser().isActive()) {
+            log.info("탈퇴 사용자 소셜 연결 정리: socialAccountId={}, userId={}",
+                    socialAccount.getId(), socialAccount.getUser().getId());
+            socialAccountRepository.delete(socialAccount);
+            socialAccount = null;
+        }
+
         if (socialAccount == null) {
             user = User.create(userInfo.nickname(), userInfo.email());
             user.recordLogin();
@@ -52,9 +57,6 @@ public class OAuthLoginService {
             log.info("신규 사용자 생성: userId={}", user.getId());
         } else {
             user = socialAccount.getUser();
-            if (!user.isActive()) {
-                throw new BusinessException(ErrorCode.USER_INACTIVE);
-            }
             user.recordLogin();
             log.info("기존 사용자 로그인: userId={}", user.getId());
         }
