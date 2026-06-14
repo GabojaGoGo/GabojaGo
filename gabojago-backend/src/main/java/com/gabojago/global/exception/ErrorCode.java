@@ -26,6 +26,7 @@ public enum ErrorCode {
 
     // ===== OAuth =====
     OAUTH_USERINFO_FAILED(HttpStatus.BAD_GATEWAY, "소셜 사용자 정보 조회에 실패했습니다."),
+    SOCIAL_ACCOUNT_CONFLICT(HttpStatus.CONFLICT, "이미 다른 소셜 계정으로 가입된 이메일입니다."),
 
     // ===== Common =====
     NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 리소스를 찾을 수 없습니다."),

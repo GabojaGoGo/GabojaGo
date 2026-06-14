@@ -8,7 +8,10 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(name = "social_accounts")
+@Table(name = "social_accounts",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uq_social_provider_user",
+                columnNames = {"provider", "provider_user_id"}))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SocialAccount {
 
