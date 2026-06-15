@@ -134,7 +134,21 @@ class AuthService {
 
     debugPrint('[AuthService] OAuth login response: ${response.statusCode}');
     if (response.statusCode != 200) {
-      throw Exception('소셜 로그인 실패: ${response.statusCode} ${utf8.decode(response.bodyBytes)}');
+      final body = utf8.decode(response.bodyBytes);
+      // 같은 이메일이 다른 provider로 이미 가입된 경우 → 안내용 전용 예외로 변환
+      if (response.statusCode == 409) {
+        try {
+          final err = json.decode(body) as Map<String, dynamic>;
+          if (err['code'] == 'SOCIAL_ACCOUNT_CONFLICT') {
+            throw SocialAccountConflictException(
+              SocialLoginProvider.fromApiValue(err['detail'] as String?),
+            );
+          }
+        } on FormatException {
+          // 본문이 JSON이 아니면 아래 generic 예외로 흐른다
+        }
+      }
+      throw Exception('소셜 로그인 실패: ${response.statusCode} $body');
     }
 
     final data = json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;

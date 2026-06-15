@@ -45,8 +45,17 @@ public class User extends BaseTimeEntity {
 
         return User.builder()
                 .nickname(resolvedNickname)
-                .email(email)
+                .email(normalizeEmail(email))
                 .build();
+    }
+
+    // provider마다 이메일 대소문자·공백 표기가 달라 교차 provider 충돌 판별이 어긋나지 않도록 정규화한다.
+    public static String normalizeEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+        String normalized = email.trim().toLowerCase();
+        return normalized.isEmpty() ? null : normalized;
     }
 
     public void updateNickname(String nickname) {

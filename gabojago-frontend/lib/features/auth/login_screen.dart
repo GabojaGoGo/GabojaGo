@@ -87,6 +87,15 @@ class _LoginScreenState extends State<LoginScreen>
       debugPrint('[LoginScreen] ${provider.apiValue} login cancelled by user');
       if (!mounted) return;
       setState(() => _loadingProvider = null);
+    } on SocialAccountConflictException catch (e) {
+      debugPrint('[LoginScreen] ${provider.apiValue} conflict: bound=${e.boundProvider?.apiValue}');
+      if (!mounted) return;
+      setState(() {
+        _loadingProvider = null;
+        _errorMessage = e.boundProvider != null
+            ? '이미 ${e.boundProvider!.label}로 가입된 계정이에요.\n${e.boundProvider!.label}로 로그인해 주세요.'
+            : '이미 다른 소셜 계정으로 가입된 이메일이에요.\n처음 가입한 소셜 계정으로 로그인해 주세요.';
+      });
     } catch (e, st) {
       debugPrint('[LoginScreen] ${provider.apiValue} login failed: $e');
       debugPrint('$st');

@@ -11,14 +11,31 @@ class SocialLoginCancelledException implements Exception {
   const SocialLoginCancelledException();
 }
 
-enum SocialLoginProvider {
-  kakao('KAKAO'),
-  naver('NAVER'),
-  google('GOOGLE');
+/// 같은 이메일이 다른 provider로 이미 가입돼 있어 백엔드가 가입을 차단한 경우
+/// (409 SOCIAL_ACCOUNT_CONFLICT) — provider 고정 정책. 안내 후 기존 provider로 유도한다.
+class SocialAccountConflictException implements Exception {
+  const SocialAccountConflictException(this.boundProvider);
 
-  const SocialLoginProvider(this.apiValue);
+  /// 해당 이메일이 최초 가입한 provider. 서버가 식별하지 못하면 null
+  final SocialLoginProvider? boundProvider;
+}
+
+enum SocialLoginProvider {
+  kakao('KAKAO', '카카오'),
+  naver('NAVER', '네이버'),
+  google('GOOGLE', '구글');
+
+  const SocialLoginProvider(this.apiValue, this.label);
 
   final String apiValue;
+  final String label;
+
+  static SocialLoginProvider? fromApiValue(String? value) {
+    for (final provider in values) {
+      if (provider.apiValue == value) return provider;
+    }
+    return null;
+  }
 }
 
 class SocialLoginToken {
