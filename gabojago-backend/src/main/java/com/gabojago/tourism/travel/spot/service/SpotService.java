@@ -49,6 +49,10 @@ public class SpotService {
                 .collect(Collectors.toList());
     }
 
+    public String getNearbySpotsRaw(double lat, double lng, int limit) {
+        return tourApiClient.fetchNearbyRaw(lat, lng, SPOT_CONTENT_TYPE_ID, SPOT_RADIUS_METER, limit);
+    }
+
     public List<SpotCongestionDto> getNearbySpotCongestions(double lat, double lng, int limit) {
         List<TourApiResponse.Item> items = fetchNearbySpotItems(lat, lng, limit);
         if (items.isEmpty()) {
