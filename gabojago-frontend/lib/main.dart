@@ -10,6 +10,7 @@ import 'package:tripmate/core/models/user_prefs.dart';
 import 'package:tripmate/core/services/auth_service.dart';
 import 'package:tripmate/core/services/user_data_service.dart';
 import 'package:tripmate/core/services/notification_service.dart';
+import 'package:tripmate/features/auth/logo_animation_lab_screen.dart';
 import 'package:tripmate/features/auth/splash_screen.dart';
 import 'package:tripmate/features/auth/login_screen.dart';
 import 'package:tripmate/features/auth/onboarding_screen.dart';
@@ -19,13 +20,15 @@ import 'package:tripmate/features/spot/nearby_spots_screen.dart';
 import 'package:tripmate/features/course/planner_screen.dart';
 import 'package:tripmate/features/my_trip/my_trip_screen.dart';
 
+const _startLogoLab = bool.fromEnvironment('LOGO_LAB');
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   const env = String.fromEnvironment('ENV', defaultValue: 'local');
   final envFile = switch (env) {
-    'imac'      => '.env.imac',
+    'imac' => '.env.imac',
     'tailscale' => '.env.tailscale',
-    _           => '.env',
+    _ => '.env',
   };
   await dotenv.load(fileName: envFile);
   await AuthService.instance.init();
@@ -39,7 +42,6 @@ void main() async {
   await KakaoMapsFlutter.init(kakaoNativeAppKey);
   runApp(const GabojaGoApp());
 }
-
 
 class GabojaGoApp extends StatefulWidget {
   const GabojaGoApp({super.key});
@@ -108,12 +110,13 @@ class _GabojaGoAppState extends State<GabojaGoApp> {
         ),
       ),
       // 앱 시작 → 스플래시 화면 (2초 후 로그인 상태에 따라 분기)
-      initialRoute: '/splash',
+      initialRoute: _startLogoLab ? '/logo-lab' : '/splash',
       routes: {
-        '/splash':     (_) => const SplashScreen(),
-        '/login':      (_) => const LoginScreen(),
+        '/splash': (_) => const SplashScreen(),
+        '/logo-lab': (_) => const LogoAnimationLabScreen(),
+        '/login': (_) => const LoginScreen(),
         '/onboarding': (_) => const OnboardingScreen(),
-        '/main':       (_) => const MainShell(),
+        '/main': (_) => const MainShell(),
       },
     );
   }
@@ -133,14 +136,14 @@ class _MainShellState extends State<MainShell> {
   late UserPrefs _userPrefs = _buildInitialPrefs();
 
   static UserPrefs _buildInitialPrefs() {
-    final auth    = AuthService.instance;
-    final udMap   = UserDataService.instance.getPrefs();
+    final auth = AuthService.instance;
+    final udMap = UserDataService.instance.getPrefs();
     final udPurposes = List<String>.from(udMap['purposes'] as List? ?? []);
     final udDuration = (udMap['duration'] as String?) ?? '';
     return UserPrefs(
-      nickname:      auth.nickname,
-      purposes:      udPurposes.isNotEmpty ? udPurposes : auth.purposes,
-      duration:      udDuration.isNotEmpty ? udDuration : auth.duration,
+      nickname: auth.nickname,
+      purposes: udPurposes.isNotEmpty ? udPurposes : auth.purposes,
+      duration: udDuration.isNotEmpty ? udDuration : auth.duration,
       loginProvider: auth.provider,
     );
   }
@@ -168,40 +171,38 @@ class _MainShellState extends State<MainShell> {
       prefs: _userPrefs,
       onUpdate: _updatePrefs,
       child: Scaffold(
-        body: IndexedStack(
-          index: _currentIndex,
-          children: screens,
+        body: IndexedStack(index: _currentIndex, children: screens),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) {
+            setState(() => _currentIndex = index);
+          },
+          backgroundColor: Colors.white,
+          indicatorColor: const Color(0xFF2E7D6B).withValues(alpha: 0.15),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home, color: Color(0xFF2E7D6B)),
+              label: '홈',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.location_on_outlined),
+              selectedIcon: Icon(Icons.location_on, color: Color(0xFF2E7D6B)),
+              label: '내 주변',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.map_outlined),
+              selectedIcon: Icon(Icons.map, color: Color(0xFF2E7D6B)),
+              label: '플래너',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person, color: Color(0xFF2E7D6B)),
+              label: '기록',
+            ),
+          ],
         ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-        },
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xFF2E7D6B).withValues(alpha: 0.15),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: Color(0xFF2E7D6B)),
-            label: '홈',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.location_on_outlined),
-            selectedIcon: Icon(Icons.location_on, color: Color(0xFF2E7D6B)),
-            label: '내 주변',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map, color: Color(0xFF2E7D6B)),
-            label: '플래너',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: Color(0xFF2E7D6B)),
-            label: '기록',
-          ),
-        ],
       ),
-    ));
+    );
   }
 }

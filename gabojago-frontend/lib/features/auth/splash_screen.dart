@@ -2,6 +2,9 @@
 // 앱 시작 화면 — 피그마 "시작" 디자인 기반
 // 그라디언트 배경 (분홍→흰→하늘→파랑) + 로고 페이드인 → 2초 후 라우팅
 
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -22,16 +25,19 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _ctrl;
   late final Animation<double> _fadeAnim;
   late final Animation<double> _scaleAnim;
+  Timer? _navigateTimer;
 
   @override
   void initState() {
     super.initState();
 
     // 상태바 투명 처리
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+    );
 
     _ctrl = AnimationController(
       vsync: this,
@@ -39,17 +45,23 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: const Interval(0.0, 0.7, curve: Curves.easeOut)),
+      CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
+      ),
     );
 
     _scaleAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: const Interval(0.0, 0.8, curve: Curves.easeOutCubic)),
+      CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.0, 0.8, curve: Curves.easeOutCubic),
+      ),
     );
 
     _ctrl.forward();
 
     // 2초 후 라우팅
-    Future.delayed(const Duration(milliseconds: 2000), _navigate);
+    _navigateTimer = Timer(const Duration(milliseconds: 2000), _navigate);
   }
 
   void _navigate() {
@@ -58,8 +70,8 @@ class _SplashScreenState extends State<SplashScreen>
     final Widget dest = !auth.isLoggedIn
         ? const LoginScreen()
         : !auth.hasNickname
-            ? const OnboardingScreen()
-            : const MainShell();
+        ? const OnboardingScreen()
+        : const MainShell();
 
     // 페이드 전환 — 흰색 배경 플래시 방지
     Navigator.of(context).pushReplacement(
@@ -74,6 +86,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    _navigateTimer?.cancel();
     _ctrl.dispose();
     super.dispose();
   }
@@ -99,22 +112,36 @@ class _SplashScreenState extends State<SplashScreen>
             stops: [0.0, 0.27, 0.65, 0.76, 0.98],
           ),
         ),
-        child: Center(
-          child: AnimatedBuilder(
-            animation: _ctrl,
-            builder: (context, child) => FadeTransition(
-              opacity: _fadeAnim,
-              child: ScaleTransition(
-                scale: _scaleAnim,
-                child: child,
+        child: Stack(
+          children: [
+            Center(
+              child: AnimatedBuilder(
+                animation: _ctrl,
+                builder: (context, child) => FadeTransition(
+                  opacity: _fadeAnim,
+                  child: ScaleTransition(scale: _scaleAnim, child: child),
+                ),
+                child: SvgPicture.asset(
+                  'assets/images/logo.svg',
+                  width: 220,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
-            child: SvgPicture.asset(
-              'assets/images/logo.svg',
-              width: 220,
-              fit: BoxFit.contain,
-            ),
-          ),
+            if (kDebugMode)
+              Positioned(
+                right: 16,
+                bottom: 16,
+                child: SafeArea(
+                  child: IconButton.filled(
+                    tooltip: 'Logo Animation Lab',
+                    onPressed: () =>
+                        Navigator.of(context).pushReplacementNamed('/logo-lab'),
+                    icon: const Icon(Icons.animation_outlined),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
