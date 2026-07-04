@@ -70,18 +70,17 @@ TourAPI 결과가 목표보다 적거나 좌표가 없는 항목이 많으면 �
 
 ```http
 POST /api/place-admin/import/busan-changwon
-Authorization: Bearer {access-token}
 ```
 
 예시:
 
 ```bash
 curl -X POST \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
   http://localhost:8080/api/place-admin/import/busan-changwon
 ```
 
-이 관리 API는 기본 보안 정책에 따라 로그인이 필요하다. 외부에 공개된 상태로 두면 누구나 TourAPI 호출과 DB 변경을 발생시킬 수 있으므로 `permitAll`로 열지 않는다.
+현재 개발 편의를 위해 `/api/place-admin/**`는 인증 없이 열려 있다.
+외부에 공개된 상태로 두면 누구나 TourAPI 호출과 DB 변경을 발생시킬 수 있으므로 운영 배포 전에는 관리자 권한으로 제한한다.
 
 응답의 주요 값은 다음과 같다.
 

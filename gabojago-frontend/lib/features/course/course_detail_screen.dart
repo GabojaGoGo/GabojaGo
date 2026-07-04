@@ -419,6 +419,7 @@ class _PlaceDetailItem extends StatelessWidget {
   IconData _slotIcon() {
     return switch (slotType) {
       'meal' => Icons.restaurant_outlined,
+      'cafe' => Icons.local_cafe_outlined,
       'lodging' => Icons.hotel_outlined,
       _ => Icons.place_outlined,
     };
@@ -427,6 +428,7 @@ class _PlaceDetailItem extends StatelessWidget {
   Color _slotColor(ColorScheme cs) {
     return switch (slotType) {
       'meal' => const Color(0xFFE65100),
+      'cafe' => const Color(0xFF8D6E63),
       'lodging' => const Color(0xFF6A1B9A),
       _ => cs.primary,
     };

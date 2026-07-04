@@ -1,6 +1,6 @@
 # 가보자GO MVP 추천 데이터 계약
 
-> 기준: 한 요청은 한 지역, 이동수단은 자차/대중교통, Greedy + 슬롯별 Top-N
+> 기준: 한 요청은 한 지역, 이동수단은 자차/대중교통, 기간별 고정 슬롯 템플릿 + Beam Search
 > 목표: DB의 검수된 장소를 읽어 추천하고, 프론트 임시 상태는 저장하지 않는다.
 
 ## 1. 저장 원칙
@@ -35,7 +35,8 @@ tourism/place
 tourism/recommendation
   dto/request            프론트가 보내는 주문서와 순서형 슬롯
   dto/response           루트와 슬롯별 Top-N 후보
-  domain/enums           CAR/PUBLIC_TRANSIT
+  domain                 추천 슬롯 타입과 슬롯 모델
+  service                후보 조회, 점수 계산, Beam Search
 
 tourism/route
   domain                 사용자가 저장한 최종 루트
@@ -141,19 +142,105 @@ DATE, FAMILY, HEALING, RAINY_DAY처럼 목적·동행·상황에 대한 파생 �
 ## 5. 추천 실행 흐름
 
 ```text
-1. 프론트에서 request와 순서형 slots 수신
-2. 슬롯 유형별 REVIEWED 장소 후보 조회
-3. 슬롯 제외 카테고리와 영업시간 hard filter
-4. 속성·적합도·가격 점수 계산
-5. Haversine으로 이동비용 근사
-6. Greedy로 기본 루트 구성
-7. 슬롯별 Top-N 대안을 메모리에 유지
-8. 최종 후보 구간만 실제 이동 API 호출
-9. Route DTO와 지도 후보 DTO를 프론트에 반환
+1. 프론트에서 request 수신
+2. duration으로 기간별 고정 슬롯 템플릿 생성
+3. 슬롯 유형별 REVIEWED 장소 후보 조회
+4. 개발 테스트 옵션이면 IMPORTED 장소도 후보에 포함
+5. 속성·적합도·가격·기본 품질 점수 계산
+6. Haversine으로 이동거리와 이동시간 근사
+7. Beam Search로 슬롯 순서에 맞는 상위 루트 유지
+8. Route DTO와 점수 breakdown을 프론트에 반환
+9. 기존 프론트 호환을 위해 `/api/courses` 응답도 DB 추천 결과로 변환
 10. 사용자가 저장할 때만 routes/stops/segments 생성
 ```
 
 Top-N 대안과 이동 API 응답은 추천 응답 DTO의 생명주기만 가진다. DB에는 남기지 않는다.
+
+## 5.1 현재 구현 상태
+
+현재 1단계 구현은 다음 범위까지 완료되어 있다.
+
+```text
+POST /api/recommendations/routes
+GET  /api/courses
+```
+
+`/api/recommendations/routes`는 테스트용 상세 응답을 반환한다.
+`/api/courses`는 기존 Flutter 화면 호환을 위해 Beam Search 결과를 `CourseDto` 형태로 변환한다.
+따라서 기존 코스 결과 화면과 상세 화면은 큰 구조 변경 없이 새 추천 엔진 결과를 표시한다.
+
+기본 요청값은 다음과 같다.
+
+```text
+regionKey = TOUR:6
+duration = 1n2d
+travelMode = CAR
+departureAt = 내일 10:00
+debugUseImported = true
+```
+
+`debugUseImported=true`는 아직 수동 검수된 REVIEWED 장소가 없는 개발 단계에서만 사용한다.
+운영 또는 품질 검증 단계에서는 REVIEWED만 후보로 사용해야 한다.
+
+### 슬롯 템플릿
+
+현재는 사용자 직접 슬롯 입력을 받지 않고 duration 기반 템플릿을 사용한다.
+나중에 사용자가 직접 슬롯 순서를 보낼 수 있도록 내부 모델은 `RecommendationSlot` 리스트로 분리되어 있다.
+
+```text
+day:
+SIGHT -> MEAL -> CAFE -> SIGHT
+
+1n2d:
+DAY 1: SIGHT -> MEAL -> CAFE -> SIGHT -> LODGING
+DAY 2: CAFE -> SIGHT -> MEAL -> SIGHT
+```
+
+추천 슬롯 타입과 DB 장소 타입 매핑은 다음과 같다.
+
+| 추천 슬롯 | DB PlaceType |
+|---|---|
+| SIGHT | ATTRACTION, CULTURE, ACTIVITY, SHOPPING |
+| MEAL | FOOD |
+| CAFE | CAFE |
+| LODGING | LODGING |
+
+### Beam Search 파라미터
+
+```text
+slotCandidateLimit = 12
+beamWidth = 5
+resultLimit = 3
+```
+
+장소 중복은 같은 루트 안에서 제거한다.
+이동시간은 아직 외부 길찾기 API를 호출하지 않고 Haversine 기반 근사값을 사용한다.
+
+### 점수식 초안
+
+장소 점수는 다음 항목을 100점 스케일로 계산한 뒤 가중합한다.
+
+```text
+placeScore =
+  suitability * 0.35
++ attribute   * 0.25
++ categoryFit * 0.15
++ price       * 0.10
++ quality     * 0.10
++ mobility    * 0.05
+```
+
+루트 점수는 장소 점수 합계에 이동 페널티와 시간/균형 보정을 더한다.
+
+```text
+routeScore =
+  placePreference
++ movementPenalty
++ timeFit
++ routeBalance
+```
+
+응답에는 총점뿐 아니라 `scoreBreakdown`을 함께 내려 테스트 중 판단 근거를 확인할 수 있게 한다.
 
 ## 6. 시간 모델
 

@@ -187,6 +187,10 @@ class ApiService {
     final courses = await getCourses(purposes: purposes, duration: duration, lat: lat, lng: lng);
     if (courses.isEmpty) return [];
 
+    final alreadyHydrated =
+        courses.every((c) => (c['places'] as List?)?.isNotEmpty == true);
+    if (alreadyHydrated) return courses;
+
     final details = await Future.wait(
       courses.map((c) => getCourseDetail(
         c['contentId'] as String? ?? '',

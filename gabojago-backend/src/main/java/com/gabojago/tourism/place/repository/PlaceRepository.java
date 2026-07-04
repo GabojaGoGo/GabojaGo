@@ -23,4 +23,11 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, JpaSpecific
             PlaceStatus status,
             CurationStatus curationStatus
     );
+
+    List<Place> findAllByRegion_IdAndPrimaryTypeInAndStatusAndCurationStatusIn(
+            Long regionId,
+            List<PlaceType> primaryTypes,
+            PlaceStatus status,
+            List<CurationStatus> curationStatuses
+    );
 }
