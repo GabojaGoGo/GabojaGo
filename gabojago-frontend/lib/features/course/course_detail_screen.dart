@@ -1,4 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as latlong;
 import 'package:tripmate/infrastructure/api_service.dart';
 import 'package:tripmate/core/services/user_data_service.dart';
 
@@ -31,11 +35,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     final existingPlaces = widget.course['places'] as List?;
     if (existingPlaces != null && existingPlaces.isNotEmpty) {
       _detail = {
-        'places':   widget.course['places'],
+        'places': widget.course['places'],
         'distance': widget.course['distance'] ?? '',
         'taketime': widget.course['taketime'] ?? '',
-        'theme':    widget.course['theme']    ?? '',
-        'nearbyRestaurants':    widget.course['nearbyRestaurants']    ?? [],
+        'theme': widget.course['theme'] ?? '',
+        'nearbyRestaurants': widget.course['nearbyRestaurants'] ?? [],
         'nearbyAccommodations': widget.course['nearbyAccommodations'] ?? [],
       };
       _loading = false;
@@ -50,9 +54,18 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         contentId,
         purposes: widget.purposes,
       );
-      if (mounted) setState(() { _detail = detail; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _detail = detail;
+          _loading = false;
+        });
+      }
     } catch (e) {
-      if (mounted) setState(() { _loading = false; });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -65,9 +78,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     }
     if (mounted) {
       setState(() => _saved = !_saved);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(_saved ? '플래너에 저장됐어요!' : '플래너에서 삭제됐어요'),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_saved ? '플래너에 저장됐어요!' : '플래너에서 삭제됐어요')),
+      );
     }
   }
 
@@ -75,246 +88,812 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final imageUrl = widget.course['imageUrl'] as String? ?? '';
-    final hasImage =
-        imageUrl.isNotEmpty && !imageUrl.contains('placeholder');
+    final hasImage = imageUrl.isNotEmpty && !imageUrl.contains('placeholder');
 
     final places = _detail != null
         ? List<Map<String, dynamic>>.from(
-            (_detail!['places'] as List? ?? [])
-                .map((e) => Map<String, dynamic>.from(e as Map)))
+            (_detail!['places'] as List? ?? []).map(
+              (e) => Map<String, dynamic>.from(e as Map),
+            ),
+          )
         : <Map<String, dynamic>>[];
 
     final nearbyRestaurants = _detail != null
         ? List<Map<String, dynamic>>.from(
-            (_detail!['nearbyRestaurants'] as List? ?? [])
-                .map((e) => Map<String, dynamic>.from(e as Map)))
+            (_detail!['nearbyRestaurants'] as List? ?? []).map(
+              (e) => Map<String, dynamic>.from(e as Map),
+            ),
+          )
         : <Map<String, dynamic>>[];
 
     final nearbyAccommodations = _detail != null
         ? List<Map<String, dynamic>>.from(
-            (_detail!['nearbyAccommodations'] as List? ?? [])
-                .map((e) => Map<String, dynamic>.from(e as Map)))
+            (_detail!['nearbyAccommodations'] as List? ?? []).map(
+              (e) => Map<String, dynamic>.from(e as Map),
+            ),
+          )
         : <Map<String, dynamic>>[];
+    final routePoints = _RoutePoint.fromPlaces(places);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: hasImage ? 220 : 0,
-            pinned: true,
-            backgroundColor: colorScheme.primary,
-            foregroundColor: Colors.white,
-            actions: [
-              IconButton(
-                icon: Icon(_saved ? Icons.bookmark : Icons.bookmark_outline),
-                onPressed: _toggleSave,
-              ),
-            ],
-            flexibleSpace: hasImage
-                ? FlexibleSpaceBar(
-                    background: Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stack) =>
-                          Container(color: colorScheme.primaryContainer),
-                    ),
-                  )
-                : null,
-          ),
-
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 지역
-                  if ((widget.course['region'] as String? ?? '').isNotEmpty)
-                    Row(
-                      children: [
-                        Icon(Icons.location_on_outlined,
-                            size: 14, color: colorScheme.primary),
-                        const SizedBox(width: 4),
-                        Text(
-                          widget.course['region'] as String,
-                          style: TextStyle(
-                              fontSize: 13,
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  const SizedBox(height: 8),
-
-                  // 제목
-                  Text(
-                    widget.course['title'] as String? ?? '',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.4,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // 거리/시간/테마
-                  if (_detail != null)
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: [
-                        if ((_detail!['distance'] as String? ?? '').isNotEmpty)
-                          _InfoPill(
-                              icon: Icons.straighten_outlined,
-                              label: _detail!['distance'] as String),
-                        if ((_detail!['taketime'] as String? ?? '').isNotEmpty)
-                          _InfoPill(
-                              icon: Icons.schedule_outlined,
-                              label: _detail!['taketime'] as String),
-                        if ((_detail!['theme'] as String? ?? '').isNotEmpty)
-                          _InfoPill(
-                              icon: Icons.tag_outlined,
-                              label: _detail!['theme'] as String),
-                      ],
-                    ),
-                  if (_detail != null) const SizedBox(height: 20),
-
-                  // 로딩
-                  if (_loading)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 32),
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-
-                  // 코스 구성 장소 목록
-                  if (!_loading && places.isNotEmpty) ...[
-                    Text(
-                      '코스 구성 (${places.length}곳)',
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 14),
-                    ...List.generate(places.length, (i) {
-                      final place = places[i];
-                      final travelMin =
-                          place['travelMinutesToNext'] as int?;
-                      final dayLabel = place['dayLabel'] as String?;
-                      final prevDayLabel = i > 0
-                          ? places[i - 1]['dayLabel'] as String?
-                          : null;
-                      final showDayHeader = dayLabel != null &&
-                          (i == 0 || dayLabel != prevDayLabel);
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // DAY 구분 헤더
-                          if (showDayHeader)
-                            _DayDivider(
-                              label: dayLabel,
-                              isFirst: i == 0,
-                            ),
-                          _PlaceDetailItem(
-                            index: i,
-                            name: place['subname'] as String? ?? '',
-                            overview: place['overview'] as String? ?? '',
-                            imageUrl: place['imageUrl'] as String? ?? '',
-                            address: place['address'] as String? ?? '',
-                            tel: place['tel'] as String? ?? '',
-                            usetime: place['usetime'] as String? ?? '',
-                            usefee: place['usefee'] as String? ?? '',
-                            isLast: i == places.length - 1 && travelMin == null,
-                            slotType: place['slotType'] as String?,
-                            timeLabel: place['timeLabel'] as String?,
-                          ),
-                          // 이동 시간 divider
-                          if (i < places.length - 1)
-                            _TravelTimeDivider(minutes: travelMin),
-                        ],
-                      );
-                    }),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // 장소 없음
-                  if (!_loading && _detail != null && places.isEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.info_outline,
-                              size: 18, color: const Color(0xFF9CA3AF)),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              '이 코스의 상세 정보가 제공되지 않아요.',
-                              style: TextStyle(
-                                  fontSize: 13, color: const Color(0xFF6B7280)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  // 주변 맛집
-                  if (nearbyRestaurants.isNotEmpty) ...[
-                    const Divider(height: 32),
-                    const Text('코스 근처 맛집',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 12),
-                    ...nearbyRestaurants
-                        .map((p) => _NearbyPlaceItem(place: p)),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // 주변 숙박
-                  if (nearbyAccommodations.isNotEmpty) ...[
-                    const Divider(height: 32),
-                    const Text('코스 근처 숙박',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 12),
-                    ...nearbyAccommodations
-                        .map((p) => _NearbyPlaceItem(place: p)),
-                    const SizedBox(height: 16),
-                  ],
-
-                  const SizedBox(height: 32),
-                ],
-              ),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: IconButton.filledTonal(
+              icon: Icon(_saved ? Icons.bookmark : Icons.bookmark_outline),
+              onPressed: _toggleSave,
+              tooltip: _saved ? '저장 해제' : '플래너 저장',
             ),
           ),
         ],
       ),
-
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-          child: FilledButton.icon(
-            onPressed: _toggleSave,
-            icon: Icon(_saved ? Icons.bookmark : Icons.bookmark_add_outlined),
-            label: Text(_saved ? '플래너에서 삭제' : '플래너에 담기'),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(double.infinity, 52),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              backgroundColor:
-                  _saved ? Colors.grey.shade400 : colorScheme.primary,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: _CourseMapBackdrop(
+              points: routePoints,
+              imageUrl: imageUrl,
+              hasImage: hasImage,
             ),
+          ),
+          if (routePoints.isNotEmpty)
+            Positioned(
+              top: MediaQuery.paddingOf(context).top + kToolbarHeight + 8,
+              left: 14,
+              right: 14,
+              child: _RouteLegend(points: routePoints),
+            ),
+          DraggableScrollableSheet(
+            initialChildSize: 0.18,
+            minChildSize: 0.12,
+            maxChildSize: 0.94,
+            snap: true,
+            snapSizes: const [0.18, 0.94],
+            builder: (context, scrollController) {
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(22),
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x26000000),
+                      blurRadius: 18,
+                      offset: Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 44,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD1D5DB),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                    // 지역
+                    if ((widget.course['region'] as String? ?? '').isNotEmpty)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 14,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.course['region'] as String,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 8),
+
+                    // 제목
+                    Text(
+                      widget.course['title'] as String? ?? '',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.4,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 거리/시간/테마
+                    if (_detail != null)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          if ((_detail!['distance'] as String? ?? '')
+                              .isNotEmpty)
+                            _InfoPill(
+                              icon: Icons.straighten_outlined,
+                              label: _detail!['distance'] as String,
+                            ),
+                          if ((_detail!['taketime'] as String? ?? '')
+                              .isNotEmpty)
+                            _InfoPill(
+                              icon: Icons.schedule_outlined,
+                              label: _detail!['taketime'] as String,
+                            ),
+                          if ((_detail!['theme'] as String? ?? '').isNotEmpty)
+                            _InfoPill(
+                              icon: Icons.tag_outlined,
+                              label: _detail!['theme'] as String,
+                            ),
+                        ],
+                      ),
+                    if (_detail != null) const SizedBox(height: 20),
+
+                    FilledButton.icon(
+                      onPressed: _toggleSave,
+                      icon: Icon(
+                        _saved ? Icons.bookmark : Icons.bookmark_add_outlined,
+                      ),
+                      label: Text(_saved ? '플래너에서 삭제' : '플래너에 담기'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        backgroundColor: _saved
+                            ? Colors.grey.shade400
+                            : colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // 로딩
+                    if (_loading)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+
+                    // 코스 구성 장소 목록
+                    if (!_loading && places.isNotEmpty) ...[
+                      Text(
+                        '코스 구성 (${places.length}곳)',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      ...List.generate(places.length, (i) {
+                        final place = places[i];
+                        final travelMin = place['travelMinutesToNext'] as int?;
+                        final dayLabel = place['dayLabel'] as String?;
+                        final prevDayLabel = i > 0
+                            ? places[i - 1]['dayLabel'] as String?
+                            : null;
+                        final showDayHeader =
+                            dayLabel != null &&
+                            (i == 0 || dayLabel != prevDayLabel);
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // DAY 구분 헤더
+                            if (showDayHeader)
+                              _DayDivider(label: dayLabel, isFirst: i == 0),
+                            _PlaceDetailItem(
+                              index: i,
+                              name: place['subname'] as String? ?? '',
+                              overview: place['overview'] as String? ?? '',
+                              imageUrl: place['imageUrl'] as String? ?? '',
+                              address: place['address'] as String? ?? '',
+                              tel: place['tel'] as String? ?? '',
+                              usetime: place['usetime'] as String? ?? '',
+                              usefee: place['usefee'] as String? ?? '',
+                              isLast:
+                                  i == places.length - 1 && travelMin == null,
+                              slotType: place['slotType'] as String?,
+                              timeLabel: place['timeLabel'] as String?,
+                            ),
+                            // 이동 시간 divider
+                            if (i < places.length - 1)
+                              _TravelTimeDivider(minutes: travelMin),
+                          ],
+                        );
+                      }),
+                      const SizedBox(height: 24),
+                    ],
+
+                    // 장소 없음
+                    if (!_loading && _detail != null && places.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              size: 18,
+                              color: const Color(0xFF9CA3AF),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '이 코스의 상세 정보가 제공되지 않아요.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: const Color(0xFF6B7280),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // 주변 맛집
+                    if (nearbyRestaurants.isNotEmpty) ...[
+                      const Divider(height: 32),
+                      const Text(
+                        '코스 근처 맛집',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...nearbyRestaurants.map(
+                        (p) => _NearbyPlaceItem(place: p),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // 주변 숙박
+                    if (nearbyAccommodations.isNotEmpty) ...[
+                      const Divider(height: 32),
+                      const Text(
+                        '코스 근처 숙박',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...nearbyAccommodations.map(
+                        (p) => _NearbyPlaceItem(place: p),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoutePoint {
+  final int index;
+  final String name;
+  final String dayLabel;
+  final String slotType;
+  final double lat;
+  final double lng;
+
+  const _RoutePoint({
+    required this.index,
+    required this.name,
+    required this.dayLabel,
+    required this.slotType,
+    required this.lat,
+    required this.lng,
+  });
+
+  static List<_RoutePoint> fromPlaces(List<Map<String, dynamic>> places) {
+    final points = <_RoutePoint>[];
+    for (var i = 0; i < places.length; i++) {
+      final place = places[i];
+      final lat = _asDouble(place['mapy']);
+      final lng = _asDouble(place['mapx']);
+      if (lat == null || lng == null) continue;
+      points.add(
+        _RoutePoint(
+          index: i + 1,
+          name: place['subname'] as String? ?? '',
+          dayLabel: place['dayLabel'] as String? ?? 'DAY 1',
+          slotType: place['slotType'] as String? ?? 'sight',
+          lat: lat,
+          lng: lng,
+        ),
+      );
+    }
+    return points;
+  }
+
+  static double? _asDouble(Object? value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+}
+
+class _CourseMapBackdrop extends StatelessWidget {
+  final List<_RoutePoint> points;
+  final String imageUrl;
+  final bool hasImage;
+
+  const _CourseMapBackdrop({
+    required this.points,
+    required this.imageUrl,
+    required this.hasImage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (points.isNotEmpty) {
+      return _RouteMap(points: points);
+    }
+    if (hasImage) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stack) =>
+            Container(color: Theme.of(context).colorScheme.primaryContainer),
+      );
+    }
+    return Container(color: Theme.of(context).colorScheme.primaryContainer);
+  }
+}
+
+class _RouteMap extends StatefulWidget {
+  final List<_RoutePoint> points;
+
+  const _RouteMap({required this.points});
+
+  @override
+  State<_RouteMap> createState() => _RouteMapState();
+}
+
+class _RouteMapState extends State<_RouteMap> {
+  late final MapController _mapController;
+  late final latlong.LatLng _initialCenter;
+  late final double _initialZoom;
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+    final center = _center(widget.points);
+    _initialCenter = latlong.LatLng(center.$1, center.$2);
+    _initialZoom = _initialMapZoom(widget.points);
+  }
+
+  @override
+  void didUpdateWidget(covariant _RouteMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.points != widget.points) {
+      final center = _center(widget.points);
+      final nextCenter = latlong.LatLng(center.$1, center.$2);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _mapController.move(nextCenter, _initialMapZoom(widget.points));
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = widget.points.map((p) => p.dayLabel).toSet().toList();
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: _initialCenter,
+            initialZoom: _initialZoom,
+            minZoom: 7,
+            maxZoom: 18,
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.gabojago.tripmate',
+            ),
+            PolylineLayer(
+              polylines: labels.map((label) {
+                final dayPoints = widget.points
+                    .where((p) => p.dayLabel == label)
+                    .toList();
+                return Polyline(
+                  points: dayPoints
+                      .map((p) => latlong.LatLng(p.lat, p.lng))
+                      .toList(),
+                  color: _RoutePainter.dayColor(labels.indexOf(label)),
+                  strokeWidth: 4,
+                  borderColor: Colors.white,
+                  borderStrokeWidth: 2,
+                );
+              }).toList(),
+            ),
+            MarkerLayer(
+              markers: widget.points.map((point) {
+                final color = _RoutePainter.dayColor(
+                  labels.indexOf(point.dayLabel),
+                );
+                return Marker(
+                  point: latlong.LatLng(point.lat, point.lng),
+                  width: 44,
+                  height: 44,
+                  child: _RouteMarker(point: point, color: color),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.18),
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.08),
+                ],
+                stops: const [0, 0.22, 1],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          right: 14,
+          top: 116,
+          child: _MapZoomControls(
+            onZoomIn: () => _zoomBy(1),
+            onZoomOut: () => _zoomBy(-1),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _zoomBy(double delta) {
+    final camera = _mapController.camera;
+    final nextZoom = (camera.zoom + delta).clamp(7.0, 18.0);
+    _mapController.move(camera.center, nextZoom);
+  }
+
+  (double, double) _center(List<_RoutePoint> points) {
+    final lat =
+        points.map((p) => p.lat).reduce((a, b) => a + b) / points.length;
+    final lng =
+        points.map((p) => p.lng).reduce((a, b) => a + b) / points.length;
+    return (lat, lng);
+  }
+
+  double _initialMapZoom(List<_RoutePoint> points) {
+    if (points.length <= 1) return 15;
+    final minLat = points.map((p) => p.lat).reduce(math.min);
+    final maxLat = points.map((p) => p.lat).reduce(math.max);
+    final minLng = points.map((p) => p.lng).reduce(math.min);
+    final maxLng = points.map((p) => p.lng).reduce(math.max);
+    final span = math.max(maxLat - minLat, maxLng - minLng);
+    if (span < 0.01) return 15.5;
+    if (span < 0.03) return 14;
+    if (span < 0.08) return 12.5;
+    if (span < 0.16) return 11;
+    return 9.5;
+  }
+}
+
+class _MapZoomControls extends StatelessWidget {
+  final VoidCallback onZoomIn;
+  final VoidCallback onZoomOut;
+
+  const _MapZoomControls({required this.onZoomIn, required this.onZoomOut});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x26000000),
+            blurRadius: 12,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ZoomButton(icon: Icons.add, onPressed: onZoomIn, tooltip: '확대'),
+          Container(width: 36, height: 1, color: const Color(0xFFE5E7EB)),
+          _ZoomButton(icon: Icons.remove, onPressed: onZoomOut, tooltip: '축소'),
+        ],
+      ),
+    );
+  }
+}
+
+class _ZoomButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  final String tooltip;
+
+  const _ZoomButton({
+    required this.icon,
+    required this.onPressed,
+    required this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(10),
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(icon, size: 22, color: const Color(0xFF374151)),
+        ),
+      ),
+    );
+  }
+}
+
+class _RouteMarker extends StatelessWidget {
+  final _RoutePoint point;
+  final Color color;
+
+  const _RouteMarker({required this.point, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 3),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33000000),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          point.index.toString(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),
     );
   }
+}
+
+class _RouteLegend extends StatelessWidget {
+  final List<_RoutePoint> points;
+
+  const _RouteLegend({required this.points});
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = points.map((p) => p.dayLabel).toSet().toList();
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          ...labels.map((label) {
+            final idx = labels.indexOf(label);
+            return Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x22000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: _RoutePainter.dayColor(idx),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF374151),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoutePainter extends CustomPainter {
+  final List<_RoutePoint> points;
+  final double centerLat;
+  final double centerLng;
+  final double zoomLevel;
+
+  _RoutePainter({
+    required this.points,
+    required this.centerLat,
+    required this.centerLng,
+    required this.zoomLevel,
+  });
+
+  static const _colors = [
+    Color(0xFF1B8C6E),
+    Color(0xFFE65100),
+    Color(0xFF6A1B9A),
+    Color(0xFF1565C0),
+  ];
+
+  static Color dayColor(int index) => _colors[index % _colors.length];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.isEmpty) return;
+
+    final projected = {
+      for (final point in points) point: _project(point, size),
+    };
+    final labels = points.map((p) => p.dayLabel).toSet().toList();
+
+    for (final label in labels) {
+      final dayPoints = points.where((p) => p.dayLabel == label).toList();
+      if (dayPoints.length < 2) continue;
+      final color = dayColor(labels.indexOf(label));
+      final path = Path()
+        ..moveTo(
+          projected[dayPoints.first]!.dx,
+          projected[dayPoints.first]!.dy,
+        );
+      for (final point in dayPoints.skip(1)) {
+        final offset = projected[point]!;
+        path.lineTo(offset.dx, offset.dy);
+      }
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.9)
+          ..strokeWidth = 8
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round,
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = color
+          ..strokeWidth = 4
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round,
+      );
+    }
+
+    for (final point in points) {
+      final offset = projected[point]!;
+      final color = dayColor(labels.indexOf(point.dayLabel));
+      final radius = point.slotType == 'lodging' ? 13.0 : 12.0;
+      canvas.drawCircle(
+        offset.translate(0, 2),
+        radius + 3,
+        Paint()..color = Colors.black.withValues(alpha: 0.2),
+      );
+      canvas.drawCircle(offset, radius + 3, Paint()..color = Colors.white);
+      canvas.drawCircle(offset, radius, Paint()..color = color);
+      _drawNumber(canvas, offset, point.index.toString());
+    }
+  }
+
+  Offset _project(_RoutePoint point, Size size) {
+    final center = _worldPoint(centerLat, centerLng);
+    final target = _worldPoint(point.lat, point.lng);
+    final scale = math.pow(2, _webZoomFromKakaoLevel(zoomLevel)).toDouble();
+    final dx = (target.dx - center.dx) * scale;
+    final dy = (target.dy - center.dy) * scale;
+    return Offset(size.width / 2 + dx, size.height / 2 + dy);
+  }
+
+  Offset _worldPoint(double lat, double lng) {
+    final sinLat = math.sin(lat * math.pi / 180).clamp(-0.9999, 0.9999);
+    final x = 256 * (lng + 180) / 360;
+    final y =
+        256 * (0.5 - math.log((1 + sinLat) / (1 - sinLat)) / (4 * math.pi));
+    return Offset(x, y);
+  }
+
+  double _webZoomFromKakaoLevel(double level) {
+    return level.clamp(4, 18).toDouble();
+  }
+
+  void _drawNumber(Canvas canvas, Offset offset, String text) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    painter.paint(
+      canvas,
+      offset - Offset(painter.width / 2, painter.height / 2),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _RoutePainter oldDelegate) =>
+      oldDelegate.points != points ||
+      oldDelegate.centerLat != centerLat ||
+      oldDelegate.centerLng != centerLng ||
+      oldDelegate.zoomLevel != zoomLevel;
 }
 
 // ─── 이동 시간 divider ────────────────────────────────────
@@ -334,8 +913,11 @@ class _TravelTimeDivider extends StatelessWidget {
             color: const Color(0xFF2E7D6B).withValues(alpha: 0.15),
           ),
           const SizedBox(width: 14),
-          const Icon(Icons.directions_car_outlined,
-              size: 14, color: Colors.grey),
+          const Icon(
+            Icons.directions_car_outlined,
+            size: 14,
+            color: Colors.grey,
+          ),
           const SizedBox(width: 4),
           Text(
             minutes != null ? '자동차 약 $minutes분' : '이동',
@@ -448,8 +1030,7 @@ class _PlaceDetailItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final hasImg =
-        imageUrl.isNotEmpty && !imageUrl.contains('placeholder');
+    final hasImg = imageUrl.isNotEmpty && !imageUrl.contains('placeholder');
     final slotColor = _slotColor(colorScheme);
 
     return Row(
@@ -467,11 +1048,7 @@ class _PlaceDetailItem extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: Icon(
-                _slotIcon(),
-                color: Colors.white,
-                size: 14,
-              ),
+              child: Icon(_slotIcon(), color: Colors.white, size: 14),
             ),
           ],
         ),
@@ -488,7 +1065,10 @@ class _PlaceDetailItem extends StatelessWidget {
                 children: [
                   if (timeLabel != null && _timeLabelKo().isNotEmpty) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1,
+                      ),
                       decoration: BoxDecoration(
                         color: slotColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
@@ -505,12 +1085,14 @@ class _PlaceDetailItem extends StatelessWidget {
                     const SizedBox(width: 6),
                   ],
                   Expanded(
-                    child: Text(name,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.2,
-                        )),
+                    child: Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -520,15 +1102,22 @@ class _PlaceDetailItem extends StatelessWidget {
                 const SizedBox(height: 3),
                 Row(
                   children: [
-                    Icon(Icons.place_outlined,
-                        size: 13, color: const Color(0xFF9CA3AF)),
+                    Icon(
+                      Icons.place_outlined,
+                      size: 13,
+                      color: const Color(0xFF9CA3AF),
+                    ),
                     const SizedBox(width: 3),
                     Expanded(
-                      child: Text(address,
-                          style: TextStyle(
-                              fontSize: 12, color: const Color(0xFF6B7280)),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        address,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: const Color(0xFF6B7280),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
@@ -542,11 +1131,11 @@ class _PlaceDetailItem extends StatelessWidget {
                   children: [
                     if (usetime.isNotEmpty)
                       _SmallTag(
-                          icon: Icons.access_time_outlined,
-                          text: usetime),
+                        icon: Icons.access_time_outlined,
+                        text: usetime,
+                      ),
                     if (usefee.isNotEmpty)
-                      _SmallTag(
-                          icon: Icons.payments_outlined, text: usefee),
+                      _SmallTag(icon: Icons.payments_outlined, text: usefee),
                   ],
                 ),
               ],
@@ -554,13 +1143,16 @@ class _PlaceDetailItem extends StatelessWidget {
               // 설명
               if (overview.isNotEmpty) ...[
                 const SizedBox(height: 6),
-                Text(overview,
-                    style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF6B7280),
-                        height: 1.6),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis),
+                Text(
+                  overview,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF6B7280),
+                    height: 1.6,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
 
               // 이미지
@@ -607,22 +1199,37 @@ class _NearbyPlaceItem extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
-          const BoxShadow(color: Color(0x08000000), blurRadius: 6, offset: Offset(0, 2)),
+          const BoxShadow(
+            color: Color(0x05000000),
+            blurRadius: 0,
+            spreadRadius: 1,
+          ),
+          const BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
         children: [
-          const Icon(Icons.restaurant_outlined,
-              size: 18, color: Color(0xFF2E7D6B)),
+          const Icon(
+            Icons.restaurant_outlined,
+            size: 18,
+            color: Color(0xFF2E7D6B),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name,
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w600)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 if (category.isNotEmpty || address.isNotEmpty)
                   Text(
                     [
@@ -630,7 +1237,9 @@ class _NearbyPlaceItem extends StatelessWidget {
                       if (address.isNotEmpty) address,
                     ].join(' · '),
                     style: TextStyle(
-                        fontSize: 12, color: const Color(0xFF6B7280)),
+                      fontSize: 12,
+                      color: const Color(0xFF6B7280),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -639,9 +1248,10 @@ class _NearbyPlaceItem extends StatelessWidget {
           ),
           if (distance.isNotEmpty) ...[
             const SizedBox(width: 8),
-            Text('${distance}m',
-                style:
-                    TextStyle(fontSize: 12, color: const Color(0xFF9CA3AF))),
+            Text(
+              '${distance}m',
+              style: TextStyle(fontSize: 12, color: const Color(0xFF9CA3AF)),
+            ),
           ],
         ],
       ),
@@ -668,11 +1278,14 @@ class _InfoPill extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: const Color(0xFF6B7280)),
           const SizedBox(width: 4),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade700,
-                  fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
@@ -691,10 +1304,12 @@ class _SmallTag extends StatelessWidget {
       children: [
         Icon(icon, size: 12, color: const Color(0xFF9CA3AF)),
         const SizedBox(width: 3),
-        Text(text,
-            style: TextStyle(fontSize: 11, color: const Color(0xFF6B7280)),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis),
+        Text(
+          text,
+          style: TextStyle(fontSize: 11, color: const Color(0xFF6B7280)),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }
