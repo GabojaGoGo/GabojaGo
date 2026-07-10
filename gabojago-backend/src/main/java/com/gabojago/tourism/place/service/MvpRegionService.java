@@ -16,46 +16,44 @@ public class MvpRegionService {
 
     @Transactional
     public List<ImportRegion> prepareBusanAndChangwon() {
-        Region busan = upsertArea("부산광역시", "6", "26");
-        Region gyeongnam = upsertArea("경상남도", "36", "48");
-        Region changwon = upsertSigungu(gyeongnam, "창원시", "36", "16", "125");
+        Region busan = upsertArea("busan", "부산광역시", "6", "26");
+        Region gyeongnam = upsertArea("gyeongnam", "경상남도", "36", "48");
+        Region changwon = upsertSigungu(gyeongnam, "gyeongnam.changwon", "창원시", "36", "16", "125");
 
         return List.of(
-                new ImportRegion(busan, "6", null),
-                new ImportRegion(changwon, "36", "16")
+                new ImportRegion(busan.getId(), busan.getName(), "6", null),
+                new ImportRegion(changwon.getId(), changwon.getName(), "36", "16")
         );
     }
 
-    private Region upsertArea(String name, String tourAreaCode, String datalabCode) {
-        String regionKey = "TOUR:" + tourAreaCode;
+    private Region upsertArea(String regionKey, String name, String tourAreaCode, String datalabCode) {
         Region region = regionRepository.findByRegionKey(regionKey)
-                .orElseGet(() -> Region.area(name, tourAreaCode, datalabCode));
-        region.updateReferenceData(null, name, tourAreaCode, null, datalabCode);
+                .orElseGet(() -> Region.area(regionKey, name));
+        region.updateName(null, name);
+        region.assignTourApiMapping(tourAreaCode, null);
+        region.assignDatalabCode(datalabCode);
         return regionRepository.save(region);
     }
 
     private Region upsertSigungu(
             Region parent,
+            String regionKey,
             String name,
             String tourAreaCode,
             String tourSigunguCode,
             String datalabCode
     ) {
-        String regionKey = "TOUR:" + tourAreaCode + ":" + tourSigunguCode;
         Region region = regionRepository.findByRegionKey(regionKey)
-                .orElseGet(() -> Region.sigungu(
-                        parent,
-                        name,
-                        tourAreaCode,
-                        tourSigunguCode,
-                        datalabCode
-                ));
-        region.updateReferenceData(parent, name, tourAreaCode, tourSigunguCode, datalabCode);
+                .orElseGet(() -> Region.sigungu(parent, regionKey, name));
+        region.updateName(parent, name);
+        region.assignTourApiMapping(tourAreaCode, tourSigunguCode);
+        region.assignDatalabCode(datalabCode);
         return regionRepository.save(region);
     }
 
     public record ImportRegion(
-            Region region,
+            Long regionId,
+            String regionName,
             String tourAreaCode,
             String tourSigunguCode
     ) {

@@ -6,6 +6,9 @@ import com.gabojago.infrastructure.tourapi.TourApiClient;
 import com.gabojago.infrastructure.tourapi.dto.TourApiAreaPage;
 import com.gabojago.tourism.place.domain.enums.PlaceType;
 import com.gabojago.tourism.place.dto.response.MvpPlaceImportResponse;
+import com.gabojago.tourism.place.dto.response.MvpPlaceImportResponse.RegionImportResult;
+import com.gabojago.tourism.place.service.MvpRegionService.ImportRegion;
+import com.gabojago.tourism.place.service.TourPlaceWriter.WriteResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,13 +32,13 @@ public class MvpPlaceImportService {
     private static final int MAX_PAGES_PER_TARGET = 5;
     private static final String CAFE_CATEGORY_CODE = "A05020900";
     private static final List<ContentTarget> CONTENT_TARGETS = List.of(
-            new ContentTarget("39", PlaceType.FOOD, 20, CategoryFilter.EXCLUDE_CAFE),
-            new ContentTarget("39", PlaceType.CAFE, 8, CategoryFilter.CAFE_ONLY),
-            new ContentTarget("12", PlaceType.ATTRACTION, 15, CategoryFilter.ALL),
-            new ContentTarget("14", PlaceType.CULTURE, 8, CategoryFilter.ALL),
-            new ContentTarget("28", PlaceType.ACTIVITY, 8, CategoryFilter.ALL),
-            new ContentTarget("32", PlaceType.LODGING, 7, CategoryFilter.ALL),
-            new ContentTarget("38", PlaceType.SHOPPING, 4, CategoryFilter.ALL)
+            new ContentTarget("39", PlaceType.RESTAURANT, 20, CategoryFilter.EXCLUDE_CAFE),
+            new ContentTarget("39", PlaceType.CAFE, 20, CategoryFilter.CAFE_ONLY),
+            new ContentTarget("12", PlaceType.TOURIST_SPOT, 20, CategoryFilter.ALL),
+            new ContentTarget("14", PlaceType.TOURIST_SPOT, 20, CategoryFilter.ALL),
+            new ContentTarget("28", PlaceType.ACTIVITY, 20, CategoryFilter.ALL),
+            new ContentTarget("32", PlaceType.ACCOMMODATION, 20, CategoryFilter.ALL),
+            new ContentTarget("38", PlaceType.SHOP, 20, CategoryFilter.ALL)
     );
     private static final int TARGET_PER_REGION = CONTENT_TARGETS.stream()
             .mapToInt(ContentTarget::limit)
@@ -46,34 +49,34 @@ public class MvpPlaceImportService {
     private final TourPlaceWriter tourPlaceWriter;
 
     public MvpPlaceImportResponse importBusanAndChangwon() {
-        List<MvpPlaceImportResponse.RegionImportResult> regionResults = new ArrayList<>();
-        for (MvpRegionService.ImportRegion importRegion : mvpRegionService.prepareBusanAndChangwon()) {
+        List<RegionImportResult> regionResults = new ArrayList<>();
+        for (ImportRegion importRegion : mvpRegionService.prepareBusanAndChangwon()) {
             regionResults.add(importRegion(importRegion));
         }
 
         return new MvpPlaceImportResponse(
                 TARGET_PER_REGION,
-                regionResults.stream().mapToInt(MvpPlaceImportResponse.RegionImportResult::created).sum(),
-                regionResults.stream().mapToInt(MvpPlaceImportResponse.RegionImportResult::updated).sum(),
-                regionResults.stream().mapToInt(MvpPlaceImportResponse.RegionImportResult::skipped).sum(),
-                regionResults.stream().mapToInt(MvpPlaceImportResponse.RegionImportResult::failedRequests).sum(),
+                regionResults.stream().mapToInt(RegionImportResult::created).sum(),
+                regionResults.stream().mapToInt(RegionImportResult::updated).sum(),
+                regionResults.stream().mapToInt(RegionImportResult::skipped).sum(),
+                regionResults.stream().mapToInt(RegionImportResult::failedRequests).sum(),
                 regionResults
         );
     }
 
-    private MvpPlaceImportResponse.RegionImportResult importRegion(
-            MvpRegionService.ImportRegion importRegion
+    private RegionImportResult importRegion(
+            ImportRegion importRegion
     ) {
         ImportCounter counter = new ImportCounter();
         Map<String, Integer> savedByType = new LinkedHashMap<>();
 
         for (ContentTarget target : CONTENT_TARGETS) {
             int savedForType = importContentType(importRegion, target, counter);
-            savedByType.put(target.placeType().name(), savedForType);
+            savedByType.merge(target.placeType().name(), savedForType, Integer::sum);
         }
 
-        return new MvpPlaceImportResponse.RegionImportResult(
-                importRegion.region().getName(),
+        return new RegionImportResult(
+                importRegion.regionName(),
                 TARGET_PER_REGION,
                 counter.fetched,
                 counter.created,
@@ -85,7 +88,7 @@ public class MvpPlaceImportService {
     }
 
     private int importContentType(
-            MvpRegionService.ImportRegion importRegion,
+            ImportRegion importRegion,
             ContentTarget target,
             ImportCounter counter
     ) {
@@ -97,12 +100,12 @@ public class MvpPlaceImportService {
                 break;
             }
             try {
-                TourPlaceWriter.WriteResult result = tourPlaceWriter.upsert(
-                        importRegion.region(),
+                WriteResult result = tourPlaceWriter.upsert(
+                        importRegion.regionId(),
                         target.placeType(),
                         item
                 );
-                if (result == TourPlaceWriter.WriteResult.CREATED) {
+                if (result == WriteResult.CREATED) {
                     counter.created++;
                 } else {
                     counter.updated++;
@@ -117,7 +120,7 @@ public class MvpPlaceImportService {
     }
 
     private List<JsonNode> fetchCandidates(
-            MvpRegionService.ImportRegion importRegion,
+            ImportRegion importRegion,
             ContentTarget target,
             ImportCounter counter
     ) {
@@ -138,7 +141,7 @@ public class MvpPlaceImportService {
                 counter.failedRequests++;
                 log.warn(
                         "MVP place import request failed region={} type={} page={}: {}",
-                        importRegion.region().getName(),
+                        importRegion.regionName(),
                         target.placeType(),
                         pageNo,
                         e.getMessage()

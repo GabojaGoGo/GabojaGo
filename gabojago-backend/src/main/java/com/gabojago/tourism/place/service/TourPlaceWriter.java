@@ -1,28 +1,45 @@
 package com.gabojago.tourism.place.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.gabojago.tourism.place.domain.Category;
 import com.gabojago.tourism.place.domain.Place;
+import com.gabojago.tourism.place.domain.PlaceCategory;
 import com.gabojago.tourism.place.domain.Region;
+import com.gabojago.tourism.place.domain.enums.CategoryKind;
+import com.gabojago.tourism.place.domain.enums.PlaceCategoryStatus;
 import com.gabojago.tourism.place.domain.enums.PlaceDataSourceType;
 import com.gabojago.tourism.place.domain.enums.PlaceType;
+import com.gabojago.tourism.place.repository.CategoryRepository;
+import com.gabojago.tourism.place.repository.PlaceCategoryRepository;
 import com.gabojago.tourism.place.repository.PlaceRepository;
+import com.gabojago.tourism.place.repository.RegionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
+/**
+ * TourAPI 응답 한 건을 places에 저장한다.
+ *
+ * 기본 정보만 저장하며, 음식점의 음식 종류는 SUBTYPE 카테고리로 연결한다.
+ * PURPOSE 카테고리는 여기서 다루지 않는다 — 세분화 필드가 채워진 뒤
+ * PlaceClassificationService가 자동 분류한다.
+ */
 @Service
 @RequiredArgsConstructor
 public class TourPlaceWriter {
 
     private final PlaceRepository placeRepository;
+    private final RegionRepository regionRepository;
+    private final CategoryRepository categoryRepository;
+    private final PlaceCategoryRepository placeCategoryRepository;
 
     @Transactional
-    public WriteResult upsert(Region region, PlaceType placeType, JsonNode item) {
+    public WriteResult upsert(Long regionId, PlaceType placeType, JsonNode item) {
+        Region region = regionRepository.getReferenceById(regionId);
         String contentId = requiredText(item, "contentid");
         String name = requiredText(item, "title");
         BigDecimal longitude = requiredCoordinate(item, "mapx");
@@ -38,58 +55,61 @@ public class TourPlaceWriter {
                 PlaceDataSourceType.TOUR_API,
                 contentId
         ));
-        place.updateFromTourApi(
+        place.updateBasicInfo(
                 region,
                 placeType,
                 name,
-                text(item, "addr1"),
-                text(item, "addr2"),
-                text(item, "zipcode"),
+                joinAddress(text(item, "addr1"), text(item, "addr2")),
                 latitude,
                 longitude,
                 text(item, "tel"),
                 text(item, "firstimage"),
-                text(item, "firstimage2"),
-                text(item, "modifiedtime"),
-                text(item, "cat1"),
-                text(item, "cat2"),
-                text(item, "cat3"),
-                LocalDateTime.now()
+                text(item, "firstimage2")
         );
-        applySourceClassification(place, placeType, text(item, "cat3"));
         placeRepository.save(place);
+        linkSubtypeCategory(place, placeType, text(item, "cat3"));
 
         return created ? WriteResult.CREATED : WriteResult.UPDATED;
     }
 
-    private void applySourceClassification(Place place, PlaceType placeType, String sourceCategorySmall) {
-        if (placeType == PlaceType.CAFE) {
-            place.applySourceClassification(
-                    PlaceType.CAFE,
-                    "FOOD_BEVERAGE",
-                    "CAFE_DESSERT",
-                    "DESSERT_CAFE"
-            );
-            return;
-        }
-        if (placeType != PlaceType.FOOD) {
+    /** TourAPI 소분류 코드를 SUBTYPE 카테고리(수집 시점에 확정되는 사실 값)로 연결한다. */
+    private void linkSubtypeCategory(Place place, PlaceType placeType, String sourceCategorySmall) {
+        if (placeType != PlaceType.RESTAURANT) {
             return;
         }
 
-        String categorySmall = switch (sourceCategorySmall == null ? "" : sourceCategorySmall) {
-            case "A05020100" -> "KOREAN";
-            case "A05020200" -> "WESTERN";
-            case "A05020300" -> "JAPANESE";
-            case "A05020400" -> "CHINESE";
-            case "A05020500", "A05020700" -> "ASIAN_OTHER";
-            default -> "OTHER_FOOD";
+        SubtypeMapping mapping = switch (sourceCategorySmall == null ? "" : sourceCategorySmall) {
+            case "A05020100" -> new SubtypeMapping("KOREAN", "한식");
+            case "A05020200" -> new SubtypeMapping("WESTERN", "양식");
+            case "A05020300" -> new SubtypeMapping("JAPANESE", "일식");
+            case "A05020400" -> new SubtypeMapping("CHINESE", "중식");
+            case "A05020500", "A05020700" -> new SubtypeMapping("ASIAN_OTHER", "아시아 음식");
+            default -> new SubtypeMapping("OTHER_FOOD", "기타 음식");
         };
-        place.applySourceClassification(
-                PlaceType.FOOD,
-                "FOOD_BEVERAGE",
-                "RESTAURANT",
-                categorySmall
-        );
+
+        Category category = categoryRepository
+                .findByPlaceTypeAndCode(placeType, mapping.code())
+                .orElseGet(() -> categoryRepository.save(Category.of(
+                        placeType,
+                        CategoryKind.SUBTYPE,
+                        mapping.code(),
+                        mapping.name(),
+                        null
+                )));
+
+        if (placeCategoryRepository
+                .findByPlace_IdAndCategory_Id(place.getId(), category.getId())
+                .isEmpty()) {
+            placeCategoryRepository.save(
+                    PlaceCategory.of(place, category, PlaceCategoryStatus.INCLUDED));
+        }
+    }
+
+    private String joinAddress(String address1, String address2) {
+        if (address1 == null) {
+            return address2;
+        }
+        return address2 == null ? address1 : address1 + " " + address2;
     }
 
     private String requiredText(JsonNode node, String field) {
@@ -116,6 +136,9 @@ public class TourPlaceWriter {
         }
         String value = valueNode.asText().trim();
         return value.isEmpty() ? null : value;
+    }
+
+    private record SubtypeMapping(String code, String name) {
     }
 
     public enum WriteResult {

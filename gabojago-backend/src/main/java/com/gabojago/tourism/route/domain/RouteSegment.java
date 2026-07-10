@@ -1,7 +1,7 @@
 package com.gabojago.tourism.route.domain;
 
 import com.gabojago.global.domain.BaseTimeEntity;
-import com.gabojago.tourism.place.domain.enums.TravelMode;
+import com.gabojago.tourism.route.domain.enums.TravelMode;
 import com.gabojago.tourism.route.domain.enums.SegmentSourceType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

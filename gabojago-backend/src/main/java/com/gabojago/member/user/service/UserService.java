@@ -1,5 +1,7 @@
 package com.gabojago.member.user.service;
 
+import com.gabojago.global.exception.BusinessException;
+import com.gabojago.global.exception.ErrorCode;
 import com.gabojago.member.user.domain.*;
 import com.gabojago.member.user.dto.response.MeResponse;
 import com.gabojago.member.user.exception.UserNotFoundException;
@@ -44,7 +46,7 @@ public class UserService {
         try {
             return Long.valueOf(userId);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("유효하지 않은 사용자 ID", e);
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER, "유효하지 않은 사용자 ID", e);
         }
     }
 }
