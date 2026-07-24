@@ -289,6 +289,7 @@ class CoursePlace extends StatelessWidget {
 
   static const _slotColors = {
     'meal':    Color(0xFFF97316),
+    'cafe':    Color(0xFF8D6E63),
     'lodging': Color(0xFF8B5CF6),
   };
 

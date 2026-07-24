@@ -3,6 +3,7 @@ package com.gabojago.infrastructure.tourapi;
 import com.gabojago.global.aop.TrackExecutionTime;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gabojago.infrastructure.tourapi.dto.TourApiAreaPage;
 import com.gabojago.infrastructure.tourapi.dto.TourApiResponse;
 import com.gabojago.tourism.data.service.CongestionApiStorageService;
 import lombok.extern.slf4j.Slf4j;
@@ -165,11 +166,103 @@ public class TourApiClient {
         return restClient.get().uri(uri).accept(org.springframework.http.MediaType.APPLICATION_JSON).retrieve().body(TourApiResponse.class);
     }
 
+    public TourApiAreaPage fetchAreaBasedPage(
+            String contentTypeId,
+            String areaCode,
+            String sigunguCode,
+            int pageNo,
+            int numOfRows
+    ) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl + "/areaBasedList2")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("numOfRows", Math.min(Math.max(numOfRows, 1), 100))
+                .queryParam("pageNo", Math.max(pageNo, 1))
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "TripMate")
+                .queryParam("_type", "json")
+                .queryParam("contentTypeId", contentTypeId)
+                .queryParam("areaCode", areaCode)
+                .queryParam("arrange", "P");
+
+        if (sigunguCode != null && !sigunguCode.isBlank()) {
+            builder.queryParam("sigunguCode", sigunguCode);
+        }
+
+        String raw = restClient.get()
+                .uri(builder.build(true).toUri())
+                .accept(org.springframework.http.MediaType.APPLICATION_JSON)
+                .retrieve()
+                .body(String.class);
+
+        if (raw == null || raw.isBlank()) {
+            throw new IllegalStateException("TourAPI areaBasedList2 returned an empty response");
+        }
+
+        try {
+            JsonNode root = objectMapper.readTree(raw);
+            JsonNode responseNode = root.path("response");
+            JsonNode headerNode = responseNode.path("header");
+            String resultCode = headerNode.path("resultCode").asText();
+            String resultMessage = headerNode.path("resultMsg").asText();
+            if (!"0000".equals(resultCode)) {
+                throw new IllegalStateException(
+                        "TourAPI areaBasedList2 failed: " + resultCode + " " + resultMessage
+                );
+            }
+
+            JsonNode bodyNode = responseNode.path("body");
+            JsonNode itemNode = bodyNode.path("items").path("item");
+            List<JsonNode> items = new ArrayList<>();
+            if (itemNode.isArray()) {
+                itemNode.forEach(items::add);
+            } else if (itemNode.isObject()) {
+                items.add(itemNode);
+            }
+
+            TourApiAreaPage page = new TourApiAreaPage(
+                    resultCode,
+                    resultMessage,
+                    bodyNode.path("numOfRows").asInt(),
+                    bodyNode.path("pageNo").asInt(),
+                    bodyNode.path("totalCount").asInt(),
+                    List.copyOf(items)
+            );
+            log.info(
+                    "TourAPI area page fetched contentTypeId={} areaCode={} sigunguCode={} pageNo={} items={} totalCount={}",
+                    contentTypeId,
+                    areaCode,
+                    sigunguCode,
+                    page.pageNo(),
+                    page.items().size(),
+                    page.totalCount()
+            );
+            return page;
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException("TourAPI areaBasedList2 parse error", e);
+        }
+    }
+
     public TourApiResponse fetchNearby(double lat, double lng, String contentTypeId, int radius) {
         return fetchNearby(lat, lng, contentTypeId, radius, 10);
     }
 
     public TourApiResponse fetchNearby(double lat, double lng, String contentTypeId, int radius, int numOfRows) {
+        String raw = fetchNearbyRaw(lat, lng, contentTypeId, radius, numOfRows);
+
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(raw, TourApiResponse.class);
+        } catch (Exception e) {
+            log.warn("TourAPI locationBasedList2 parse error: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public String fetchNearbyRaw(double lat, double lng, String contentTypeId, int radius, int numOfRows) {
         URI uri = UriComponentsBuilder.fromHttpUrl(baseUrl + "/locationBasedList2")
                 .queryParam("serviceKey", serviceKey)
                 .queryParam("numOfRows", Math.min(numOfRows, 1000))
@@ -183,7 +276,22 @@ public class TourApiClient {
                 .queryParam("contentTypeId", contentTypeId)
                 .build(true).toUri();
 
-        return restClient.get().uri(uri).accept(org.springframework.http.MediaType.APPLICATION_JSON).retrieve().body(TourApiResponse.class);
+        String raw = restClient.get()
+                .uri(uri)
+                .accept(org.springframework.http.MediaType.APPLICATION_JSON)
+                .retrieve()
+                .body(String.class);
+
+        log.info(
+                "TourAPI locationBasedList2 raw response contentTypeId={} lat={} lng={} radius={} numOfRows={} body={}",
+                contentTypeId,
+                lat,
+                lng,
+                radius,
+                numOfRows,
+                raw
+        );
+        return raw;
     }
 
     // 📊 매뉴얼(v4.1) 기반: 기초 지자체 방문자수 조회
