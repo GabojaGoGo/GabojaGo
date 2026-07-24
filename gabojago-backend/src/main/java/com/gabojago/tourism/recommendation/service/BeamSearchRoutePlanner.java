@@ -212,10 +212,6 @@ public class BeamSearchRoutePlanner {
     }
 
     private static int stayMinutes(ScoredPlace candidate) {
-        Integer reviewedStayMinutes = candidate.place().getAverageStayMinutes();
-        if (reviewedStayMinutes != null && reviewedStayMinutes > 0) {
-            return reviewedStayMinutes;
-        }
         return switch (candidate.slot().slotType()) {
             case SIGHT -> 90;
             case MEAL -> 70;

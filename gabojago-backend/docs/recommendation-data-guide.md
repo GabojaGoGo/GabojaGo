@@ -56,9 +56,9 @@ TourAPI 적재기가 채우며 재수집할 때 갱신한다.
 | 테이블 | 데이터 |
 |---|---|
 | `regions` | TourAPI 지역 코드와 지역명 |
-| `places` | 이름, 주소, 좌표, 이미지, contentid, 원본 카테고리, 동기화 시각 |
+| `places` | 이름, 주소, 좌표, 이미지, 원천 장소 ID, 대분류(`place_type`), 동기화 시각 |
 
-API 재수집은 사람이 검수한 표준 카테고리, 체류시간, 가격, 영업시간을 덮어쓰지 않는다.
+API 재수집은 원천 기본 정보를 갱신하고, 세분화 속성과 목적 카테고리는 별도 테이블에서 관리한다.
 
 ### 수동 검수
 
@@ -66,21 +66,19 @@ API 재수집은 사람이 검수한 표준 카테고리, 체류시간, 가격, 
 
 | 테이블 | 데이터 |
 |---|---|
-| `places` | FOOD/CAFE/BAR 등 확정 타입, 표준 대·중·소분류, 평균 체류시간, 가격대, 영업시간 |
-| `place_attributes` | enum 속성 코드, 장소별 점수, 신뢰도, 근거, 검수 시각 |
-| `parking_info` | 주차 가능 대수, 요금, 높이 제한 |
-| `place_relations` | 목적지 카드에 붙일 추천 주차장 |
+| `place_attributes` | `AttributeKey`와 허용값으로 표현한 세분화 속성(예: 소음, 주차, 좌석, 포토스팟) |
+| `categories` | 장소 대분류별 목적 카테고리 정의(예: `STUDY_WORK`, `DATE`, `PHOTO_GOOD`) |
+| `place_categories` | 자동 분류 결과와 상태(`INCLUDED`, `NEED_REVIEW`, `EXCLUDED`) |
 
-검수가 끝난 장소는 `curation_status=REVIEWED`로 바꾼다. 알고리즘은 REVIEWED만 후보로 읽는다.
+속성이 변경되면 같은 트랜잭션에서 목적 카테고리를 다시 계산한다. `NEED_REVIEW`는 데이터가 부족한 검수 대기 상태이며, `EXCLUDED`는 조건 미달 이력을 남긴다.
 
 ### 자동 파생
 
 | 테이블 | 데이터 |
 |---|---|
-| `place_suitabilities` | 속성으로 계산한 DATE, FAMILY, HEALING 등의 적합도 |
+| `place_categories` | 세분화 속성 규칙으로 계산한 목적별 분류 상태 |
 
-파생 적합도에는 `rule_version`과 `evidence_json`을 남긴다. 사람의 예외 보정은
-`source_type=CURATED`로 저장한다.
+현재 MVP의 규칙은 코드로 관리하고, 운영 고도화 시 `category_rules` 테이블로 분리한다.
 
 ### 사용자 최종 저장
 
@@ -96,28 +94,24 @@ API 재수집은 사람이 검수한 표준 카테고리, 체류시간, 가격, 
 
 ```text
 region_id = request.region_id
-primary_type = slot.slot_type
-status = ACTIVE
-curation_status = REVIEWED
+place_type IN slot에 허용된 대분류
 ```
 
 알고리즘이 사용하는 주요 값:
 
-- `category_small`: CHINESE 같은 슬롯별 제외 조건
 - `latitude/longitude`: Haversine 근사 거리
-- `average_stay_minutes`: 도착·출발 시각 누적
-- `operating_hours_json`: 예상 도착시각 영업 여부
-- `price_level`: 예산·가성비 점수
+- 기본 체류시간: 슬롯 타입별 고정값(관광 90분, 식사 70분, 카페 60분, 숙소 720분)
+- `image_url`, 주소, 전화번호: 데이터 완성도 점수
 
 ### `place_attributes`
 
-QUIET, PHOTO_SPOT, DESSERT_GOOD, PARKING_EASY 등의 장소 자체 특징이다.
-사용자 선호 속성과 교집합을 구해 슬롯 점수에 반영한다.
+`QUIET`, `PHOTO_SPOT`, `DESSERT_VISUAL`, `PARKING_CONVENIENCE` 등의 장소 자체 특징이다.
+키별 허용값을 사용하며, 추천 점수에는 선호 속성과 이동수단에 맞는 값을 반영한다.
 
-### `place_suitabilities`
+### `place_categories`
 
-DATE, FAMILY, HEALING, RAINY_DAY처럼 목적·동행·상황에 대한 파생 점수다.
-엔진은 현재 유효한 한 행의 `score * confidence`를 읽는다.
+`STUDY_WORK`, `EMOTIONAL`, `DATE`, `PARKING_FRIENDLY`, `PHOTO_GOOD`처럼 목적 기반 카테고리의 파생 결과다.
+추천 엔진은 `INCLUDED`를 높은 적합도, `NEED_REVIEW`를 중간 적합도, `EXCLUDED`를 낮은 적합도로 점수화한다.
 
 ### 추천 요청 DTO
 

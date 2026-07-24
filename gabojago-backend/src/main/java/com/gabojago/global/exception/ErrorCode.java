@@ -28,6 +28,10 @@ public enum ErrorCode {
     OAUTH_USERINFO_FAILED(HttpStatus.BAD_GATEWAY, "소셜 사용자 정보 조회에 실패했습니다."),
     SOCIAL_ACCOUNT_CONFLICT(HttpStatus.CONFLICT, "이미 다른 소셜 계정으로 가입된 이메일입니다."),
 
+    // ===== Place =====
+    PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 장소입니다."),
+    INVALID_PLACE_ATTRIBUTE(HttpStatus.BAD_REQUEST, "장소 속성 값이 올바르지 않습니다."),
+
     // ===== Common =====
     NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 리소스를 찾을 수 없습니다."),
     CONFLICT(HttpStatus.CONFLICT, "이미 존재하는 리소스입니다."),

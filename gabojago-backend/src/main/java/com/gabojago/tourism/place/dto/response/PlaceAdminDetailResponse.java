@@ -1,59 +1,37 @@
 package com.gabojago.tourism.place.dto.response;
 
-import com.gabojago.tourism.place.domain.enums.AttributeSourceType;
-import com.gabojago.tourism.place.domain.enums.ParkingFeeType;
-import com.gabojago.tourism.place.domain.enums.PlaceAttributeCode;
-import com.gabojago.tourism.place.domain.enums.SuitabilitySourceType;
-import com.gabojago.tourism.place.domain.enums.SuitabilityTargetType;
+import com.gabojago.tourism.place.domain.enums.AttributeKey;
+import com.gabojago.tourism.place.domain.enums.CategoryKind;
+import com.gabojago.tourism.place.domain.enums.PlaceCategoryStatus;
+import com.gabojago.tourism.place.domain.enums.PlaceType;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-/** 알고리즘이 한 장소에 대해 읽게 될 전체 기준 데이터. */
+/** 장소 기본 정보와 세분화 필드 값, 카테고리 분류 결과. */
 public record PlaceAdminDetailResponse(
-        PlaceAdminSummaryResponse place,
-        String operatingHoursJson,
+        Long id,
+        String name,
+        PlaceType placeType,
+        String address,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        String phone,
         List<AttributeValue> attributes,
-        List<SuitabilityValue> suitabilities,
-        ParkingValue parking,
-        List<RelatedParkingValue> recommendedParking
+        List<CategoryValue> categories
 ) {
+
     public record AttributeValue(
-            PlaceAttributeCode code,
-            BigDecimal score,
-            BigDecimal confidence,
-            AttributeSourceType sourceType,
-            String evidenceJson
+            AttributeKey key,
+            String value
     ) {
     }
 
-    public record SuitabilityValue(
-            SuitabilityTargetType targetType,
-            String targetCode,
-            BigDecimal score,
-            BigDecimal confidence,
-            SuitabilitySourceType sourceType,
-            String ruleVersion,
-            String evidenceJson
-    ) {
-    }
-
-    public record ParkingValue(
-            Integer capacityTotal,
-            ParkingFeeType feeType,
-            Integer baseFee,
-            Integer baseMinutes,
-            Integer extraFee,
-            Integer extraMinutes,
-            BigDecimal heightLimit
-    ) {
-    }
-
-    public record RelatedParkingValue(
-            Long placeId,
+    public record CategoryValue(
+            String code,
             String name,
-            Integer distanceMeters,
-            Integer walkingMinutes
+            CategoryKind kind,
+            PlaceCategoryStatus status
     ) {
     }
 }

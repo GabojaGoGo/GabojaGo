@@ -2,11 +2,11 @@ package com.gabojago.tourism.recommendation.service;
 
 import com.gabojago.tourism.place.domain.Place;
 import com.gabojago.tourism.place.domain.PlaceAttribute;
-import com.gabojago.tourism.place.domain.PlaceSuitability;
+import com.gabojago.tourism.place.domain.PlaceCategory;
 import com.gabojago.tourism.place.domain.Region;
 import com.gabojago.tourism.place.domain.enums.TravelMode;
 import com.gabojago.tourism.place.repository.PlaceAttributeRepository;
-import com.gabojago.tourism.place.repository.PlaceSuitabilityRepository;
+import com.gabojago.tourism.place.repository.PlaceCategoryRepository;
 import com.gabojago.tourism.place.repository.RegionRepository;
 import com.gabojago.tourism.recommendation.domain.RecommendationSlot;
 import com.gabojago.tourism.recommendation.dto.request.RouteRecommendationRequest;
@@ -36,7 +36,7 @@ public class RecommendationService {
     private final SlotTemplateFactory slotTemplateFactory;
     private final CandidateQueryService candidateQueryService;
     private final PlaceAttributeRepository placeAttributeRepository;
-    private final PlaceSuitabilityRepository placeSuitabilityRepository;
+    private final PlaceCategoryRepository placeCategoryRepository;
     private final PlaceScoringService placeScoringService;
     private final BeamSearchRoutePlanner beamSearchRoutePlanner;
 
@@ -92,7 +92,7 @@ public class RecommendationService {
                 .findAllByPlace_IdIn(placeIds)
                 .stream()
                 .collect(Collectors.groupingBy(value -> value.getPlace().getId()));
-        Map<Long, List<PlaceSuitability>> suitabilitiesByPlaceId = placeSuitabilityRepository
+        Map<Long, List<PlaceCategory>> categoriesByPlaceId = placeCategoryRepository
                 .findAllByPlace_IdIn(placeIds)
                 .stream()
                 .collect(Collectors.groupingBy(value -> value.getPlace().getId()));
@@ -102,7 +102,7 @@ public class RecommendationService {
                         slot,
                         place,
                         attributesByPlaceId.getOrDefault(place.getId(), List.of()),
-                        suitabilitiesByPlaceId.getOrDefault(place.getId(), List.of()),
+                        categoriesByPlaceId.getOrDefault(place.getId(), List.of()),
                         request.travelMode()
                 ))
                 .sorted(Comparator.comparingDouble(ScoredPlace::score).reversed())
@@ -144,7 +144,7 @@ public class RecommendationService {
                             scoredPlace.slot().slotType(),
                             place.getId(),
                             place.getName(),
-                            place.getPrimaryType(),
+                            place.getPlaceType(),
                             category(place),
                             address(place),
                             place.getLatitude(),
@@ -204,20 +204,11 @@ public class RecommendationService {
     }
 
     private String category(Place place) {
-        if (place.getCategorySmall() != null) {
-            return place.getCategorySmall();
-        }
-        if (place.getSourceCategorySmall() != null) {
-            return place.getSourceCategorySmall();
-        }
-        return place.getPrimaryType().name();
+        return place.getPlaceType().name();
     }
 
     private String address(Place place) {
-        return String.join(" ",
-                place.getAddress1() == null ? "" : place.getAddress1(),
-                place.getAddress2() == null ? "" : place.getAddress2()
-        ).trim();
+        return place.getAddress() == null ? "" : place.getAddress();
     }
 
     private record NormalizedRequest(

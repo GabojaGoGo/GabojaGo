@@ -1,5 +1,7 @@
 package com.gabojago.member.auth.service;
 
+import com.gabojago.global.exception.BusinessException;
+import com.gabojago.global.exception.ErrorCode;
 import com.gabojago.global.security.jwt.JwtUtils;
 import com.gabojago.global.security.jwt.RefreshTokenService;
 import com.gabojago.global.security.jwt.RedisJwtTokenBlacklist;
@@ -77,7 +79,7 @@ public class AuthFacade {
         try {
             return Long.valueOf(userId);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("유효하지 않은 사용자 ID", e);
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER, "유효하지 않은 사용자 ID", e);
         }
     }
 }

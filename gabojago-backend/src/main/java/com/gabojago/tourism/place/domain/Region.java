@@ -23,8 +23,12 @@ import lombok.NoArgsConstructor;
  * 추천 서비스에서 사용하는 지역 기준 정보.
  *
  * 광역 지역(부산광역시)과 시군구(창원시)를 같은 테이블에 저장하고
- * {@code parent}로 상하위 관계를 표현한다. TourAPI 지역 코드는 자동 적재 범위를
- * 결정할 때 사용하고, DataLab 코드는 혼잡도 데이터를 연결할 때 사용한다.
+ * {@code parent}로 상하위 관계를 표현한다.
+ *
+ * 지역의 정체성은 소스 중립 슬러그({@code regionKey})로 정의한다.
+ * TourAPI·DataLab 코드는 특정 데이터 소스와 연결하기 위한 선택적 매핑일 뿐이며,
+ * 그 소스를 쓰지 않는 지역은 null로 둘 수 있다. 데이터 소스가 바뀌어도
+ * 지역 자체와 이를 참조하는 장소는 그대로 유지된다.
  */
 @Entity
 @Table(
@@ -51,8 +55,8 @@ public class Region extends BaseTimeEntity {
     @JoinColumn(name = "parent_id")
     private Region parent;
 
-    /** [자동] 외부 코드 조합으로 만든 내부 고유키. 예: TOUR:6, TOUR:36:16. */
-    @Column(name = "region_key", nullable = false, length = 32)
+    /** [시스템] 데이터 소스와 무관한 지역 고유키(슬러그). 예: busan, gyeongnam.changwon. */
+    @Column(name = "region_key", nullable = false, length = 64)
     private String regionKey;
 
     /** [자동] 광역 지역인지 시군구인지 구분한다. */
@@ -64,15 +68,15 @@ public class Region extends BaseTimeEntity {
     @Column(nullable = false, length = 64)
     private String name;
 
-    /** [자동] TourAPI의 광역 지역 코드. 부산 6, 경남 36 등. */
-    @Column(name = "tour_area_code", nullable = false, length = 8)
+    /** [선택] TourAPI 광역 지역 코드. TourAPI로 적재하지 않는 지역은 null. */
+    @Column(name = "tour_area_code", length = 8)
     private String tourAreaCode;
 
-    /** [자동] TourAPI의 시군구 코드. 광역 지역은 null이다. */
+    /** [선택] TourAPI 시군구 코드. 광역 지역이거나 TourAPI 미사용이면 null. */
     @Column(name = "tour_sigungu_code", length = 8)
     private String tourSigunguCode;
 
-    /** [자동] 한국관광 DataLab 방문자·혼잡도 데이터 연결에 사용하는 코드. */
+    /** [선택] 한국관광 DataLab 방문자·혼잡도 데이터 연결에 사용하는 코드. */
     @Column(name = "datalab_code", length = 16)
     private String datalabCode;
 
@@ -80,15 +84,8 @@ public class Region extends BaseTimeEntity {
     @Column(nullable = false)
     private boolean active;
 
-    private Region(
-            Region parent,
-            String regionKey,
-            RegionLevel level,
-            String name,
-            String tourAreaCode,
-            String tourSigunguCode,
-            String datalabCode
-    ) {
+    private Region(Region parent, String regionKey, RegionLevel level, String name,
+            String tourAreaCode, String tourSigunguCode, String datalabCode) {
         this.parent = parent;
         this.regionKey = regionKey;
         this.level = level;
@@ -99,48 +96,28 @@ public class Region extends BaseTimeEntity {
         this.active = true;
     }
 
-    public static Region area(String name, String tourAreaCode, String datalabCode) {
-        return new Region(
-                null,
-                "TOUR:" + tourAreaCode,
-                RegionLevel.AREA,
-                name,
-                tourAreaCode,
-                null,
-                datalabCode
-        );
+    public static Region area(String regionKey, String name) {
+        return new Region(null, regionKey, RegionLevel.AREA, name, null, null, null);
     }
 
-    public static Region sigungu(
-            Region parent,
-            String name,
-            String tourAreaCode,
-            String tourSigunguCode,
-            String datalabCode
-    ) {
-        return new Region(
-                parent,
-                "TOUR:" + tourAreaCode + ":" + tourSigunguCode,
-                RegionLevel.SIGUNGU,
-                name,
-                tourAreaCode,
-                tourSigunguCode,
-                datalabCode
-        );
+    public static Region sigungu(Region parent, String regionKey, String name) {
+        return new Region(parent, regionKey, RegionLevel.SIGUNGU, name, null, null, null);
     }
 
-    public void updateReferenceData(
-            Region parent,
-            String name,
-            String tourAreaCode,
-            String tourSigunguCode,
-            String datalabCode
-    ) {
+    public void updateName(Region parent, String name) {
         this.parent = parent;
         this.name = name;
+        this.active = true;
+    }
+
+    /** TourAPI로 이 지역을 적재하기 위한 코드 매핑. 다른 소스로 전환하면 호출하지 않으면 된다. */
+    public void assignTourApiMapping(String tourAreaCode, String tourSigunguCode) {
         this.tourAreaCode = tourAreaCode;
         this.tourSigunguCode = tourSigunguCode;
+    }
+
+    /** DataLab 방문자·혼잡도 데이터 연결용 코드 매핑. */
+    public void assignDatalabCode(String datalabCode) {
         this.datalabCode = datalabCode;
-        this.active = true;
     }
 }

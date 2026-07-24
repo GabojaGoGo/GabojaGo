@@ -1,16 +1,24 @@
 package com.gabojago.tourism.place.dto.request;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import com.gabojago.tourism.place.domain.enums.AttributeKey;
 
-import java.math.BigDecimal;
+import java.util.List;
 
-/** 사람이 검수한 장소 속성 점수 입력. */
+/**
+ * 장소 세분화 필드 값 입력. 키와 값 모두 AttributeKey에 정의된 어휘만 허용되며,
+ * 저장 시 해당 장소의 카테고리 분류가 즉시 다시 계산된다.
+ */
 public record PlaceAttributeUpsertRequest(
-        @NotNull @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal score,
-        @NotNull @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal confidence,
-        JsonNode evidence
+        @NotEmpty @Valid List<AttributeEntry> attributes
 ) {
+
+    public record AttributeEntry(
+            @NotNull AttributeKey key,
+            @NotBlank String value
+    ) {
+    }
 }

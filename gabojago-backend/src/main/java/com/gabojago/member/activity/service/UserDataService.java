@@ -1,5 +1,7 @@
 package com.gabojago.member.activity.service;
 
+import com.gabojago.global.exception.BusinessException;
+import com.gabojago.global.exception.ErrorCode;
 import com.gabojago.member.activity.domain.*;
 import com.gabojago.member.activity.exception.BucketItemNotFoundException;
 import com.gabojago.member.activity.repository.*;
@@ -125,7 +127,7 @@ public class UserDataService {
         try {
             return Long.valueOf(userId);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("유효하지 않은 사용자 ID", e);
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER, "유효하지 않은 사용자 ID", e);
         }
     }
 }
