@@ -16,5 +16,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             String code
     );
 
-    List<Category> findAllByPlaceTypeAndKindAndActiveTrue(PlaceType placeType, CategoryKind kind);
+    List<Category> findAllByPlaceTypeAndKindAndActiveTrueOrderByNameAsc(
+            PlaceType placeType,
+            CategoryKind kind
+    );
 }

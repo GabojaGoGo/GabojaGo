@@ -5,6 +5,7 @@ import com.gabojago.place.domain.enums.PlaceDataSourceType;
 import com.gabojago.place.domain.enums.PlaceType;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record PlaceResponse(
         Long id,
@@ -20,10 +21,11 @@ public record PlaceResponse(
         String sourcePlaceId,
         Long regionId,
         String regionKey,
-        String regionName
+        String regionName,
+        List<PlaceSubtypeResponse> subtypes
 ) {
 
-    public static PlaceResponse from(Place place) {
+    public static PlaceResponse from(Place place, List<PlaceSubtypeResponse> subtypes) {
         return new PlaceResponse(
                 place.getId(),
                 place.getName(),
@@ -38,7 +40,8 @@ public record PlaceResponse(
                 place.getSourcePlaceId(),
                 place.getRegion().getId(),
                 place.getRegion().getRegionKey(),
-                place.getRegion().getName()
+                place.getRegion().getName(),
+                List.copyOf(subtypes)
         );
     }
 }
