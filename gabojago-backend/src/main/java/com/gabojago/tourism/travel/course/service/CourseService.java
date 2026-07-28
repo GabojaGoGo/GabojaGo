@@ -1,7 +1,7 @@
 package com.gabojago.tourism.travel.course.service;
 
 import com.gabojago.global.aop.TrackExecutionTime;
-import com.gabojago.tourism.place.domain.enums.TravelMode;
+import com.gabojago.place.domain.enums.TravelMode;
 import com.gabojago.tourism.recommendation.dto.request.RouteRecommendationRequest;
 import com.gabojago.tourism.recommendation.dto.response.RouteRecommendationResponse;
 import com.gabojago.tourism.recommendation.service.RecommendationService;

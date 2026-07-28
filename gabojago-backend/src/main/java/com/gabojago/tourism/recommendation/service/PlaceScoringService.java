@@ -1,10 +1,10 @@
 package com.gabojago.tourism.recommendation.service;
 
-import com.gabojago.tourism.place.domain.Place;
-import com.gabojago.tourism.place.domain.PlaceAttribute;
-import com.gabojago.tourism.place.domain.PlaceCategory;
-import com.gabojago.tourism.place.domain.enums.AttributeKey;
-import com.gabojago.tourism.place.domain.enums.TravelMode;
+import com.gabojago.place.domain.Place;
+import com.gabojago.place.domain.PlaceAttribute;
+import com.gabojago.place.domain.PlaceCategory;
+import com.gabojago.place.domain.enums.AttributeKey;
+import com.gabojago.place.domain.enums.TravelMode;
 import com.gabojago.tourism.recommendation.domain.RecommendationSlot;
 import com.gabojago.tourism.recommendation.domain.RecommendationSlotType;
 import org.springframework.stereotype.Service;
@@ -59,7 +59,6 @@ public class PlaceScoringService {
                 .mapToDouble(value -> switch (value.getStatus()) {
                     case INCLUDED -> 90.0;
                     case NEED_REVIEW -> 60.0;
-                    case EXCLUDED -> 20.0;
                 })
                 .average()
                 .orElse(50.0);
