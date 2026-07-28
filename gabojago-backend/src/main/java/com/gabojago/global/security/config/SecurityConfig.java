@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/spots/**", "/api/festivals/**",
                                  "/api/benefits/**", "/api/courses/**",
                                  "/api/recommendations/**",
-                                 "/api/congestion-admin/**", "/api/place-admin/**").permitAll()
+                                 "/api/congestion-admin/**", "/api/places/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated()
             )

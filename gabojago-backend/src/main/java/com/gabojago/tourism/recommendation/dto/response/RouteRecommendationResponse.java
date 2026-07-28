@@ -1,7 +1,7 @@
 package com.gabojago.tourism.recommendation.dto.response;
 
-import com.gabojago.tourism.place.domain.enums.PlaceType;
-import com.gabojago.tourism.place.domain.enums.TravelMode;
+import com.gabojago.place.domain.enums.PlaceType;
+import com.gabojago.place.domain.enums.TravelMode;
 import com.gabojago.tourism.recommendation.domain.RecommendationSlotType;
 
 import java.math.BigDecimal;

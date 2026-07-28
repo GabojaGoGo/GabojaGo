@@ -1,7 +1,7 @@
 package com.gabojago.tourism.recommendation.service;
 
-import com.gabojago.tourism.place.domain.Place;
-import com.gabojago.tourism.place.domain.enums.TravelMode;
+import com.gabojago.place.domain.Place;
+import com.gabojago.place.domain.enums.TravelMode;
 import com.gabojago.tourism.recommendation.domain.RecommendationSlotType;
 import org.springframework.stereotype.Service;
 

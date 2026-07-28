@@ -1,13 +1,13 @@
 package com.gabojago.tourism.recommendation.service;
 
-import com.gabojago.tourism.place.domain.Place;
-import com.gabojago.tourism.place.domain.PlaceAttribute;
-import com.gabojago.tourism.place.domain.PlaceCategory;
-import com.gabojago.tourism.place.domain.Region;
-import com.gabojago.tourism.place.domain.enums.TravelMode;
-import com.gabojago.tourism.place.repository.PlaceAttributeRepository;
-import com.gabojago.tourism.place.repository.PlaceCategoryRepository;
-import com.gabojago.tourism.place.repository.RegionRepository;
+import com.gabojago.place.domain.Place;
+import com.gabojago.place.domain.PlaceAttribute;
+import com.gabojago.place.domain.PlaceCategory;
+import com.gabojago.place.domain.Region;
+import com.gabojago.place.domain.enums.TravelMode;
+import com.gabojago.place.repository.PlaceAttributeRepository;
+import com.gabojago.place.repository.PlaceCategoryRepository;
+import com.gabojago.place.repository.RegionRepository;
 import com.gabojago.tourism.recommendation.domain.RecommendationSlot;
 import com.gabojago.tourism.recommendation.dto.request.RouteRecommendationRequest;
 import com.gabojago.tourism.recommendation.dto.response.RouteRecommendationResponse;

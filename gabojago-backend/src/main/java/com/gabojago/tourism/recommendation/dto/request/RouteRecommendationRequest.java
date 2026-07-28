@@ -1,6 +1,6 @@
 package com.gabojago.tourism.recommendation.dto.request;
 
-import com.gabojago.tourism.place.domain.enums.TravelMode;
+import com.gabojago.place.domain.enums.TravelMode;
 
 import java.time.LocalDateTime;
 
