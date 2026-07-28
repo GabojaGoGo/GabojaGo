@@ -14,4 +14,3 @@ data/rejected/*
 !data/rejected/.gitkeep
 data/reports/*
 !data/reports/.gitkeep
-
