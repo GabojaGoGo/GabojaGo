@@ -423,12 +423,14 @@ class _PlacesPreview extends StatelessWidget {
 
   static const _slotIcons = {
     'meal': Icons.restaurant_outlined,
+    'cafe': Icons.local_cafe_outlined,
     'lodging': Icons.hotel_outlined,
     'sight': Icons.place_outlined,
   };
 
   static const _slotColors = {
     'meal': Color(0xFFE65100),
+    'cafe': Color(0xFF8D6E63),
     'lodging': Color(0xFF6A1B9A),
   };
 

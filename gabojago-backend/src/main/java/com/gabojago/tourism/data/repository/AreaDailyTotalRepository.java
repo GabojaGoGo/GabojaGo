@@ -1,0 +1,10 @@
+package com.gabojago.tourism.data.repository;
+
+import com.gabojago.tourism.data.domain.AreaDailyTotal;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+public interface AreaDailyTotalRepository extends JpaRepository<AreaDailyTotal, Long> {
+    List<AreaDailyTotal> findAllByBaseYmd(String baseYmd);
+    void deleteAllByBaseYmd(String baseYmd);
+    void deleteAllByBaseYmdNot(String baseYmd);
+}

@@ -11,5 +11,7 @@ public interface PlaceAttributeRepository extends JpaRepository<PlaceAttribute, 
 
     List<PlaceAttribute> findAllByPlace_Id(Long placeId);
 
+    List<PlaceAttribute> findAllByPlace_IdIn(List<Long> placeIds);
+
     Optional<PlaceAttribute> findByPlace_IdAndAttributeKey(Long placeId, AttributeKey attributeKey);
 }

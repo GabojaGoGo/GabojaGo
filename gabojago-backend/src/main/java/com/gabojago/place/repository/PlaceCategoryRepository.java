@@ -13,6 +13,8 @@ public interface PlaceCategoryRepository extends JpaRepository<PlaceCategory, Lo
 
     List<PlaceCategory> findAllByPlace_Id(Long placeId);
 
+    List<PlaceCategory> findAllByPlace_IdIn(List<Long> placeIds);
+
     Optional<PlaceCategory> findByPlace_IdAndCategory_Id(Long placeId, Long categoryId);
 
     @Query("""
