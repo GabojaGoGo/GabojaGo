@@ -70,15 +70,15 @@ IMPORT_DB_PORT=3306
 IMPORT_DB_NAME=gabojago
 ```
 
-MySQL Docker 컨테이너가 실행 중이어야 한다.
+백엔드가 한 번 실행되어 Java Enum의 Category 정의가 MySQL에 동기화되어 있어야 한다.
 
 ## MySQL Docker 실행
 
-MySQL은 백엔드의 `docker-compose.yml`로 실행한다.
+MySQL과 백엔드는 백엔드의 `docker-compose.yml`로 실행한다.
 
 ```bash
 cd ../gabojago-backend
-docker compose up -d mysql
+docker compose up -d
 ```
 
 실행 상태를 확인한다.
@@ -223,14 +223,17 @@ MySQL INSERT 또는 UPDATE
 
 ```csv
 source_content_type_id,source_lcls3_code,target_place_type,target_subtype_code,target_subtype_name,mapping_status
-39,FD050100,CAFE,BRAND_CAFE,브랜드 카페,CONFIRMED
-39,FD050100,CAFE,LARGE_CAFE,대형 카페,NEEDS_REVIEW
+12,EX020200,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED
+12,EX020200,TOURIST_SPOT,EXHIBITION_CENTER,전시·컨벤션시설,NEEDS_REVIEW
 ```
 
 동일한 `(원본 유형, 원본 분류, 대상 SUBTYPE)` 조합은 중복 작성할 수 없고, 같은
-원본 분류에 연결된 모든 SUBTYPE은 동일한 PlaceType이어야 한다. 재실행하면
-`IMPORTED`로 저장된 SUBTYPE만 새 매핑 집합으로 교체한다. PURPOSE, 수동 검수
-Category 및 규칙으로 파생된 Category는 삭제하지 않는다.
+원본 분류에 연결된 모든 SUBTYPE은 동일한 PlaceType이어야 한다. 재실행하면 해당
+Place의 SUBTYPE 연결을 새 매핑 집합으로 교체한다. PURPOSE 연결은 삭제하지 않는다.
+
+SUBTYPE 정의의 원본은 Java `PlaceSubtypeCode` Enum이다. Python은 Category를
+생성하거나 이름을 수정하지 않는다. CSV의 코드가 Enum에 없거나 한글 이름이 다르면
+적재를 시작하기 전에 즉시 실패한다.
 
 `25 여행코스`는 하나의 장소가 아니라 여러 장소로 구성된 코스이므로 `places` 적재
 대상에서 제외한다.

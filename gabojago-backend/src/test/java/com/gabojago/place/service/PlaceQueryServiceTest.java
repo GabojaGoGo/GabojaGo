@@ -4,7 +4,6 @@ import com.gabojago.place.domain.Category;
 import com.gabojago.place.domain.Place;
 import com.gabojago.place.domain.PlaceCategory;
 import com.gabojago.place.domain.Region;
-import com.gabojago.place.domain.enums.CategoryAssignmentType;
 import com.gabojago.place.domain.enums.CategoryKind;
 import com.gabojago.place.domain.enums.PlaceCategoryStatus;
 import com.gabojago.place.domain.enums.PlaceType;
@@ -44,14 +43,12 @@ class PlaceQueryServiceTest {
         PlaceCategory outlet = placeCategory(
                 place,
                 category(10L, "OUTLET", "아울렛"),
-                PlaceCategoryStatus.INCLUDED,
-                CategoryAssignmentType.IMPORTED
+                PlaceCategoryStatus.INCLUDED
         );
         PlaceCategory brand = placeCategory(
                 place,
                 category(11L, "BRAND_SHOP", "브랜드 매장"),
-                PlaceCategoryStatus.NEED_REVIEW,
-                CategoryAssignmentType.DERIVED
+                PlaceCategoryStatus.NEED_REVIEW
         );
         PageRequest pageable = PageRequest.of(
                 0,
@@ -83,8 +80,6 @@ class PlaceQueryServiceTest {
                 .containsExactly("BRAND_SHOP", "OUTLET");
         assertThat(response.content().getFirst().subtypes().getFirst().status())
                 .isEqualTo(PlaceCategoryStatus.NEED_REVIEW);
-        assertThat(response.content().getFirst().subtypes().getFirst().assignmentType())
-                .isEqualTo(CategoryAssignmentType.DERIVED);
         verify(placeRepository).findAllByCategoryKindAndCode(
                 CategoryKind.SUBTYPE,
                 PlaceType.SHOP,
@@ -99,8 +94,7 @@ class PlaceQueryServiceTest {
         PlaceCategory outlet = placeCategory(
                 place,
                 category(10L, "OUTLET", "아울렛"),
-                PlaceCategoryStatus.INCLUDED,
-                CategoryAssignmentType.IMPORTED
+                PlaceCategoryStatus.INCLUDED
         );
         PageRequest pageable = PageRequest.of(
                 0,
@@ -131,7 +125,7 @@ class PlaceQueryServiceTest {
                 "CONVENIENCE_STORE",
                 "편의점"
         );
-        when(categoryRepository.findAllByPlaceTypeAndKindAndActiveTrueOrderByNameAsc(
+        when(categoryRepository.findAllByPlaceTypeAndKindOrderByNameAsc(
                 PlaceType.SHOP,
                 CategoryKind.SUBTYPE
         )).thenReturn(List.of(outlet, convenienceStore));
@@ -166,14 +160,12 @@ class PlaceQueryServiceTest {
     private PlaceCategory placeCategory(
             Place place,
             Category category,
-            PlaceCategoryStatus status,
-            CategoryAssignmentType assignmentType
+            PlaceCategoryStatus status
     ) {
         PlaceCategory placeCategory = mock(PlaceCategory.class);
         when(placeCategory.getPlace()).thenReturn(place);
         when(placeCategory.getCategory()).thenReturn(category);
         when(placeCategory.getStatus()).thenReturn(status);
-        when(placeCategory.getAssignmentType()).thenReturn(assignmentType);
         return placeCategory;
     }
 }

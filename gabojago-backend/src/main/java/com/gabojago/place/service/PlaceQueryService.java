@@ -40,7 +40,7 @@ public class PlaceQueryService {
 
     public List<PlaceSubtypeOptionResponse> getSubtypeOptions(PlaceType placeType) {
         return categoryRepository
-                .findAllByPlaceTypeAndKindAndActiveTrueOrderByNameAsc(
+                .findAllByPlaceTypeAndKindOrderByNameAsc(
                         placeType,
                         CategoryKind.SUBTYPE
                 )

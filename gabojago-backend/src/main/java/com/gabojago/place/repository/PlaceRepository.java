@@ -36,27 +36,25 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             value = """
                     SELECT p
                     FROM Place p
-                    WHERE EXISTS (
+                    WHERE p.placeType = :placeType
+                      AND EXISTS (
                         SELECT pc.id
                         FROM PlaceCategory pc
                         WHERE pc.place = p
                           AND pc.category.kind = :kind
-                          AND pc.category.placeType = :placeType
                           AND pc.category.code = :categoryCode
-                          AND pc.category.active = true
                     )
                     """,
             countQuery = """
                     SELECT COUNT(p.id)
                     FROM Place p
-                    WHERE EXISTS (
+                    WHERE p.placeType = :placeType
+                      AND EXISTS (
                         SELECT pc.id
                         FROM PlaceCategory pc
                         WHERE pc.place = p
                           AND pc.category.kind = :kind
-                          AND pc.category.placeType = :placeType
                           AND pc.category.code = :categoryCode
-                          AND pc.category.active = true
                     )
                     """
     )

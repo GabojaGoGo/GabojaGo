@@ -23,7 +23,6 @@ public interface PlaceCategoryRepository extends JpaRepository<PlaceCategory, Lo
             JOIN FETCH pc.category c
             WHERE pc.place.id IN :placeIds
               AND c.kind = :kind
-              AND c.active = true
             ORDER BY pc.place.id ASC, c.code ASC, pc.id ASC
             """)
     List<PlaceCategory> findAllByPlaceIdsAndCategoryKind(

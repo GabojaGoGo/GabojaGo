@@ -1,9 +1,6 @@
 package com.gabojago.place.domain;
 
-import com.gabojago.place.domain.Category;
-import com.gabojago.place.domain.Place;
-import com.gabojago.place.domain.PlaceCategory;
-import com.gabojago.place.domain.enums.CategoryAssignmentType;
+import com.gabojago.place.domain.enums.CategoryKind;
 import com.gabojago.place.domain.enums.PlaceCategoryStatus;
 import com.gabojago.place.domain.enums.PlaceType;
 import org.junit.jupiter.api.Test;
@@ -18,41 +15,73 @@ class PlaceCategoryTest {
     @Test
     void allowsMultipleDifferentCategoriesForOnePlace() {
         Place place = place(PlaceType.CAFE);
-        Category brandCafe = category(PlaceType.CAFE);
-        Category largeCafe = category(PlaceType.CAFE);
+        Category brandCafe = subtypeCategory(PlaceType.CAFE);
+        Category largeCafe = subtypeCategory(PlaceType.CAFE);
 
         PlaceCategory brandLink = PlaceCategory.of(
                 place,
                 brandCafe,
-                PlaceCategoryStatus.INCLUDED,
-                CategoryAssignmentType.IMPORTED
+                PlaceCategoryStatus.INCLUDED
         );
         PlaceCategory largeLink = PlaceCategory.of(
                 place,
                 largeCafe,
-                PlaceCategoryStatus.NEED_REVIEW,
-                CategoryAssignmentType.MANUAL
+                PlaceCategoryStatus.NEED_REVIEW
         );
 
         assertThat(brandLink.getCategory()).isSameAs(brandCafe);
         assertThat(largeLink.getCategory()).isSameAs(largeCafe);
-        assertThat(brandLink.getAssignmentType()).isEqualTo(CategoryAssignmentType.IMPORTED);
-        assertThat(largeLink.getAssignmentType()).isEqualTo(CategoryAssignmentType.MANUAL);
+        assertThat(brandLink.getStatus()).isEqualTo(PlaceCategoryStatus.INCLUDED);
+        assertThat(largeLink.getStatus()).isEqualTo(PlaceCategoryStatus.NEED_REVIEW);
     }
 
     @Test
     void rejectsCategoryFromDifferentPlaceType() {
         Place place = place(PlaceType.CAFE);
-        Category category = category(PlaceType.RESTAURANT);
+        Category category = subtypeCategory(PlaceType.RESTAURANT);
 
         assertThatThrownBy(() -> PlaceCategory.of(
                 place,
                 category,
-                PlaceCategoryStatus.INCLUDED,
-                CategoryAssignmentType.MANUAL
+                PlaceCategoryStatus.INCLUDED
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("PlaceType mismatch");
+    }
+
+    @Test
+    void allowsGlobalPurposeForDifferentPlaceTypes() {
+        Category date = purposeCategory();
+
+        PlaceCategory cafeDate = PlaceCategory.of(
+                place(PlaceType.CAFE),
+                date,
+                PlaceCategoryStatus.INCLUDED
+        );
+        PlaceCategory restaurantDate = PlaceCategory.of(
+                place(PlaceType.RESTAURANT),
+                date,
+                PlaceCategoryStatus.INCLUDED
+        );
+
+        assertThat(cafeDate.getCategory()).isSameAs(date);
+        assertThat(restaurantDate.getCategory()).isSameAs(date);
+    }
+
+    @Test
+    void rejectsPurposeWithPlaceType() {
+        Place place = place(PlaceType.CAFE);
+        Category category = mock(Category.class);
+        when(category.getKind()).thenReturn(CategoryKind.PURPOSE);
+        when(category.getPlaceType()).thenReturn(PlaceType.CAFE);
+
+        assertThatThrownBy(() -> PlaceCategory.of(
+                place,
+                category,
+                PlaceCategoryStatus.INCLUDED
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("must not have PlaceType");
     }
 
     private Place place(PlaceType placeType) {
@@ -61,10 +90,17 @@ class PlaceCategoryTest {
         return place;
     }
 
-    private Category category(PlaceType placeType) {
+    private Category subtypeCategory(PlaceType placeType) {
         Category category = mock(Category.class);
+        when(category.getKind()).thenReturn(CategoryKind.SUBTYPE);
         when(category.getPlaceType()).thenReturn(placeType);
-        when(category.isActive()).thenReturn(true);
+        return category;
+    }
+
+    private Category purposeCategory() {
+        Category category = mock(Category.class);
+        when(category.getKind()).thenReturn(CategoryKind.PURPOSE);
+        when(category.getPlaceType()).thenReturn(null);
         return category;
     }
 }

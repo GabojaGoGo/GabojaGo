@@ -10,13 +10,12 @@ import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    Optional<Category> findByPlaceTypeAndKindAndCode(
-            PlaceType placeType,
+    Optional<Category> findByKindAndCode(
             CategoryKind kind,
             String code
     );
 
-    List<Category> findAllByPlaceTypeAndKindAndActiveTrueOrderByNameAsc(
+    List<Category> findAllByPlaceTypeAndKindOrderByNameAsc(
             PlaceType placeType,
             CategoryKind kind
     );

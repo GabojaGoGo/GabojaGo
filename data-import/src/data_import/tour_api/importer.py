@@ -117,7 +117,6 @@ class ImportSummary:
     unsupported: int = 0
     invalid: int = 0
     new_regions: int = 0
-    new_categories: int = 0
     subtype_links: int = 0
     multi_subtype_places: int = 0
     unmapped_subtype: int = 0
@@ -401,17 +400,13 @@ def import_tour_api(
         dry_run=dry_run,
     )
     subtype_mappings = load_subtype_mappings(mapping_path)
-    category_ids, new_categories = prepare_subtype_categories(
+    category_ids = load_subtype_category_ids(
         connection,
         (mapping for mappings in subtype_mappings.values() for mapping in mappings),
-        dry_run=dry_run,
     )
     existing_ids = load_existing_source_ids(connection)
     seen_ids: set[str] = set()
-    summary = ImportSummary(
-        new_regions=new_regions,
-        new_categories=new_categories,
-    )
+    summary = ImportSummary(new_regions=new_regions)
 
     try:
         for item in iter_tour_api_items(raw_root):
@@ -469,7 +464,7 @@ def import_tour_api(
                     )
                     for mapping in mappings
                 ]
-                replace_imported_subtype_links(
+                replace_subtype_links(
                     connection,
                     place_id,
                     subtype_links,
@@ -500,12 +495,10 @@ def load_existing_source_ids(connection: Connection) -> set[str]:
         return {str(row["source_place_id"]) for row in cursor.fetchall()}
 
 
-def prepare_subtype_categories(
+def load_subtype_category_ids(
     connection: Connection,
     mappings: Iterable[SubtypeMapping],
-    *,
-    dry_run: bool,
-) -> tuple[dict[tuple[str, str], int], int]:
+) -> dict[tuple[str, str], int]:
     definitions: dict[tuple[str, str], str] = {}
     for mapping in mappings:
         key = (mapping.target_place_type, mapping.target_subtype_code)
@@ -520,73 +513,30 @@ def prepare_subtype_categories(
 
     with connection.cursor() as cursor:
         cursor.execute(
-            "SELECT id, place_type, code, is_active + 0 AS is_active "
+            "SELECT id, place_type, code, name "
             "FROM categories WHERE kind = 'SUBTYPE'"
         )
         existing = {(str(row["place_type"]), str(row["code"])): row for row in cursor.fetchall()}
 
     category_ids: dict[tuple[str, str], int] = {}
-    new_categories = 0
     for (place_type, code), name in sorted(definitions.items()):
         key = (place_type, code)
         row = existing.get(key)
-        if row is not None:
-            if not bool(row["is_active"]):
-                raise TourApiImportError(
-                    f"Subtype mapping targets inactive category: {place_type}/{code}"
-                )
-            category_ids[key] = int(row["id"])
-            if not dry_run:
-                update_subtype_category(connection, int(row["id"]), name)
-            continue
-
-        new_categories += 1
-        category_id = -new_categories
-        if not dry_run:
-            category_id = insert_subtype_category(connection, place_type, code, name)
-        category_ids[key] = category_id
-
-    return category_ids, new_categories
-
-
-def insert_subtype_category(
-    connection: Connection,
-    place_type: str,
-    code: str,
-    name: str,
-) -> int:
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            INSERT INTO categories (
-                created_at, updated_at, is_active, place_type, kind,
-                code, name, description
-            ) VALUES (
-                NOW(6), NOW(6), TRUE, %s, 'SUBTYPE', %s, %s, NULL
+        if row is None:
+            raise TourApiImportError(
+                f"Subtype Category is not defined by backend enum: {place_type}/{code}"
             )
-            """,
-            (place_type, code, name),
-        )
-        return int(cursor.lastrowid)
+        if str(row["name"]) != name:
+            raise TourApiImportError(
+                f"Subtype name differs from backend enum for {place_type}/{code}: "
+                f"{name} != {row['name']}"
+            )
+        category_ids[key] = int(row["id"])
+
+    return category_ids
 
 
-def update_subtype_category(
-    connection: Connection,
-    category_id: int,
-    name: str,
-) -> None:
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            UPDATE categories
-            SET updated_at = NOW(6), name = %s
-            WHERE id = %s
-            """,
-            (name, category_id),
-        )
-
-
-def replace_imported_subtype_links(
+def replace_subtype_links(
     connection: Connection,
     place_id: int,
     subtype_links: Iterable[tuple[int, str]],
@@ -599,17 +549,15 @@ def replace_imported_subtype_links(
             JOIN categories c ON c.id = pc.category_id
             WHERE pc.place_id = %s
               AND c.kind = 'SUBTYPE'
-              AND pc.assignment_type = 'IMPORTED'
             """,
             (place_id,),
         )
         cursor.executemany(
             """
             INSERT INTO place_categories (
-                created_at, updated_at, status, assignment_type,
-                category_id, place_id
+                created_at, updated_at, status, category_id, place_id
             ) VALUES (
-                NOW(6), NOW(6), %s, 'IMPORTED', %s, %s
+                NOW(6), NOW(6), %s, %s, %s
             )
             ON DUPLICATE KEY UPDATE
                 updated_at = updated_at
