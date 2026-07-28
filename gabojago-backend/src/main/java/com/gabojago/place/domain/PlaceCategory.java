@@ -1,7 +1,7 @@
 package com.gabojago.place.domain;
 
 import com.gabojago.global.domain.BaseTimeEntity;
-import com.gabojago.place.domain.enums.CategoryAssignmentType;
+import com.gabojago.place.domain.enums.CategoryKind;
 import com.gabojago.place.domain.enums.PlaceCategoryStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -59,42 +59,34 @@ public class PlaceCategory extends BaseTimeEntity {
     @Column(nullable = false, length = 16)
     private PlaceCategoryStatus status;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "assignment_type", nullable = false, length = 16)
-    private CategoryAssignmentType assignmentType;
-
     public static PlaceCategory of(
             Place place,
             Category category,
-            PlaceCategoryStatus status,
-            CategoryAssignmentType assignmentType
+            PlaceCategoryStatus status
     ) {
         validate(place, category);
         PlaceCategory placeCategory = new PlaceCategory();
         placeCategory.place = place;
         placeCategory.category = category;
         placeCategory.status = status;
-        placeCategory.assignmentType = assignmentType;
         return placeCategory;
     }
 
-    public void updateClassification(
-            PlaceCategoryStatus status,
-            CategoryAssignmentType assignmentType
-    ) {
+    public void updateClassification(PlaceCategoryStatus status) {
         this.status = status;
-        this.assignmentType = assignmentType;
     }
 
     private static void validate(Place place, Category category) {
-        if (place.getPlaceType() != category.getPlaceType()) {
+        if (category.getKind() == CategoryKind.SUBTYPE
+                && place.getPlaceType() != category.getPlaceType()) {
             throw new IllegalArgumentException(
                     "PlaceType mismatch: place=%s, category=%s"
                             .formatted(place.getPlaceType(), category.getPlaceType())
             );
         }
-        if (!category.isActive()) {
-            throw new IllegalArgumentException("Inactive category cannot be assigned");
+        if (category.getKind() == CategoryKind.PURPOSE
+                && category.getPlaceType() != null) {
+            throw new IllegalArgumentException("PURPOSE Category must not have PlaceType");
         }
     }
 }
