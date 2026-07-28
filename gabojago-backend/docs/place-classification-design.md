@@ -485,6 +485,10 @@ weather_dependency (액티비티 날씨 영향):
 
 `categories` 테이블의 `kind` 컬럼으로 PURPOSE(목적)와 SUBTYPE(종류)를 구분한다 (3.1 참고). "공부하기 좋은 카페"와 "중식"은 같은 테이블에 있어도 절대 같은 성격으로 다루지 않는다.
 
+한 장소는 여러 종류의 성질을 동시에 가질 수 있으므로 SUBTYPE도 하나로 제한하지
+않는다. 예를 들어 한 카페는 `BRAND_CAFE`와 `LARGE_CAFE`에 동시에 포함될 수
+있다. PURPOSE 역시 `DATE`, `WORK`, `MEETING`에 동시에 포함될 수 있다.
+
 ### 9.3 새 카테고리를 만들기 전에 겹침 검사를 한다
 
 새 목적 카테고리를 추가하고 싶을 때 다음을 먼저 묻는다.
@@ -658,6 +662,7 @@ PARKING_LOT
 | `place_id` | BIGINT (FK → places) | 장소 ID |
 | `category_id` | BIGINT (FK → categories) | 카테고리 ID |
 | `status` | VARCHAR | 분류 상태 |
+| `assignment_type` | VARCHAR | `IMPORTED` / `DERIVED` / `MANUAL` |
 | `created_at` | TIMESTAMP | 생성 시각 |
 | `updated_at` | TIMESTAMP | 수정 시각 |
 
@@ -665,7 +670,6 @@ PARKING_LOT
 
 ```text
 INCLUDED      # 필수 조건 통과 → 노출
-EXCLUDED      # 필수 조건 미달 → 제외
 NEED_REVIEW   # 데이터 불충분/애매 → 검수 필요
 ```
 
@@ -676,9 +680,10 @@ NEED_REVIEW   # 데이터 불충분/애매 → 검수 필요
 | 할리스 A점 | 공부/작업하기 좋은 카페 | `INCLUDED` |
 | 할리스 A점 | 데이트하기 좋은 카페 | `INCLUDED` |
 | 할리스 A점 | 감성카페 | `NEED_REVIEW` |
-| 할리스 A점 | 주차 편한 카페 | `EXCLUDED` |
+| 할리스 A점 | 주차 편한 카페 | row 없음 |
 
-`EXCLUDED`를 row로 남기는 이유: "검사했는데 탈락"과 "아직 검사 안 함"을 구분하기 위해서다. 이 구분이 있어야 분류 배치가 어디까지 돌았는지 추적할 수 있다.
+조건에 맞지 않는 카테고리는 row를 저장하지 않는다. 분류 배치의 실행 여부가
+필요해지면 PlaceCategory 상태를 늘리지 않고 별도의 배치 실행 이력으로 관리한다.
 
 ### 11.5 다른 장소 타입으로의 확장
 
@@ -729,7 +734,7 @@ SUBTYPE 카테고리: 수상 레저, 공방 체험, 테마 체험, ...
 ```text
 place_attributes:  UNIQUE (place_id, attribute_key)
 place_categories:  UNIQUE (place_id, category_id)
-categories:        UNIQUE (place_type, code)
+categories:        UNIQUE (place_type, kind, code)
 ```
 
 **인덱스 (빠른 조회):**
@@ -851,6 +856,8 @@ category_rules             # 분류 기준을 DB에서 관리 → 운영자가 �
 12. 속성 키와 값은 Java enum에 정의된 것만 저장한다. 정의에 없으면 저장을 거부한다.
 13. 카테고리는 목적(PURPOSE)과 종류(SUBTYPE)를 kind로 구분해 절대 섞지 않는다.
 14. 속성값이 바뀌면 그 장소의 카테고리 분류를 같은 배치에서 즉시 다시 계산한다.
+15. 한 장소에는 서로 다른 SUBTYPE과 PURPOSE를 여러 개 연결할 수 있다.
+16. Import 재실행은 IMPORTED 연결만 교체하고 DERIVED와 MANUAL 연결을 보존한다.
 ```
 
 ---
@@ -863,8 +870,8 @@ category_rules             # 분류 기준을 DB에서 관리 → 운영자가 �
 |--------|------|----------|----------|
 | `places` | 장소 기본 정보 (지점 단위) | `id`, `name`, `place_type`, `latitude`, `longitude` | 위경도 인덱스 |
 | `place_attributes` | 세분화 필드 값 (row 단위) | `place_id`, `attribute_key`, `attribute_value` | UNIQUE(place_id, attribute_key) |
-| `categories` | 카테고리 정의 (목적/종류 구분) | `place_type`, `kind`, `code`, `name` | UNIQUE(place_type, code) |
-| `place_categories` | 장소-카테고리 분류 결과 | `place_id`, `category_id`, `status` | UNIQUE(place_id, category_id) |
+| `categories` | 카테고리 정의 (목적/종류 구분) | `place_type`, `kind`, `code`, `name` | UNIQUE(place_type, kind, code) |
+| `place_categories` | 장소-카테고리 분류 결과 | `place_id`, `category_id`, `status`, `assignment_type` | UNIQUE(place_id, category_id) |
 
 ### 향후 확장 테이블 (2~4층 — 기능 개발 순서대로 추가)
 

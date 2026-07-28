@@ -1,4 +1,4 @@
-package com.gabojago.tourism.place.domain.enums;
+package com.gabojago.place.domain.enums;
 
 import java.util.HashSet;
 import java.util.Set;

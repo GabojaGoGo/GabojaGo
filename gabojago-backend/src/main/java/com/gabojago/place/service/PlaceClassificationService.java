@@ -1,17 +1,17 @@
-package com.gabojago.tourism.place.service;
+package com.gabojago.place.service;
 
-import com.gabojago.tourism.place.domain.Category;
-import com.gabojago.tourism.place.domain.Place;
-import com.gabojago.tourism.place.domain.PlaceAttribute;
-import com.gabojago.tourism.place.domain.PlaceCategory;
-import com.gabojago.tourism.place.domain.enums.AttributeKey;
-import com.gabojago.tourism.place.domain.enums.CategoryAssignmentType;
-import com.gabojago.tourism.place.domain.enums.CategoryKind;
-import com.gabojago.tourism.place.domain.enums.PlaceCategoryStatus;
-import com.gabojago.tourism.place.domain.enums.PlaceType;
-import com.gabojago.tourism.place.repository.CategoryRepository;
-import com.gabojago.tourism.place.repository.PlaceAttributeRepository;
-import com.gabojago.tourism.place.repository.PlaceCategoryRepository;
+import com.gabojago.place.domain.Category;
+import com.gabojago.place.domain.Place;
+import com.gabojago.place.domain.PlaceAttribute;
+import com.gabojago.place.domain.PlaceCategory;
+import com.gabojago.place.domain.enums.AttributeKey;
+import com.gabojago.place.domain.enums.CategoryAssignmentType;
+import com.gabojago.place.domain.enums.CategoryKind;
+import com.gabojago.place.domain.enums.PlaceCategoryStatus;
+import com.gabojago.place.domain.enums.PlaceType;
+import com.gabojago.place.repository.CategoryRepository;
+import com.gabojago.place.repository.PlaceAttributeRepository;
+import com.gabojago.place.repository.PlaceCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**

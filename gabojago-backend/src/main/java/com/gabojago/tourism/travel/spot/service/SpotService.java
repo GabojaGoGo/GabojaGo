@@ -4,7 +4,6 @@ import com.gabojago.global.aop.TrackExecutionTime;
 import com.gabojago.infrastructure.region.RegionCodeMapper;
 import com.gabojago.infrastructure.tourapi.TourApiClient;
 import com.gabojago.infrastructure.tourapi.dto.TourApiResponse;
-import com.gabojago.tourism.data.service.CongestionDailyQueryService;
 import com.gabojago.tourism.travel.spot.domain.SpotCongestionLog;
 import com.gabojago.tourism.travel.spot.repository.SpotCongestionLogRepository;
 import com.gabojago.tourism.travel.spot.dto.response.SpotCongestionDto;
@@ -33,13 +32,10 @@ public class SpotService {
     private static final String DEFAULT_IMAGE_URL = "https://via.placeholder.com/150";
     private static final String STATUS_PENDING_LABEL = "예측중";
     private static final String STATUS_PENDING_SOURCE = "pending";
-    private static final String SIGUNGU_DB_SOURCE = "sigungu_db";
-    private static final String AREA_DB_SOURCE = "area_db";
     private static final Map<String, List<String>> LEGACY_SIGUNGU_OVERRIDES = createLegacySigunguOverrides();
     private final TourApiClient tourApiClient;
     private final RegionCodeMapper regionCodeMapper;
     private final CongestionPredictionService congestionPredictionService;
-    private final CongestionDailyQueryService congestionDailyQueryService;
     private final SpotCongestionLogRepository spotCongestionLogRepository;
 
     public List<SpotDto> getNearbySpots(double lat, double lng, int limit) {
@@ -116,13 +112,6 @@ public class SpotService {
     }
 
     private CongestionSourceBundle resolveCongestionSources(Set<String> neededSigunguCodes, Set<String> neededAreaCodes) {
-        CongestionDailyQueryService.DailySnapshot dailySnapshot = congestionDailyQueryService.findTodaySnapshot();
-        if (dailySnapshot.hasData()) {
-            return new CongestionSourceBundle(
-                    new TourApiClient.VisitorDataResult(dailySnapshot.sigunguTotals(), dailySnapshot.baseYmd(), SIGUNGU_DB_SOURCE),
-                    new TourApiClient.VisitorDataResult(dailySnapshot.areaTotals(), dailySnapshot.baseYmd(), AREA_DB_SOURCE)
-            );
-        }
         LocalDate targetDate = LocalDate.now().minusYears(1);
         CongestionPredictionService.PredictionSnapshot sigunguPrediction =
                 congestionPredictionService.buildSigunguPrediction(targetDate, 3, neededSigunguCodes);
@@ -269,8 +258,8 @@ public class SpotService {
     }
     private String resolveCongestionBaseYmd(String source, String sigunguBaseYmd, String areaBaseYmd) {
         return switch (source) {
-            case "sigungu", "sigungu_prediction", SIGUNGU_DB_SOURCE -> sigunguBaseYmd;
-            case "area", "area_prediction", AREA_DB_SOURCE -> areaBaseYmd;
+            case "sigungu", "sigungu_prediction" -> sigunguBaseYmd;
+            case "area", "area_prediction" -> areaBaseYmd;
             default -> null;
         };
     }

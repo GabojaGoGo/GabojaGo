@@ -1,8 +1,8 @@
-package com.gabojago.tourism.place.domain;
+package com.gabojago.place.domain;
 
 import com.gabojago.global.domain.BaseTimeEntity;
-import com.gabojago.tourism.place.domain.enums.PlaceDataSourceType;
-import com.gabojago.tourism.place.domain.enums.PlaceType;
+import com.gabojago.place.domain.enums.PlaceDataSourceType;
+import com.gabojago.place.domain.enums.PlaceType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

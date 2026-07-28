@@ -1,7 +1,7 @@
-package com.gabojago.tourism.place.repository;
+package com.gabojago.place.repository;
 
-import com.gabojago.tourism.place.domain.PlaceAttribute;
-import com.gabojago.tourism.place.domain.enums.AttributeKey;
+import com.gabojago.place.domain.PlaceAttribute;
+import com.gabojago.place.domain.enums.AttributeKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

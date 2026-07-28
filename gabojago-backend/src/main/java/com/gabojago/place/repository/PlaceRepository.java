@@ -1,8 +1,8 @@
-package com.gabojago.tourism.place.repository;
+package com.gabojago.place.repository;
 
-import com.gabojago.tourism.place.domain.Place;
-import com.gabojago.tourism.place.domain.enums.PlaceDataSourceType;
-import com.gabojago.tourism.place.domain.enums.PlaceType;
+import com.gabojago.place.domain.Place;
+import com.gabojago.place.domain.enums.PlaceDataSourceType;
+import com.gabojago.place.domain.enums.PlaceType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -16,6 +16,13 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             PlaceDataSourceType sourceType,
             String sourcePlaceId
     );
+
+    @Override
+    @EntityGraph(attributePaths = "region")
+    Page<Place> findAll(Pageable pageable);
+
+    @EntityGraph(attributePaths = "region")
+    Optional<Place> findWithRegionById(Long id);
 
     @EntityGraph(attributePaths = "region")
     Page<Place> findAllByPlaceType(PlaceType placeType, Pageable pageable);

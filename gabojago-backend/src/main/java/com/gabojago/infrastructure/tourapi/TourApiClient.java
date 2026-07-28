@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gabojago.infrastructure.tourapi.dto.TourApiAreaPage;
 import com.gabojago.infrastructure.tourapi.dto.TourApiResponse;
-import com.gabojago.tourism.data.service.CongestionApiStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -43,7 +42,6 @@ public class TourApiClient {
     private final String baseUrl;
     private final String datalabUrl;
     private final String serviceKey;
-    private final CongestionApiStorageService congestionApiStorageService;
     private volatile CachedVisitorData sigunguCache;
     private volatile CachedVisitorData areaCache;
     private volatile LocalDate lastSigunguSuccessDate;
@@ -52,14 +50,12 @@ public class TourApiClient {
     public TourApiClient(
             @Value("${tour-api.base-url}") String baseUrl,
             @Value("${tour-api.datalab-url}") String datalabUrl,
-            @Value("${tour-api.service-key}") String serviceKey,
-            CongestionApiStorageService congestionApiStorageService) {
+            @Value("${tour-api.service-key}") String serviceKey) {
         this.restClient = RestClient.create();
         this.objectMapper = new ObjectMapper();
         this.baseUrl = baseUrl;
         this.datalabUrl = datalabUrl;
         this.serviceKey = serviceKey;
-        this.congestionApiStorageService = congestionApiStorageService;
     }
 
     /** 관광지/코스 기본 정보 (detailCommon2: 좌표, 주소, 전화, 영업시간 등) */
@@ -805,24 +801,7 @@ public class TourApiClient {
         if (!persistApiResponse) {
             return;
         }
-        try {
-            congestionApiStorageService.saveBatch(
-                    scope,
-                    requestYmd,
-                    endpoint,
-                    resultCode,
-                    resultMsg,
-                    totalCount,
-                    rawJson,
-                    itemNode,
-                    primaryCodeKey,
-                    secondaryCodeKey,
-                    tertiaryCodeKey,
-                    nameKey
-            );
-        } catch (Exception e) {
-            log.warn("Failed to persist congestion API response: {}", e.getMessage());
-        }
+        // Congestion persistence was removed; live API parsing remains in this client.
     }
 
     // 요일/방문유형/코드 유효성 조건을 만족하는 항목만 합산한다.

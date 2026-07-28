@@ -1,9 +1,9 @@
-package com.gabojago.tourism.place.domain;
+package com.gabojago.place.domain;
 
 import com.gabojago.global.domain.BaseTimeEntity;
 import com.gabojago.global.exception.BusinessException;
 import com.gabojago.global.exception.ErrorCode;
-import com.gabojago.tourism.place.domain.enums.AttributeKey;
+import com.gabojago.place.domain.enums.AttributeKey;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

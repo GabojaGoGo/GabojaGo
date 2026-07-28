@@ -1,6 +1,6 @@
-package com.gabojago.tourism.place.repository;
+package com.gabojago.place.repository;
 
-import com.gabojago.tourism.place.domain.PlaceCategory;
+import com.gabojago.place.domain.PlaceCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

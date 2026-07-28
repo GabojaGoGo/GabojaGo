@@ -2,6 +2,7 @@ package com.gabojago.place.controller;
 
 import com.gabojago.place.dto.response.PlacePageResponse;
 import com.gabojago.place.dto.response.PlaceResponse;
+import com.gabojago.place.domain.enums.PlaceType;
 import com.gabojago.place.service.PlaceQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,16 +26,17 @@ public class PlaceController {
     private final PlaceQueryService placeQueryService;
 
     @Operation(
-            summary = "Place 목록 조회",
-            description = "DB에 저장된 Place 기본 정보를 ID 오름차순으로 조회합니다."
+            summary = "PlaceType별 Place 목록 조회",
+            description = "선택한 PlaceType에 해당하는 Place 기본 정보를 조회합니다."
     )
     @GetMapping
     public PlacePageResponse getPlaces(
+            @RequestParam PlaceType placeType,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
     ) {
-        // TODO: 분류 정책 확정 후 placeType과 purposeCode(CategoryKind.PURPOSE) 필터를 추가한다.
-        return placeQueryService.getPlaces(page, size);
+        // TODO: 분류 정책 확정 후 purposeCode(CategoryKind.PURPOSE) 필터를 추가한다.
+        return placeQueryService.getPlaces(placeType, page, size);
     }
 
     @Operation(summary = "Place 단건 조회", description = "Place ID로 DB의 장소 기본 정보를 조회합니다.")
