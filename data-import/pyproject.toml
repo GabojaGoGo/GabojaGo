@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gabojago-data-import"
+version = "0.1.0"
+description = "Offline file importer for the GabojaGO place database"
+requires-python = ">=3.11"
+dependencies = [
+    "openpyxl>=3.1",
+    "pandas>=2.2",
+    "pydantic>=2.10",
+    "pymysql>=1.1",
+    "python-dotenv>=1.0",
+    "sqlalchemy>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.8"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+
+[tool.ruff]
+line-length = 100

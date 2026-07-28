@@ -1,0 +1,365 @@
+# GabojaGO Data Import
+
+GabojaGO의 초기 장소 데이터를 구축하는 Python 프로그램이다.
+
+서비스가 실행될 때 외부 API를 호출하는 구조가 아니다. 필요한 원본 데이터를 먼저
+JSON 파일로 수집하고, 별도의 적재 프로그램으로 MySQL에 저장한다.
+
+```text
+한국관광공사 TourAPI
+        ↓
+JSON 원본 파일
+        ↓
+데이터 검증 및 변환
+        ↓
+MySQL places 테이블
+```
+
+초기 구축이 끝난 후 서비스는 MySQL에 저장된 장소 데이터만 사용한다.
+
+## 프로젝트 구조
+
+```text
+data-import/
+├── collect_tour_api.py
+├── import_tour_api_to_mysql.py
+├── data/
+│   ├── raw/
+│   │   └── tourism/
+│   │       └── tour-api/
+│   ├── rejected/
+│   └── reports/
+├── src/
+│   └── data_import/
+│       └── tour_api/
+│           ├── collector.py
+│           └── importer.py
+├── tests/
+├── .env
+└── pyproject.toml
+```
+
+각 파일의 역할:
+
+| 파일 | 역할 |
+|---|---|
+| `collect_tour_api.py` | TourAPI 데이터를 JSON으로 수집하는 실행 파일 |
+| `import_tour_api_to_mysql.py` | 수집한 JSON을 MySQL에 적재하는 실행 파일 |
+| `collector.py` | API 호출, 페이지 처리, 원본 파일 저장 |
+| `importer.py` | JSON 읽기, 검증, 유형 변환, MySQL upsert |
+
+## 실행 준비
+
+`data-import` 디렉터리에서 실행한다.
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e ".[dev]"
+cp .env.example .env
+```
+
+`.env`에 다음 값을 설정한다.
+
+```dotenv
+TOUR_API_SERVICE_KEY=공공데이터포털_인증키
+
+DB_USERNAME=root
+DB_PASSWORD=root
+IMPORT_DB_HOST=127.0.0.1
+IMPORT_DB_PORT=3306
+IMPORT_DB_NAME=gabojago
+```
+
+MySQL Docker 컨테이너가 실행 중이어야 한다.
+
+## MySQL Docker 실행
+
+MySQL은 백엔드의 `docker-compose.yml`로 실행한다.
+
+```bash
+cd ../gabojago-backend
+docker compose up -d mysql
+```
+
+실행 상태를 확인한다.
+
+```bash
+docker compose ps mysql
+```
+
+`STATUS`에 `Up`과 `healthy`가 표시되면 사용할 수 있다.
+
+```text
+NAME             STATUS
+gabojago-mysql   Up ... (healthy)
+```
+
+데이터 수집과 적재 명령은 다시 `data-import` 디렉터리에서 실행한다.
+
+```bash
+cd ../data-import
+```
+
+## 1. TourAPI 원본 수집
+
+전체 유형을 수집한다.
+
+```bash
+.venv/bin/python collect_tour_api.py
+```
+
+이미 저장된 페이지는 다시 다운로드하지 않고 재사용한다. 수집이 중단돼도 같은 명령을
+다시 실행하면 이어서 진행된다.
+
+연결 확인을 위해 관광지 한 페이지만 수집하려면 다음과 같이 실행한다.
+
+```bash
+.venv/bin/python collect_tour_api.py \
+  --content-type 12 \
+  --max-pages 1
+```
+
+특정 유형만 전체 수집할 수도 있다.
+
+```bash
+.venv/bin/python collect_tour_api.py --content-type 39
+```
+
+수집 결과는 다음 위치에 저장된다.
+
+```text
+data/raw/tourism/tour-api/
+├── 12_관광지/
+├── 14_문화시설/
+├── 15_축제공연행사/
+├── 25_여행코스/
+├── 28_레포츠/
+├── 32_숙박/
+├── 38_쇼핑/
+└── 39_음식점/
+```
+
+각 디렉터리에는 페이지별 원본 응답이 저장된다.
+
+```text
+12_관광지/
+├── page-00001.json
+├── page-00002.json
+└── ...
+```
+
+## 2. MySQL 적재 전 검사
+
+먼저 dry-run을 실행한다.
+
+```bash
+.venv/bin/python import_tour_api_to_mysql.py
+```
+
+dry-run은 JSON을 읽고 다음 내용을 검사하지만 DB를 변경하지 않는다.
+
+- 전체 원본 건수
+- 전국 적재 대상 건수
+- 신규 등록 예정 건수
+- 기존 데이터 갱신 예정 건수
+- 지원하지 않는 유형
+- 필수값 및 좌표 오류
+- 새로 생성할 광역지역 건수
+
+적재 지역을 별도로 제한하지 않는다. 원본의 `lDongRegnCd`와 주소를 기준으로 전국
+광역지역을 자동으로 구성하고 모든 장소를 연결한다. 기존 시군구 지역이 있으면 주소가
+일치하는 장소는 더 구체적인 시군구에 연결한다.
+
+## 3. MySQL 실제 적재
+
+dry-run 결과를 확인한 후 `--write`를 붙여 실행한다.
+
+```bash
+.venv/bin/python import_tour_api_to_mysql.py --write
+```
+
+먼저 100건만 시험 적재하려면 다음과 같이 실행한다.
+
+```bash
+.venv/bin/python import_tour_api_to_mysql.py --write --limit 100
+```
+
+적재 프로그램은 다음 순서로 처리한다.
+
+```text
+JSON 읽기
+    ↓
+전국 광역지역 생성 및 연결
+    ↓
+필수값 및 좌표 검증
+    ↓
+서비스 PlaceType으로 변환
+    ↓
+하나 이상의 SUBTYPE Category 연결
+    ↓
+contentid 중복 확인
+    ↓
+MySQL INSERT 또는 UPDATE
+```
+
+## 유형 변환
+
+| TourAPI 코드 | 원본 유형 | PlaceType |
+|---:|---|---|
+| 12 | 관광지 | `TOURIST_SPOT` |
+| 14 | 문화시설 | `TOURIST_SPOT` |
+| 15 | 축제·공연·행사 | `TOURIST_SPOT` |
+| 28 | 레포츠 | `ACTIVITY` |
+| 32 | 숙박 | `ACCOMMODATION` |
+| 38 | 쇼핑 | `SHOP` |
+| 39 | 음식점 | `RESTAURANT` |
+
+음식점 중 TourAPI 카페 분류 코드에 해당하는 장소는 `CAFE`로 저장한다.
+
+## SUBTYPE 다중 분류
+
+장소 하나에는 SUBTYPE을 여러 개 연결할 수 있다. CSV에서 같은 원본 분류 코드를
+여러 행으로 작성하면 각 대상 SUBTYPE이 모두 `place_categories`에 저장된다.
+
+```csv
+source_content_type_id,source_lcls3_code,target_place_type,target_subtype_code,target_subtype_name,mapping_status
+39,FD050100,CAFE,BRAND_CAFE,브랜드 카페,CONFIRMED
+39,FD050100,CAFE,LARGE_CAFE,대형 카페,NEEDS_REVIEW
+```
+
+동일한 `(원본 유형, 원본 분류, 대상 SUBTYPE)` 조합은 중복 작성할 수 없고, 같은
+원본 분류에 연결된 모든 SUBTYPE은 동일한 PlaceType이어야 한다. 재실행하면
+`IMPORTED`로 저장된 SUBTYPE만 새 매핑 집합으로 교체한다. PURPOSE, 수동 검수
+Category 및 규칙으로 파생된 Category는 삭제하지 않는다.
+
+`25 여행코스`는 하나의 장소가 아니라 여러 장소로 구성된 코스이므로 `places` 적재
+대상에서 제외한다.
+
+## 중복 처리
+
+TourAPI 장소는 다음 조합으로 식별한다.
+
+```text
+source_type = TOUR_API
+source_place_id = TourAPI contentid
+```
+
+처음 실행하면 새로운 장소를 INSERT한다. 같은 원본을 다시 실행하면 중복 행을 만들지
+않고 기존 장소 정보를 UPDATE한다.
+
+## MySQL 데이터 확인
+
+MySQL 콘솔에 접속한다.
+
+```bash
+docker exec -it gabojago-mysql \
+  mysql --default-character-set=utf8mb4 -uroot -p gabojago
+```
+
+비밀번호 입력 안내가 나오면 `.env`의 `DB_PASSWORD` 값을 입력한다.
+
+접속 후 전체 장소 건수를 확인한다.
+
+```sql
+SELECT COUNT(*) AS total_places
+FROM places;
+```
+
+TourAPI로 적재한 장소 건수를 확인한다.
+
+```sql
+SELECT COUNT(*) AS tour_api_places
+FROM places
+WHERE source_type = 'TOUR_API';
+```
+
+지역별 적재 건수를 확인한다.
+
+```sql
+SELECT
+    r.name AS region,
+    COUNT(*) AS count
+FROM places p
+JOIN regions r ON r.id = p.region_id
+WHERE p.source_type = 'TOUR_API'
+GROUP BY r.id, r.name
+ORDER BY r.id;
+```
+
+장소 유형별 건수를 확인한다.
+
+```sql
+SELECT
+    place_type,
+    COUNT(*) AS count
+FROM places
+WHERE source_type = 'TOUR_API'
+GROUP BY place_type
+ORDER BY place_type;
+```
+
+실제 저장된 장소 일부를 확인한다.
+
+```sql
+SELECT
+    id,
+    name,
+    place_type,
+    address,
+    latitude,
+    longitude,
+    source_place_id
+FROM places
+ORDER BY id DESC
+LIMIT 20;
+```
+
+원본 ID가 중복 저장됐는지 확인한다. 조회 결과가 없으면 중복이 없는 것이다.
+
+```sql
+SELECT
+    source_place_id,
+    COUNT(*) AS duplicate_count
+FROM places
+WHERE source_type = 'TOUR_API'
+GROUP BY source_place_id
+HAVING COUNT(*) > 1;
+```
+
+확인이 끝나면 MySQL 콘솔을 종료한다.
+
+```sql
+exit
+```
+
+## 실행 보고서
+
+수집 및 적재 결과는 다음 디렉터리에 JSON 보고서로 저장된다.
+
+```text
+data/reports/
+```
+
+보고서에는 전체 건수, 신규 건수, 갱신 건수, 제외 건수와 오류 건수가 기록된다.
+
+## Git 관리
+
+다음 파일은 Git에 포함하지 않는다.
+
+```text
+.env
+.venv/
+data/raw/**
+data/reports/*
+data/rejected/*
+```
+
+원본 JSON은 다시 수집할 수 있는 생성 데이터이므로 Git에 올리지 않는다. Git에는 Python
+코드, 테스트, 설정 예시와 빈 디렉터리를 유지하기 위한 `.gitkeep`만 포함한다.
+
+## 테스트
+
+```bash
+.venv/bin/pytest -q
+.venv/bin/ruff check .
+```

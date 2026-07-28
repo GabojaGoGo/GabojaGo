@@ -1,0 +1,240 @@
+﻿source_content_type_id,source_lcls3_code,target_place_type,target_subtype_code,target_subtype_name,mapping_status,source_count,sample_titles
+12,EX010100,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,64,영동국악체험촌 / 순천전통야생차체험관 / 장성 자라뫼마을 [농촌전통테마]
+12,EX020100,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,1,티타지 금속공예
+12,EX020200,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,2,양양새활용센터 / 도계유리마을
+12,EX020300,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,1,에이치더블유알(HWR)
+12,EX020400,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,44,빛고을공예창작촌 / 예담은(사단법인예담은규방문화원) / 제주도예촌
+12,EX030100,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,441,아기농부 / 평창 어름치마을 / 배바우청정 정보화마을
+12,EX030200,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,51,숲속에동물농장 / 남해 상상양떼목장 편백숲 / 파도목장
+12,EX030300,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,138,"고씨딸기체험농원 / 러블리가든(사계, 나를심다) / 번덕뜰"
+12,EX030400,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,68,강진 서중어촌체험마을 / 여수 안도어촌체험마을 / 신리어촌체험마을
+12,EX040200,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,3,한국사찰음식문화체험관 / 원효대사 깨달음 체험관 / 차맛체험관
+12,EX050100,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,95,태평염전 해양힐링스파 / 휴온천 / 허심청
+12,EX050200,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,22,제천킹스파찜질방 / 해수워터피아 / 글로리비치해수찜
+12,EX050300,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,6,함평돌머리해수찜치유센터 / 약석원 / 한방스파 여용국
+12,EX050400,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,10,요가컬처타운 / 더아람 / 소담요가
+12,EX050500,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,12,포레스트 리솜 해브나인 스파 / 진안 홍삼스파 / 에스엠비 웰니스 센터
+12,EX050600,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,25,하늘호수 / 삼척 활기 치유의 숲 / 순창 쉴랜드
+12,EX050700,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,3,태안해양치유센터 / 국립김천치유의숲 / 소백산 생태탐방원
+12,EX050800,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,4,더바디성형외과의원 / 이문원한의원 / 차민성형외과의원
+12,EX060100,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,2,노량진 지하 배수로 / 강원특별자치도 탄광문화촌
+12,EX060200,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,3,강릉 메타버스 체험관 / G밸리 4차산업체험관 / 넥슨컴퓨터박물관
+12,EX060300,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,2,전주 이강주 / 남원시 옻칠공예관
+12,EX060600,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,5,청도역 (철도체험학습장) / 현대자동차 울산공장 / 서울교통공사 모란차량사업소
+12,EX060800,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,45,영월드초콜릿체험관 / 영동 와인터널 / 꿈브루어리
+12,EX060900,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,13,영광풍력발전단지 / 활성산 풍력발전단지 / 영덕풍력발전단지
+12,EX061000,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,181,자연드림파크(구례) / 김중업 건축박물관(옛 유유산업 공장) / 한국기초과학지원연구원(오창)
+12,EX070100,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,68,통영해양스포츠센터 / 팔미도유람선 / 인천항 크루즈터미널
+12,EX070200,TOURIST_SPOT,EXPERIENCE_CENTER,체험시설,CONFIRMED,546,소이산모노레일 / 인천국민안전체험관 / 팜앤트리
+12,HS010100,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,73,화성행궁 / 태인동헌 / 태안 목애당
+12,HS010200,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,185,주전봉수대 / 부여 가림성 / 경주 월성
+12,HS010300,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,36,광화문 / 홍예문 / 고흥 존심당 및 아문
+12,HS010400,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,206,장흥 오헌고택 / 장흥 죽헌고택 / 연제 안승갑 고가
+12,HS010500,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,78,3.8민주의거기념관 / 관정 이종환회장 생가 / 호암 이병철선생 생가
+12,HS010600,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,111,송도 한옥마을 / 안동 군자마을(오천유적지) / 영암 왕인박사마을
+12,HS010700,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,51,사직단 / 구암서원 터(구암정) / 월남사지
+12,HS010800,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,201,김해 대성동 고분군 / 진천 이영남 묘소 / 김해수로왕릉
+12,HS010900,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,905,정안사(장흥) / 밀양향교 / 연곡서원
+12,HS011000,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,69,거창 내오리 지석묘 / 울주 천전리 명문과 암각화 [유네스코 세계유산] / 울주 대곡리 반구대 암각화 [유네스코 세계유산]
+12,HS011100,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,65,익산근대역사관 / 광양 서울대학교 남부연습림 관사 / 송현배수지제수변실
+12,HS011200,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,392,장흥 사인정 / 태봉국 궁예왕 역사공원 / 거창 원천정
+12,HS020100,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,250,동학농민혁명기념탑 / 단양 향산리 삼층석탑 / 군산 발산리 오층석탑
+12,HS020200,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,1,옥천 석탄리 선돌
+12,HS020300,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,117,거창 강남사지 석조여래입상 / 거창 가섭암지 마애여래삼존입상 / 광경사지 석불좌상
+12,HS020400,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,30,관덕정의 각궁 / 용동큰우물 / 목포오포대
+12,HS030100,TOURIST_SPOT,TEMPLE_RELIGIOUS,사찰·종교시설,CONFIRMED,1005,내소사(부안) / 내원정사(부산) / 관문사(서울)
+12,HS030200,TOURIST_SPOT,TEMPLE_RELIGIOUS,사찰·종교시설,CONFIRMED,102,새미은총의동산 / 태안성당 / 가회동성당
+12,HS030400,TOURIST_SPOT,TEMPLE_RELIGIOUS,사찰·종교시설,CONFIRMED,35,거창 당동 당집 / 거창 거기리 성황단 / 가톨릭 목포 성지
+12,HS040100,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,14,상승전망대 / 필리핀군 참전기념비 / 유엔군 초전기념비
+12,HS040200,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,27,"캠프 그리브스 / 오산 죽미령 평화공원 / 월남 파병용사 만남의 장 (구, 베트남 참전용사 만남의 장)"
+12,HS040400,TOURIST_SPOT,HISTORIC_SITE,유적·고택·문화유산,CONFIRMED,6,김일성 별장 / 이종석별장 / 안국사
+12,NA010100,TOURIST_SPOT,MOUNTAIN,산·오름,CONFIRMED,565,서대문 안산(안산자락길) / 새별오름 / 용눈이오름
+12,NA010200,TOURIST_SPOT,FOREST_RECREATION,자연휴양림·수목원,CONFIRMED,73,내소사 전나무 숲길 / 맥문동숲길 / 광양 옥룡사 동백나무 숲
+12,NA010300,TOURIST_SPOT,WATERFALL,폭포,CONFIRMED,83,천일폭포 / 수옥폭포 / 수락폭포
+12,NA010400,TOURIST_SPOT,VALLEY,계곡,CONFIRMED,289,수포대 / 천전리각석계곡(울산) / 밀양 얼음골
+12,NA010500,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,23,당몰샘 / 방동약수 / 삼신할미약수터
+12,NA020100,TOURIST_SPOT,LAKE_RIVER,호수·강,CONFIRMED,69,경인아라뱃길 귤현나루 / 보성강 / 탐진강
+12,NA020200,TOURIST_SPOT,LAKE_RIVER,호수·강,CONFIRMED,60,세병호 / 영암호(철새도래지) / 풍암호수
+12,NA020300,TOURIST_SPOT,LAKE_RIVER,호수·강,CONFIRMED,144,청호저수지 / 단산 저수지 / 원남저수지(원남제)
+12,NA020400,TOURIST_SPOT,LAKE_RIVER,호수·강,CONFIRMED,18,나주 완사천 / 혼인지 / 무안회산백련지
+12,NA020500,TOURIST_SPOT,ISLAND,섬,CONFIRMED,278,노력도 / 초양도 / 동검도
+12,NA020600,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,5,천일염전 / 신안 비금도 대동염전 / 곰소염전
+12,NA020700,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,338,신양선착장 / 큰무리선착장 / 암태남강선착장
+12,NA020800,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,55,완도 정도리 구계등 / 세방낙조 전망대 / 거문도 신선바위
+12,NA020900,TOURIST_SPOT,BEACH,해변·해수욕장,CONFIRMED,419,세기알해변 / 반비치 / 춘장대해수욕장
+12,NA030100,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,41,충주 활옥동굴 / 화암동굴 (강원고생대 국가지질공원) / 백룡동굴 (강원고생대 국가지질공원)
+12,NA030200,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,99,장흥 삼산리 후박나무 / 무안 망운면의 곰솔 / 양림동 호랑가시나무길
+12,NA030300,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,87,선녀바위 / 무등산 주상절리대 / 화순 서유리 공룡발자국화석 산지
+12,NA030400,TOURIST_SPOT,PARK,공원,CONFIRMED,39,순천만습지 / 단양 사인암 / 담양습지
+12,NA030500,TOURIST_SPOT,FOREST_RECREATION,자연휴양림·수목원,CONFIRMED,46,백운산치유의숲 / 산이반도 / 덕산너덜 (무등산권 국가지질공원)
+12,NA040100,TOURIST_SPOT,PARK,공원,CONFIRMED,46,무등산국립공원(광주) / 다도해 해상국립공원(완도) / 무등산국립공원(전남)
+12,NA040200,TOURIST_SPOT,PARK,공원,CONFIRMED,29,팔공산국립공원(군위군) / 조계산도립공원 / 두륜산도립공원
+12,NA040300,TOURIST_SPOT,PARK,공원,CONFIRMED,16,황매산 군립공원 / 강천산 군립공원 / 상족암군립공원
+12,NA040400,TOURIST_SPOT,PARK,공원,CONFIRMED,50,두산 활공장 / 화순 고인돌 장동응회암 (무등산권 국가지질공원) / 임진강자연센터
+12,NA040500,TOURIST_SPOT,PARK,공원,CONFIRMED,284,용두산 생태공원 / 흘아카이브 / 탐진강 생태습지원
+12,NA040600,TOURIST_SPOT,FOREST_RECREATION,자연휴양림·수목원,CONFIRMED,238,국립금산자연휴양림 / 정남진 편백숲 우드랜드 / 운림산림욕장
+12,NA040700,TOURIST_SPOT,PARK,공원,CONFIRMED,206,생각하는 정원 / 바람새마을 소풍정원 / 라원
+12,NA050100,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,211,영금정갯바위 / 광주천 벚꽃길 / SK인천석유화학벚꽃동산
+12,VE010100,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,20,더베이101 / 폭풍속으로 드라마세트장 / 인천내항 사일로벽화
+12,VE010200,TOURIST_SPOT,OBSERVATORY,전망대,CONFIRMED,204,태화강 전망대 / 태풍전망대 / 송산그린시티전망대
+12,VE010300,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,138,월영산 출렁다리 / 은파 물빛다리 / 연하협구름다리
+12,VE010400,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,14,남당항 해양분수공원 / 춤추는 바다분수 / BIG-O쇼 (빅오쇼)
+12,VE010500,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,33,장보고 동상 / 유관순열사상 / 김좌진장군동상
+12,VE010600,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,18,영천 와인터널 / 소금정공원 장미터널 / 군산 해망굴
+12,VE010700,TOURIST_SPOT,LAKE_RIVER,호수·강,CONFIRMED,12,대청댐 / 부안댐 / 운문댐·운문호
+12,VE010800,TOURIST_SPOT,OBSERVATORY,전망대,NEEDS_REVIEW,54,인천 팔미도 등대 / 해남 목포구 등대 / 홍도등대
+12,VE010900,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,7,함평 구 학다리역 급수탑 / 간절곶소망우체통 / 보문콜로세움
+12,VE020100,TOURIST_SPOT,THEME_PARK,테마파크,CONFIRMED,244,산청 동의보감촌 / 두리랜드 / 아르티스 테마파크
+12,VE020200,TOURIST_SPOT,THEME_PARK,테마파크,CONFIRMED,32,스파밸리 워터파크 / 파라다이스 시티 씨메르(인천) / 쏠비치 삼척 오션플레이
+12,VE020300,TOURIST_SPOT,THEME_PARK,테마파크,CONFIRMED,35,쥬라리움 동탄점 / 광주벅스랜드 / 광주 우치공원 동물원
+12,VE020400,TOURIST_SPOT,THEME_PARK,테마파크,CONFIRMED,15,아쿠아플라넷 여수 / 충주아쿠아리움 / 플레이 아쿠아리움 부천
+12,VE020500,TOURIST_SPOT,OBSERVATORY,전망대,CONFIRMED,39,국토정중앙천문대 / 인천어린이천문대 / 곡성섬진강천문대
+12,VE030100,TOURIST_SPOT,PARK,공원,CONFIRMED,600,두리생태공원 / 거창사건추모공원 / 월명공원
+12,VE030200,TOURIST_SPOT,PARK,공원,CONFIRMED,14,거징이쉼터 / 탑골의 탑이야기 / 설악산소공원
+12,VE030300,TOURIST_SPOT,PARK,공원,CONFIRMED,17,본촌생태어린이공원 / 화추어린이공원 / 하계어린이공원
+12,VE030400,TOURIST_SPOT,PARK,공원,CONFIRMED,197,남가람공원·남가람별빛길 / 문화공원(고양) / 아중체련공원
+12,VE030500,TOURIST_SPOT,PARK,공원,CONFIRMED,493,동탄치동천체육공원 / 안양예술공원 / 수릉원
+12,VE040100,TOURIST_SPOT,STREET_VILLAGE,거리·골목·마을,CONFIRMED,313,대구 진골목 / 종로3가 포장마차 거리 / 닭전 골목
+12,VE040200,TOURIST_SPOT,STREET_VILLAGE,거리·골목·마을,CONFIRMED,255,동강마을 / 아바이마을 / 이인 벽화마을
+12,VE040300,TOURIST_SPOT,STREET_VILLAGE,거리·골목·마을,CONFIRMED,58,공마당둘레길 / 서해안 황금해안길 / [종로둘레길 3코스] 낙산 코스
+12,VE050100,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,81,고석정국민관광지 / 펙스코(FXCO) / 새만금
+12,VE050200,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,56,더위크앤리조트 (THE WEEK & RESORT) / 파라다이스시티 / 한화리조트 경주
+12,VE060100,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,2,황인용 뮤직 스페이스 / 대전신세계 아트앤사이언스 (Art&Science)
+12,VE070100,TOURIST_SPOT,MUSEUM,박물관·기념관,CONFIRMED,5,산천어커피박물관 / 한길책박물관 / 문학산역사관
+12,VE070200,TOURIST_SPOT,MUSEUM,박물관·기념관,CONFIRMED,1,군산 3·1운동 100주년 기념관
+12,VE070300,TOURIST_SPOT,MUSEUM,박물관·기념관,CONFIRMED,7,일제강점기 군산역사관 / 농업기술센터 / 곤충생태관
+12,VE070600,TOURIST_SPOT,ART_MUSEUM,미술관,CONFIRMED,2,아르떼뮤지엄 제주 / 하슬라아트월드
+12,VE090300,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,2,용인어린이상상의숲 / 마포중앙도서관
+12,VE090400,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,2,양구돌산령지게놀이 전수관 / 예지원
+12,VE090600,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,5,육군사관학교 / 두물머리생태학교 / 청도한옥학교
+12,VE100200,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,1,복합생활스포츠타운
+12,VE110100,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,1,인천국제공항
+12,VE110200,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,2,정동진역 / 화본역
+12,VE120300,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,78,강진 오감통 / 왕산마리나 / 푸른마을공동체센터
+14,VE020100,TOURIST_SPOT,THEME_PARK,테마파크,NEEDS_REVIEW,1,정선벅스랜드
+14,VE020400,TOURIST_SPOT,THEME_PARK,테마파크,NEEDS_REVIEW,5,대전아쿠아리움 / 울진아쿠아리움 / 대구 아쿠아리움
+14,VE020500,TOURIST_SPOT,THEME_PARK,테마파크,NEEDS_REVIEW,4,부천어린이천문대 / 영천보현산천문과학관 / 판교어린이천문대
+14,VE030100,TOURIST_SPOT,PARK,공원,NEEDS_REVIEW,2,함평엑스포공원 / 성포예술공원
+14,VE030400,TOURIST_SPOT,PARK,공원,NEEDS_REVIEW,1,천마산 조각공원
+14,VE030500,TOURIST_SPOT,PARK,공원,NEEDS_REVIEW,1,고산 윤선도 문학체험공원
+14,VE060100,TOURIST_SPOT,PERFORMANCE_HALL,공연장,CONFIRMED,352,홍대난타극장 / 경주예술의전당 / 전주 덕진예술회관
+14,VE060200,TOURIST_SPOT,PERFORMANCE_HALL,공연장,CONFIRMED,20,광주극장 / 광주자동차극장 / 애관극장
+14,VE070100,TOURIST_SPOT,MUSEUM,박물관·기념관,CONFIRMED,594,덕소자연사박물관 / 안양박물관 / 국립세계문자박물관
+14,VE070200,TOURIST_SPOT,MUSEUM,박물관·기념관,CONFIRMED,154,3.15의거 발원지 기념관 / 희움 일본군 위안부 역사관 / 왕산허위선생기념관
+14,VE070300,TOURIST_SPOT,MUSEUM,박물관·기념관,CONFIRMED,511,인천도시역사관 / 경북예술센터 / 진천 향토민속자료전시관
+14,VE070400,TOURIST_SPOT,EXHIBITION_CENTER,전시·컨벤션시설,CONFIRMED,22,배다리 아트스테이1930 / 김대중컨벤션센터 / 대전컨벤션센터(DCC)
+14,VE070500,TOURIST_SPOT,MUSEUM,박물관·기념관,CONFIRMED,61,무주 반디별 천문과학관 / 전남광주통합특별시 해양수산과학관 / 나로우주센터 우주과학관
+14,VE070600,TOURIST_SPOT,ART_MUSEUM,미술관,CONFIRMED,360,빙하미술관 / 퐁피두센터 한화 / 제주현대미술관
+14,VE090100,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,176,영양문화원 / 무안문화원 / 안동문화원
+14,VE090200,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,5,중남미문화원 / 주한독일문화원 / 주한 프랑스 대사관 어학센터
+14,VE090300,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,239,국회도서관 / 우리소리도서관 / 경상남도교육청 마산지혜의바다도서관
+14,VE090400,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,40,태권도원 / 동편제 판소리전수관 / 구례향제줄풍류전수관
+14,VE090600,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,14,전라남도교육청 창의융합교육원 / 수피아여자중고등학교 / 계성중학교
+14,VE100200,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,2,제물포구청소년수련관 / 서울액션스쿨 (마샬아트센터)
+14,VE120100,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,50,동그란책 / 여행책방 잔잔하게 / 책봄
+14,VE120300,TOURIST_SPOT,GENERAL_TOURIST_SPOT,기타 관광지,NEEDS_REVIEW,99,강경구락부 / 화동2571 / 쉬어가삼［례:］
+15,EV010100,TOURIST_SPOT,FESTIVAL,축제,CONFIRMED,65,광주 추억의 충장축제 / 안성맞춤 남사당 바우덕이축제 / 정남진 장흥 물축제
+15,EV010200,TOURIST_SPOT,FESTIVAL,축제,CONFIRMED,240,성북문화바캉스 / 피란수도 부산 국가유산 야행 / 경포 썸머 페스티벌
+15,EV010300,TOURIST_SPOT,FESTIVAL,축제,CONFIRMED,53,청양 고추 구기자 축제 / 봉화은어축제 / 홍천 찰옥수수 축제
+15,EV010400,TOURIST_SPOT,FESTIVAL,축제,CONFIRMED,63,서대문독립민주축제 / 직지문화축제 / 광주국가유산야행
+15,EV010500,TOURIST_SPOT,FESTIVAL,축제,CONFIRMED,65,장항 맥문동 꽃 축제 / 초안산 수국축제 / 원주용수골꽃양귀비축제
+15,EV010600,TOURIST_SPOT,FESTIVAL,축제,CONFIRMED,128,외계인 대축제 / 공주야밤 맥주축제 / 평창더위사냥축제
+15,EV020100,TOURIST_SPOT,PERFORMANCE_EVENT,공연 행사,CONFIRMED,12,2025 단단단페스티벌 / 제48차 유네스코 세계유산위원회 특별공연 산화비 : HEXAGRAM 22 / 전주한옥마을 전통연희 퍼레이드-노상놀이야
+15,EV020200,TOURIST_SPOT,PERFORMANCE_EVENT,공연 행사,CONFIRMED,7,시민창작예술축제 학산마당극놀래 / 제38회 춘천인형극제 / 서울프린지페스티벌2026
+15,EV020300,TOURIST_SPOT,PERFORMANCE_EVENT,공연 행사,CONFIRMED,2,제20회 대구국제뮤지컬페스티벌 / 2026 실경역사뮤지컬 의기논개
+15,EV020500,TOURIST_SPOT,PERFORMANCE_EVENT,공연 행사,CONFIRMED,2,2026젊은안무자창작공연 / 제46회 서울무용제
+15,EV020600,TOURIST_SPOT,PERFORMANCE_EVENT,공연 행사,CONFIRMED,6,2026 이럴때이런음악 해설이 있는 청소년음악회 / 한국전력과 함께하는 2025 희망·사랑 나눔 콘서트 / 2026 평창대관령음악제
+15,EV020700,TOURIST_SPOT,PERFORMANCE_EVENT,공연 행사,CONFIRMED,13,2026 토요상설무대 프러포즈 및 사천 락 페스티벌 / 제16회 INK 콘서트 / 2025 인천공항 스카이페스티벌
+15,EV020800,TOURIST_SPOT,PERFORMANCE_EVENT,공연 행사,CONFIRMED,14,제4회 다대포 선셋 영화 축제 / 제8회 예천국제스마트폰영화제 / 남도영화제 시즌2 광양
+15,EV020900,TOURIST_SPOT,PERFORMANCE_EVENT,공연 행사,CONFIRMED,13,2026 국립극장 쏙쏙들이페스티벌 / 생생우리음악축제 / 2026 문화가 있는날  - 문화배달
+15,EV030100,TOURIST_SPOT,EXHIBITION_EVENT,전시·박람회,NEEDS_REVIEW,22,"〈도기陶器, 우리를 담은 질그릇〉 / 2026 광주 ACE Fair / 제24회 동강국제사진제"
+15,EV030200,TOURIST_SPOT,EXHIBITION_EVENT,전시·박람회,NEEDS_REVIEW,37,제8회 농촌융복합산업 제주국제박람회 / 부산인디커넥트페스티벌 2026 / 일러스타 페스 12
+15,EV030300,TOURIST_SPOT,EXHIBITION_EVENT,전시·박람회,NEEDS_REVIEW,3,2026 WSL 시흥 코리아 오픈 국제 서핑대회 / 2026 인터내셔널 키스포츠페스티벌 대구 / 2026 선양 맨몸마라톤
+15,EV030400,TOURIST_SPOT,EXHIBITION_EVENT,전시·박람회,NEEDS_REVIEW,180,2026 안산 e스포츠 페스티벌 / 가든 나이트 마켓 / 우리동네 문화아지트 : LH주택전시관 복합문화행사
+28,AC050100,ACCOMMODATION,CAMPING,캠핑·오토캠핑,CONFIRMED,1480,길안다슬기캠프 / 명수원 / 파머스힐캠핑장
+28,AC050200,ACCOMMODATION,CAMPING,캠핑·오토캠핑,CONFIRMED,290,전원일기오토캠핑장 / 칠곡보 오토캠핑장 / 두산오토캠핑장
+28,AC050300,ACCOMMODATION,GLAMPING_CARAVAN,글램핑·카라반,CONFIRMED,71,하늘땅카라반 / 핀란드카라반펜션 / 휴가든카라반
+28,AC050400,ACCOMMODATION,GLAMPING_CARAVAN,글램핑·카라반,CONFIRMED,178,르쏠레이475카페글램핑 / 강변글램핑 / 멍글멍글 펫 글램핑
+28,LS010100,ACTIVITY,SPORTS_FACILITY,체육시설,CONFIRMED,22,국제 롤러스케이트장 / 수완인라인롤러경기장 / 국제롤러스케이트
+28,LS010200,ACTIVITY,CYCLING,자전거,CONFIRMED,17,섬진강 자전거하이킹 / 오동도-여자만자전거길 / 인제라이딩센터
+28,LS010300,ACTIVITY,KART_LUGE_RAILBIKE,카트·루지·레일바이크,CONFIRMED,22,군파크루지 / 중문카트체험장 / 윈드1947 카트테마파크
+28,LS010400,ACTIVITY,GOLF,골프,CONFIRMED,237,블랙밸리 컨트리클럽 / 소노펠리체CC 비발디파크 EAST / 고령오펠GC
+28,LS010500,ACTIVITY,GOLF,골프,CONFIRMED,2,렛츠런파크 서울 / 센테리움CC
+28,LS010600,ACTIVITY,SPORTS_FACILITY,체육시설,CONFIRMED,2,창원레포츠파크(창원경륜장) / 광명스피돔
+28,LS010700,ACTIVITY,HORSE_RIDING,승마,CONFIRMED,70,장수승마레저파크 / 그랑프리승마파크 / 영광승마장
+28,LS010800,ACTIVITY,SKI_SNOW,스키·눈썰매,CONFIRMED,70,드림피플엔터 / 오투리조트 스키장 / 무주덕유산리조트 스키장
+28,LS010900,ACTIVITY,SKI_SNOW,스키·눈썰매,CONFIRMED,37,광주실내빙상장 / 부영국제빙상장 / 서울광장 스케이트장
+28,LS011000,ACTIVITY,SKI_SNOW,스키·눈썰매,CONFIRMED,25,모악랜드눈썰매장 / 단양 사계절썰매장 / 에코힐즈
+28,LS011200,ACTIVITY,SPORTS_FACILITY,체육시설,CONFIRMED,17,전라남도국제사격장 / 골든타켓 슈팅센터 / 목동사격장
+28,LS011300,ACTIVITY,SPORTS_FACILITY,체육시설,CONFIRMED,10,디스커버리 클라이밍스퀘어ICN / 클라이밍줌 / 더클라임 클라이밍 홍대B점
+28,LS011500,ACTIVITY,GENERAL_ACTIVITY,기타 액티비티,NEEDS_REVIEW,15,보불ATV체험장 / 강산에 레포츠 / 단양팔경 산악오토바이
+28,LS011600,ACTIVITY,GENERAL_ACTIVITY,기타 액티비티,NEEDS_REVIEW,2,원주 산악자전거파크 / 난지한강공원 익스트림장
+28,LS011700,ACTIVITY,GENERAL_ACTIVITY,기타 액티비티,NEEDS_REVIEW,1,제라진어드벤쳐
+28,LS011800,ACTIVITY,GENERAL_ACTIVITY,기타 액티비티,NEEDS_REVIEW,4,엑스게임리조트(내린천 번지점프) / 가평탑랜드(KTOPLAND) / 청풍랜드
+28,LS011900,ACTIVITY,TRAIL_WALKING,트레킹·둘레길,NEEDS_REVIEW,501,기차마을레일바이크 / [퇴계예던길] 1코스 선성현길 / [청풍호자드락길 6코스] 괴곡성벽길
+28,LS020100,ACTIVITY,WATER_SPORTS,수상레저,CONFIRMED,47,엠엘피서프 / 구례호수공원 수상레져타운 / 장수논개수상레저
+28,LS020200,ACTIVITY,YACHT_BOAT,요트·보트,CONFIRMED,19,오죽헌 전통뱃놀이 체험시설 / 금빛수로보트하우스 / 세빛섬 튜브스터
+28,LS020300,ACTIVITY,YACHT_BOAT,요트·보트,CONFIRMED,30,더베이101요트투어 / 소호요트마리나(소호요트경기장) / 신안 1004요트
+28,LS020400,ACTIVITY,WATER_SPORTS,수상레저,CONFIRMED,17,다이브랜드 / 바다다이브 / 천학정스쿠버리조트
+28,LS020500,ACTIVITY,FISHING,낚시,CONFIRMED,157,초평집 좌대 / 주봉낚시터 / 포항저수지
+28,LS020600,ACTIVITY,FISHING,낚시,CONFIRMED,73,경민호 / 등대바다낚시터 / 제주피싱테마파크
+28,LS020700,ACTIVITY,WATER_SPORTS,수상레저,CONFIRMED,52,염주실내수영장 / 우산수영장 / 함평엑스포공원 물놀이장
+28,LS020800,ACTIVITY,WATER_SPORTS,수상레저,CONFIRMED,29,리우수상레저 / 섬진레져스쿨 / 보성비봉마리나
+28,LS021100,ACTIVITY,SPORTS_FACILITY,체육시설,CONFIRMED,4,충주조정체험학교 / 탄금호 국제조정경기장 / 미사경정공원
+28,LS021300,ACTIVITY,WATER_SPORTS,수상레저,CONFIRMED,2,남해해양레포츠 / 송도 코마린
+28,LS021400,ACTIVITY,YACHT_BOAT,요트·보트,CONFIRMED,56,트윈웨이브 나봄리조트 / 여수모터보트협회 / 엑스포 마린 제트보트
+28,LS030100,ACTIVITY,AIR_SPORTS,패러글라이딩·항공레저,CONFIRMED,3,플라이스테이션 / 선유 스카이썬라인 / 스카이다이브코리아
+28,LS030200,ACTIVITY,AIR_SPORTS,패러글라이딩·항공레저,CONFIRMED,3,에어로마스터 담양 / 케이원항공교육원 / 공주 경비행기
+28,LS030300,ACTIVITY,AIR_SPORTS,패러글라이딩·항공레저,CONFIRMED,25,코리아패러글라이딩 / 단양 패러일번지 / 곡성기차마을 패러글라이딩
+28,LS030400,ACTIVITY,AIR_SPORTS,패러글라이딩·항공레저,CONFIRMED,2,부여하늘날기 / 플라잉 수원
+28,LS030500,ACTIVITY,AIR_SPORTS,패러글라이딩·항공레저,CONFIRMED,1,한강드론공원
+28,LS030600,ACTIVITY,AIR_SPORTS,패러글라이딩·항공레저,CONFIRMED,3,스카이리프트 / 하늘누리 경비행기 / 대구활공랜드
+28,LS040100,ACTIVITY,GENERAL_ACTIVITY,기타 액티비티,NEEDS_REVIEW,44,삼척 해양레일바이크 / [DMZ 평화의 길] 제3땅굴/도라전망대 코스 / 제천 산악체험장
+28,VE070200,ACTIVITY,GENERAL_ACTIVITY,기타 액티비티,NEEDS_REVIEW,1,녹두장군 전봉준관
+28,VE100100,ACTIVITY,SPORTS_FACILITY,체육시설,CONFIRMED,76,남동25시야구센터 / 광주월드컵경기장 / 광주-기아 챔피언스 필드
+28,VE100200,ACTIVITY,SPORTS_FACILITY,체육시설,CONFIRMED,125,제천청소년수련원 / 전남광주통합특별시 청소년수련원 / 인천 올림픽기념국민생활관
+28,VE120200,ACTIVITY,GENERAL_ACTIVITY,기타 액티비티,NEEDS_REVIEW,2,강원랜드 카지노 / 세븐럭카지노(강남코엑스점)
+32,AC010100,ACCOMMODATION,HOTEL,호텔,CONFIRMED,830,신라모노그램 강릉 / 비스타 워커힐 서울 / 투나잇호텔
+32,AC020100,ACCOMMODATION,RESORT_CONDO,리조트·콘도,CONFIRMED,74,팜파스리조트 / 더케이지리산 가족호텔 / 보성다비치콘도
+32,AC020200,ACCOMMODATION,RESORT_CONDO,리조트·콘도,CONFIRMED,20,로오우 / DMZ 평화의 길 거점센터 / 컨피네스 오션 스위트 호텔
+32,AC030100,ACCOMMODATION,PENSION_HOMESTAY,펜션·민박,CONFIRMED,931,제주카사블랑카 / 향교길선우가 / 스테이 오아스
+32,AC030200,ACCOMMODATION,HANOK_STAY,한옥 숙소,CONFIRMED,593,학인당 / 정가한옥 / 고선재
+32,AC030300,ACCOMMODATION,PENSION_HOMESTAY,펜션·민박,CONFIRMED,35,전주 한옥마을 백년한옥 / 홍천무네미농장 / 낙안큰샘민박
+32,AC030400,ACCOMMODATION,GUESTHOUSE_HOSTEL,게스트하우스·호스텔,CONFIRMED,14,머무르다목포 / 이스턴룸 / peace in bnb
+32,AC040100,ACCOMMODATION,MOTEL,모텔,CONFIRMED,475,비치콘도모텔 / AI한옥호텔 / 톰지호텔
+32,AC060100,ACCOMMODATION,GUESTHOUSE_HOSTEL,게스트하우스·호스텔,CONFIRMED,27,용산 제주유스호스텔 / 해남유스호스텔 / 순천시 유스호스텔
+32,AC060200,ACCOMMODATION,GUESTHOUSE_HOSTEL,게스트하우스·호스텔,CONFIRMED,331,여로(산수동 한옥체험시설) / 순천게스트하우스느림 / 아리네 게스트하우스
+32,VE050200,ACCOMMODATION,RESORT_CONDO,리조트·콘도,CONFIRMED,76,모나용평 / 리조트 스파밸리 / 소노펠리체 빌리지 비발디파크
+32,VE100200,ACCOMMODATION,GUESTHOUSE_HOSTEL,게스트하우스·호스텔,CONFIRMED,2,강릉시 청소년 해양수련원 / 남해청소년수련원
+38,SH010100,SHOP,DEPARTMENT_MALL,백화점·쇼핑몰,CONFIRMED,22,갤러리아백화점 광교점 / AK플라자 광명점 / 롯데아울렛 광주수완점
+38,SH020100,SHOP,DEPARTMENT_MALL,백화점·쇼핑몰,CONFIRMED,32,울산업스퀘어 / 신안프라자 / 아이파크몰 용산점
+38,SH020200,SHOP,OUTLET,아울렛,CONFIRMED,22,애플아울렛 / 롯데아울렛 광주월드컵점 / 롯데아울렛 남악점
+38,SH030100,SHOP,LARGE_MART,대형마트,CONFIRMED,3,주문진식자재마트 / 한길DC마트 / 판타지움
+38,SH040200,SHOP,DUTY_FREE,면세점,CONFIRMED,1,제주관광공사 중문면세점
+38,SH040300,SHOP,CONVENIENCE_STORE,편의점,CONFIRMED,10957,CU 오송연화점 / CU 청주사창타운점 / CU 청주중앙점
+38,SH050100,SHOP,LOCAL_CRAFT_SHOP,특산품·공예품점,CONFIRMED,58,충주산방 / 무안요 / GB포유공방
+38,SH050200,SHOP,GENERAL_SHOP,기타 쇼핑,NEEDS_REVIEW,203,드림헤어라인의원 / 서울프라자 / 물치항활어회센터
+38,SH050300,SHOP,LOCAL_CRAFT_SHOP,특산품·공예품점,CONFIRMED,71,순천만 공예특산품관 / 팰롱팰롱 빛나는 / 남도상회
+38,SH060100,SHOP,PERIODIC_MARKET,오일장·정기시장,CONFIRMED,255,"용산장 (5, 10일) / 남양시장 / 오창전통시장"
+38,SH060200,SHOP,TRADITIONAL_MARKET,전통시장,CONFIRMED,578,황금시장(대구) / 청구시장 / 수성시장
+38,SH070100,SHOP,GENERAL_SHOP,기타 쇼핑,NEEDS_REVIEW,59,그래픽 / 소길별하 / 무신사 스탠다드 성수
+39,FD010100,RESTAURANT,KOREAN,한식,CONFIRMED,8234,하누화로 / 락희옥 마포본점 / 양푼이동태탕
+39,FD010200,RESTAURANT,KOREAN,한식,CONFIRMED,11,영상강가든펜션 / 나진국밥 / 이은희해물전문점
+39,FD020100,RESTAURANT,CHINESE,중식,CONFIRMED,623,천년의정원 / 무진정돌짜장 / 악양루 중화요리
+39,FD020200,RESTAURANT,JAPANESE,일식,CONFIRMED,519,꽃가츠 / 스시앤스시 본점 / 미나모토
+39,FD020300,RESTAURANT,WESTERN,양식,CONFIRMED,692,스펠바운드 / 타베르나 / 제로투나인
+39,FD020400,RESTAURANT,ASIAN,아시아 음식,CONFIRMED,145,리코타코 / 푸나왈라 / 다낭
+39,FD020500,RESTAURANT,FUSION_OTHER,퓨전·기타 음식,CONFIRMED,66,저문강에삽을씻고 / 고려인마을 가족카페 / 돌고래피자
+39,FD030100,CAFE,BAKERY_DESSERT_CAFE,베이커리·디저트 카페,CONFIRMED,102,천년애 황남점 / 하례감귤점빵협동조합 / 그린베이커리
+39,FD030200,RESTAURANT,SNACK_FAST_FOOD,분식·간편식,CONFIRMED,53,이즈피자 / 피자옥 / 보테가
+39,FD030300,RESTAURANT,SNACK_FAST_FOOD,분식·간편식,CONFIRMED,9,낭중애사과닭강정 / 행복치킨 정자점 / 부암동 계열사
+39,FD030400,RESTAURANT,SNACK_FAST_FOOD,분식·간편식,CONFIRMED,119,교리김밥 본점 / 한양쫄면 / 떡보라 본점
+39,FD030500,RESTAURANT,SNACK_FAST_FOOD,분식·간편식,CONFIRMED,3,면사무소앞안흥찐빵 / 만두향 / 용꽈배기
+39,FD030600,RESTAURANT,SNACK_FAST_FOOD,분식·간편식,CONFIRMED,8,솔밭만두 / 인더베이글 / 슬도수산(더가득)
+39,FD040100,BAR,GENERAL_BAR,일반 바,NEEDS_REVIEW,5,마이시크릿덴 / 여인숙 / 쿤스트라운지
+39,FD040200,RESTAURANT,GENERAL_RESTAURANT,기타 음식점,NEEDS_REVIEW,1,더더 수육튀김_송도타임스페이스본점
+39,FD040400,BAR,TRADITIONAL_PUB,전통주점,CONFIRMED,2,시골할매 막걸리 / 송도주막
+39,FD040500,SHOP,GENERAL_SHOP,기타 쇼핑,NEEDS_REVIEW,2,태양상회 / 세계주류마켓
+39,FD050100,CAFE,GENERAL_CAFE,일반 카페,CONFIRMED,3104,부바스 본점 / 메리엘 / 기미사 성수
+39,FD050200,CAFE,TRADITIONAL_TEA,전통 찻집,CONFIRMED,44,회수다옥 / 명가혜 / 외할머니솜씨
+39,FD050300,CAFE,GENERAL_CAFE,일반 카페,NEEDS_REVIEW,10,갗 / 테니 Tenne / 원앤온리
