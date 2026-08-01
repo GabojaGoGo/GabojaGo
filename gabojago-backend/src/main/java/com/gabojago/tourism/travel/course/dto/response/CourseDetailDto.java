@@ -23,6 +23,7 @@ public class CourseDetailDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SubPlace {
+        private Long placeId;                // 자체 장소 ID (슬롯 교체 후보 조회용)
         private String subnum;               // 순서 번호
         private String subname;              // 장소명
         private String overview;             // 장소 설명
@@ -42,7 +43,7 @@ public class CourseDetailDto {
         public SubPlace(String subnum, String subname, String overview, String imageUrl,
                          String address, String tel, String usetime, String usefee,
                          Double mapx, Double mapy, Integer travelMinutesToNext) {
-            this(subnum, subname, overview, imageUrl, address, tel, usetime, usefee,
+            this(null, subnum, subname, overview, imageUrl, address, tel, usetime, usefee,
                  mapx, mapy, travelMinutesToNext, null, null, null);
         }
     }

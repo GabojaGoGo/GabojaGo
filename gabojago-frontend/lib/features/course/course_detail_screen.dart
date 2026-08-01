@@ -5,15 +5,18 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 import 'package:tripmate/infrastructure/api_service.dart';
 import 'package:tripmate/core/services/user_data_service.dart';
+import 'package:tripmate/features/course/widgets/slot_suggestion_sheet.dart';
 
 class CourseDetailScreen extends StatefulWidget {
   final Map<String, dynamic> course;
   final List<String> purposes;
+  final String travelConcept;
 
   const CourseDetailScreen({
     super.key,
     required this.course,
     this.purposes = const [],
+    this.travelConcept = '',
   });
 
   @override
@@ -39,6 +42,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         'distance': widget.course['distance'] ?? '',
         'taketime': widget.course['taketime'] ?? '',
         'theme': widget.course['theme'] ?? '',
+        'routePaths': widget.course['routePaths'] ?? [],
         'nearbyRestaurants': widget.course['nearbyRestaurants'] ?? [],
         'nearbyAccommodations': widget.course['nearbyAccommodations'] ?? [],
       };
@@ -84,6 +88,93 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     }
   }
 
+  Future<void> _showSlotSuggestions(
+    int placeIndex,
+    List<Map<String, dynamic>> places,
+  ) async {
+    final currentPlaceIds = places
+        .map((place) => place['placeId'])
+        .whereType<num>()
+        .map((id) => id.toInt())
+        .toList();
+    if (currentPlaceIds.length != places.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이 코스는 아직 장소 교체를 지원하지 않아요.')),
+      );
+      return;
+    }
+
+    try {
+      final response = await ApiService.getSlotSuggestions(
+        regionKey: widget.course['areaCode'] as String? ?? 'busan',
+        duration: widget.course['duration'] as String? ?? '1n2d',
+        travelConcept: widget.travelConcept,
+        travelMode: widget.course['travelMode'] as String? ?? 'CAR',
+        slotOrder: placeIndex + 1,
+        day: placeIndex < places.length
+            ? places[placeIndex]['day'] as int?
+            : null,
+        timeLabel: places[placeIndex]['timeLabel'] as String?,
+        slotType: (places[placeIndex]['slotType'] as String?)?.toUpperCase(),
+        subtypeCodes: List<String>.from(
+          places[placeIndex]['subtypeCodes'] as List? ?? const [],
+        ),
+        currentPlaceIds: currentPlaceIds,
+      );
+      if (!mounted) return;
+      final selected = await showModalBottomSheet<Map<String, dynamic>>(
+        context: context,
+        showDragHandle: true,
+        isScrollControlled: true,
+        builder: (_) => SlotSuggestionSheet(
+          suggestions: List<Map<String, dynamic>>.from(
+            (response['suggestions'] as List? ?? const []).whereType<Map>().map(
+              (value) => Map<String, dynamic>.from(value),
+            ),
+          ),
+        ),
+      );
+      if (selected == null || !mounted) return;
+
+      final updated = List<Map<String, dynamic>>.from(places);
+      final original = Map<String, dynamic>.from(updated[placeIndex]);
+      updated[placeIndex] = {
+        ...original,
+        'placeId': selected['placeId'],
+        'subname': selected['placeName'],
+        'address': selected['address'] ?? '',
+        'imageUrl': selected['imageUrl'] ?? '',
+        'mapx': selected['lng'],
+        'mapy': selected['lat'],
+        'overview':
+            '동선 우회 ${selected['detourMeters'] ?? 0}m · ${selected['score'] ?? 0}점',
+      };
+      if (placeIndex > 0) {
+        updated[placeIndex - 1] = {
+          ...updated[placeIndex - 1],
+          'travelMinutesToNext': null,
+        };
+      }
+      if (placeIndex < updated.length - 1) {
+        updated[placeIndex]['travelMinutesToNext'] = null;
+      }
+      setState(() {
+        _detail = {...?_detail, 'places': updated, 'routePaths': <dynamic>[]};
+        widget.course['places'] = updated;
+        widget.course['routePaths'] = <dynamic>[];
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${selected['placeName']}(으)로 바꿨어요.')),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('교체할 장소를 찾지 못했어요.')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -114,6 +205,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           )
         : <Map<String, dynamic>>[];
     final routePoints = _RoutePoint.fromPlaces(places);
+    final routePaths = _RoutePath.fromRaw(
+      _detail?['routePaths'] as List? ?? const [],
+    );
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -138,6 +232,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           Positioned.fill(
             child: _CourseMapBackdrop(
               points: routePoints,
+              routePaths: routePaths,
               imageUrl: imageUrl,
               hasImage: hasImage,
             ),
@@ -313,6 +408,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                   i == places.length - 1 && travelMin == null,
                               slotType: place['slotType'] as String?,
                               timeLabel: place['timeLabel'] as String?,
+                              onReplace: () => _showSlotSuggestions(i, places),
                             ),
                             // 이동 시간 divider
                             if (i < places.length - 1)
@@ -443,13 +539,47 @@ class _RoutePoint {
   }
 }
 
+class _RoutePath {
+  final String dayLabel;
+  final List<latlong.LatLng> points;
+
+  const _RoutePath({required this.dayLabel, required this.points});
+
+  static List<_RoutePath> fromRaw(List<dynamic> rawPaths) {
+    return rawPaths
+        .map((rawPath) {
+          if (rawPath is! Map) return null;
+          final rawPoints = rawPath['points'] as List? ?? const [];
+          final points = rawPoints
+              .map((rawPoint) {
+                if (rawPoint is! Map) return null;
+                final lat = _RoutePoint._asDouble(rawPoint['lat']);
+                final lng = _RoutePoint._asDouble(rawPoint['lng']);
+                if (lat == null || lng == null) return null;
+                return latlong.LatLng(lat, lng);
+              })
+              .whereType<latlong.LatLng>()
+              .toList();
+          if (points.length < 2) return null;
+          return _RoutePath(
+            dayLabel: rawPath['dayLabel'] as String? ?? 'DAY 1',
+            points: points,
+          );
+        })
+        .whereType<_RoutePath>()
+        .toList();
+  }
+}
+
 class _CourseMapBackdrop extends StatelessWidget {
   final List<_RoutePoint> points;
+  final List<_RoutePath> routePaths;
   final String imageUrl;
   final bool hasImage;
 
   const _CourseMapBackdrop({
     required this.points,
+    required this.routePaths,
     required this.imageUrl,
     required this.hasImage,
   });
@@ -457,7 +587,7 @@ class _CourseMapBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (points.isNotEmpty) {
-      return _RouteMap(points: points);
+      return _RouteMap(points: points, routePaths: routePaths);
     }
     if (hasImage) {
       return Image.network(
@@ -473,8 +603,9 @@ class _CourseMapBackdrop extends StatelessWidget {
 
 class _RouteMap extends StatefulWidget {
   final List<_RoutePoint> points;
+  final List<_RoutePath> routePaths;
 
-  const _RouteMap({required this.points});
+  const _RouteMap({required this.points, required this.routePaths});
 
   @override
   State<_RouteMap> createState() => _RouteMapState();
@@ -527,20 +658,33 @@ class _RouteMapState extends State<_RouteMap> {
               userAgentPackageName: 'com.gabojago.tripmate',
             ),
             PolylineLayer(
-              polylines: labels.map((label) {
-                final dayPoints = widget.points
-                    .where((p) => p.dayLabel == label)
-                    .toList();
-                return Polyline(
-                  points: dayPoints
-                      .map((p) => latlong.LatLng(p.lat, p.lng))
-                      .toList(),
-                  color: _RoutePainter.dayColor(labels.indexOf(label)),
-                  strokeWidth: 4,
-                  borderColor: Colors.white,
-                  borderStrokeWidth: 2,
-                );
-              }).toList(),
+              polylines: widget.routePaths.isNotEmpty
+                  ? widget.routePaths.map((routePath) {
+                      final dayIndex = labels.indexOf(routePath.dayLabel);
+                      return Polyline(
+                        points: routePath.points,
+                        color: _RoutePainter.dayColor(
+                          dayIndex < 0 ? 0 : dayIndex,
+                        ),
+                        strokeWidth: 4,
+                        borderColor: Colors.white,
+                        borderStrokeWidth: 2,
+                      );
+                    }).toList()
+                  : labels.map((label) {
+                      final dayPoints = widget.points
+                          .where((p) => p.dayLabel == label)
+                          .toList();
+                      return Polyline(
+                        points: dayPoints
+                            .map((p) => latlong.LatLng(p.lat, p.lng))
+                            .toList(),
+                        color: _RoutePainter.dayColor(labels.indexOf(label)),
+                        strokeWidth: 4,
+                        borderColor: Colors.white,
+                        borderStrokeWidth: 2,
+                      );
+                    }).toList(),
             ),
             MarkerLayer(
               markers: widget.points.map((point) {
@@ -983,6 +1127,7 @@ class _PlaceDetailItem extends StatelessWidget {
   final bool isLast;
   final String? slotType;
   final String? timeLabel;
+  final VoidCallback? onReplace;
 
   const _PlaceDetailItem({
     required this.index,
@@ -996,6 +1141,7 @@ class _PlaceDetailItem extends StatelessWidget {
     required this.isLast,
     this.slotType,
     this.timeLabel,
+    this.onReplace,
   });
 
   IconData _slotIcon() {
@@ -1120,6 +1266,18 @@ class _PlaceDetailItem extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+              ],
+              if (onReplace != null) ...[
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: onReplace,
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('다른 장소 보기'),
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    minimumSize: const Size(0, 32),
+                  ),
                 ),
               ],
 

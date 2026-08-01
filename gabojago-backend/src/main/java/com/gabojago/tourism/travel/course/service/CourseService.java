@@ -7,6 +7,7 @@ import com.gabojago.tourism.recommendation.dto.response.RouteRecommendationRespo
 import com.gabojago.tourism.recommendation.service.RecommendationService;
 import com.gabojago.tourism.travel.course.dto.response.CourseDetailDto;
 import com.gabojago.tourism.travel.course.dto.response.CourseDto;
+import com.gabojago.tourism.travel.course.dto.response.CourseRoutePath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,25 @@ import java.util.Objects;
 public class CourseService {
 
     private static final String DEFAULT_IMAGE_URL = "https://via.placeholder.com/300x200";
+    private static final String DEFAULT_REGION_KEY = "busan";
+    private static final Map<String, RegionCenter> REGION_CENTERS = Map.ofEntries(
+            Map.entry("seoul", new RegionCenter(37.5665, 126.9780)),
+            Map.entry("jeonnam-gwangju", new RegionCenter(35.1595, 126.8526)),
+            Map.entry("busan", new RegionCenter(35.1796, 129.0756)),
+            Map.entry("daegu", new RegionCenter(35.8714, 128.6014)),
+            Map.entry("incheon", new RegionCenter(37.4563, 126.7052)),
+            Map.entry("daejeon", new RegionCenter(36.3504, 127.3845)),
+            Map.entry("ulsan", new RegionCenter(35.5384, 129.3114)),
+            Map.entry("sejong", new RegionCenter(36.4800, 127.2890)),
+            Map.entry("gyeonggi", new RegionCenter(37.4138, 127.5183)),
+            Map.entry("chungbuk", new RegionCenter(36.6357, 127.4917)),
+            Map.entry("chungnam", new RegionCenter(36.5184, 126.8000)),
+            Map.entry("gyeongbuk", new RegionCenter(36.4919, 128.8889)),
+            Map.entry("gyeongnam", new RegionCenter(35.4606, 128.2132)),
+            Map.entry("jeju", new RegionCenter(33.4996, 126.5312)),
+            Map.entry("gangwon", new RegionCenter(37.8228, 128.1555)),
+            Map.entry("jeonbuk", new RegionCenter(35.8200, 127.1088))
+    );
 
     private final RecommendationService recommendationService;
 
@@ -33,21 +53,36 @@ public class CourseService {
             List<String> purposes,
             String duration,
             Double lat,
-            Double lng
+            Double lng,
+            String travelConcept
     ) {
         String regionKey = inferRegionKey(lat, lng);
         String normalizedDuration = normalizeDuration(duration);
 
+        return List.of(TravelMode.CAR, TravelMode.WALK).stream()
+                .flatMap(travelMode -> recommendedCourses(
+                        regionKey, normalizedDuration, travelConcept, travelMode
+                ).stream())
+                .toList();
+    }
+
+    private List<CourseDto> recommendedCourses(
+            String regionKey,
+            String duration,
+            String travelConcept,
+            TravelMode travelMode
+    ) {
         RouteRecommendationResponse response = recommendationService.recommend(
                 new RouteRecommendationRequest(
                         regionKey,
-                        normalizedDuration,
-                        TravelMode.CAR,
+                        duration,
+                        travelConcept,
+                        null,
+                        travelMode,
                         LocalDate.now().plusDays(1).atTime(LocalTime.of(10, 0)),
                         true
                 )
         );
-
         return response.routes().stream()
                 .map(route -> toCourseDto(route, response.requestSummary()))
                 .toList();
@@ -74,13 +109,17 @@ public class CourseService {
             RouteRecommendationResponse.RequestSummary summary
     ) {
         List<CourseDetailDto.SubPlace> places = flattenPlaces(route.days());
-        int totalDistanceMeters = places.stream()
-                .map(CourseDetailDto.SubPlace::getTravelMinutesToNext)
+        int totalDistanceMeters = route.days().stream()
+                .flatMap(day -> day.stops().stream())
+                .map(RouteRecommendationResponse.Stop::travelToNext)
                 .filter(Objects::nonNull)
-                .mapToInt(minutes -> 0)
+                .map(RouteRecommendationResponse.TravelToNext::distanceMeters)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
                 .sum();
 
-        String title = route.title();
+        String travelModeLabel = summary.travelMode() == TravelMode.WALK ? "도보" : "자동차";
+        String title = route.title() + " · " + travelModeLabel;
         String overview = buildOverview(route);
         String imageUrl = places.stream()
                 .map(CourseDetailDto.SubPlace::getImageUrl)
@@ -89,7 +128,7 @@ public class CourseService {
                 .orElse(DEFAULT_IMAGE_URL);
 
         return new CourseDto(
-                "recommendation_" + route.rank(),
+                "recommendation_" + summary.travelMode().name().toLowerCase() + "_" + route.rank(),
                 title,
                 summary.regionName(),
                 imageUrl,
@@ -97,8 +136,11 @@ public class CourseService {
                 formatTaketime(places),
                 overview,
                 summary.regionKey(),
+                summary.duration(),
                 places,
-                (int) Math.round(route.totalScore())
+                (int) Math.round(route.totalScore()),
+                toCourseRoutePaths(route.routePaths()),
+                summary.travelMode().name()
         );
     }
 
@@ -110,6 +152,7 @@ public class CourseService {
             for (RouteRecommendationResponse.Stop stop : day.stops()) {
                 RouteRecommendationResponse.TravelToNext travel = stop.travelToNext();
                 result.add(new CourseDetailDto.SubPlace(
+                        stop.placeId(),
                         String.valueOf(stop.slotOrder()),
                         stop.placeName(),
                         stop.reason() + " / 점수 " + stop.score() + "점",
@@ -132,6 +175,21 @@ public class CourseService {
         return result;
     }
 
+    private List<CourseRoutePath> toCourseRoutePaths(
+            List<RouteRecommendationResponse.RoutePath> routePaths
+    ) {
+        return routePaths.stream()
+                .map(path -> new CourseRoutePath(
+                        "DAY " + path.day(),
+                        path.points().stream()
+                                .map(point -> new CourseRoutePath.Point(
+                                        point.lat().doubleValue(), point.lng().doubleValue()
+                                ))
+                                .toList()
+                ))
+                .toList();
+    }
+
     private String buildOverview(RouteRecommendationResponse.RouteCandidate route) {
         Map<String, Double> breakdown = route.scoreBreakdown();
         String warningText = route.warnings().isEmpty()
@@ -146,23 +204,25 @@ public class CourseService {
                 + " · " + warningText;
     }
 
-    private String inferRegionKey(Double lat, Double lng) {
+    static String inferRegionKey(Double lat, Double lng) {
         if (lat == null || lng == null) {
-            return "TOUR:6";
+            return DEFAULT_REGION_KEY;
         }
-        double changwonLat = 35.227;
-        double changwonLng = 128.681;
-        double busanLat = 35.1796;
-        double busanLng = 129.0756;
-        double changwonDistance = squaredDistance(lat, lng, changwonLat, changwonLng);
-        double busanDistance = squaredDistance(lat, lng, busanLat, busanLng);
-        return changwonDistance < busanDistance ? "TOUR:36:16" : "TOUR:6";
+        return REGION_CENTERS.entrySet().stream()
+                .min(java.util.Comparator.comparingDouble(entry ->
+                        squaredDistance(lat, lng, entry.getValue().lat(), entry.getValue().lng())
+                ))
+                .map(Map.Entry::getKey)
+                .orElse(DEFAULT_REGION_KEY);
     }
 
-    private double squaredDistance(double lat, double lng, double targetLat, double targetLng) {
+    private static double squaredDistance(double lat, double lng, double targetLat, double targetLng) {
         double dLat = lat - targetLat;
         double dLng = lng - targetLng;
         return dLat * dLat + dLng * dLng;
+    }
+
+    private record RegionCenter(double lat, double lng) {
     }
 
     private String normalizeDuration(String duration) {
