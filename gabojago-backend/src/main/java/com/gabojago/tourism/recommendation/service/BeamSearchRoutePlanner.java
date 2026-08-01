@@ -3,7 +3,11 @@ package com.gabojago.tourism.recommendation.service;
 import com.gabojago.place.domain.Place;
 import com.gabojago.place.domain.enums.TravelMode;
 import com.gabojago.tourism.recommendation.domain.RecommendationSlotType;
+import com.gabojago.tourism.transit.service.TransitRoutingClient;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -16,18 +20,35 @@ import java.util.Map;
 import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class BeamSearchRoutePlanner {
 
     private static final int BEAM_WIDTH = 5;
-    private static final int RESULT_LIMIT = 3;
-    private static final double CAR_KM_PER_MINUTE = 0.55;
-    private static final double TRANSIT_KM_PER_MINUTE = 0.32;
+    // 이동수단별로 균형 루트 하나만 제공한다. CourseService가 차량·도보를 각각 호출한다.
+    private static final int RESULT_LIMIT = 1;
+
+    private final RoutingMatrixClient routingMatrixClient;
+    private final TransitRoutingClient transitRoutingClient;
 
     public List<PlannedRoute> plan(
             List<List<ScoredPlace>> candidatesBySlot,
             TravelMode travelMode,
-            LocalDateTime departureAt
+        LocalDateTime departureAt
     ) {
+        if (travelMode == TravelMode.PUBLIC_TRANSIT) {
+            TransitRoutingClient.TransitRoutingStatus status = transitRoutingClient.status();
+            throw new ResponseStatusException(
+                    HttpStatus.UNPROCESSABLE_ENTITY,
+                    status.reason()
+            );
+        }
+        RoutingMatrixClient.TravelMatrix travelMatrix = routingMatrixClient.getMatrix(
+                candidatesBySlot.stream()
+                        .flatMap(List::stream)
+                        .map(ScoredPlace::place)
+                        .toList(),
+                travelMode
+        );
         List<RouteState> beam = List.of(RouteState.empty(departureAt));
         for (List<ScoredPlace> slotCandidates : candidatesBySlot) {
             List<RouteState> expanded = new ArrayList<>();
@@ -36,7 +57,10 @@ public class BeamSearchRoutePlanner {
                     if (state.usedPlaceIds().contains(candidate.place().getId())) {
                         continue;
                     }
-                    expanded.add(state.add(candidate, travelMode));
+                    RouteState nextState = state.add(candidate, travelMatrix, travelMode);
+                    if (nextState != null) {
+                        expanded.add(nextState);
+                    }
                 }
             }
             beam = expanded.stream()
@@ -72,11 +96,28 @@ public class BeamSearchRoutePlanner {
             return placePreference + movementPenalty + timeFit + routeBalance;
         }
 
-        RouteState add(ScoredPlace candidate, TravelMode travelMode) {
+        RouteState add(
+                ScoredPlace candidate,
+                RoutingMatrixClient.TravelMatrix travelMatrix,
+                TravelMode travelMode
+        ) {
             PlannedStop previous = stops.isEmpty() ? null : stops.get(stops.size() - 1);
-            TravelEstimate travel = previous == null
-                    ? TravelEstimate.none()
-                    : estimate(previous.scoredPlace().place(), candidate.place(), travelMode);
+            TravelEstimate travel = TravelEstimate.none();
+            if (previous != null) {
+                RoutingMatrixClient.TravelCost travelCost = travelMatrix.find(
+                                previous.scoredPlace().place().getId(),
+                                candidate.place().getId()
+                        )
+                        .orElse(null);
+                if (travelCost == null) {
+                    return null;
+                }
+                travel = new TravelEstimate(
+                        travelCost.distanceMeters(),
+                        Math.max(1, (int) Math.ceil(travelCost.durationSeconds() / 60.0)),
+                        travelMode == TravelMode.WALK ? "OSRM_FOOT" : "OSRM"
+                );
+            }
 
             LocalDateTime arrival = resolveArrivalTime(candidate, previous, travel);
             int stayMinutes = stayMinutes(candidate);
@@ -183,34 +224,6 @@ public class BeamSearchRoutePlanner {
         }
     }
 
-    private static TravelEstimate estimate(Place from, Place to, TravelMode travelMode) {
-        if (from.getLatitude() == null || from.getLongitude() == null
-                || to.getLatitude() == null || to.getLongitude() == null) {
-            return TravelEstimate.none();
-        }
-        double distanceMeters = haversineMeters(
-                from.getLatitude().doubleValue(),
-                from.getLongitude().doubleValue(),
-                to.getLatitude().doubleValue(),
-                to.getLongitude().doubleValue()
-        );
-        double kmPerMinute = travelMode == TravelMode.PUBLIC_TRANSIT
-                ? TRANSIT_KM_PER_MINUTE
-                : CAR_KM_PER_MINUTE;
-        int durationMinutes = Math.max(5, (int) Math.ceil((distanceMeters / 1000.0) / kmPerMinute));
-        return new TravelEstimate((int) Math.round(distanceMeters), durationMinutes, "HAVERSINE_APPROX");
-    }
-
-    private static double haversineMeters(double lat1, double lng1, double lat2, double lng2) {
-        double earthRadiusMeters = 6_371_000.0;
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLng = Math.toRadians(lng2 - lng1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    }
-
     private static int stayMinutes(ScoredPlace candidate) {
         return switch (candidate.slot().slotType()) {
             case SIGHT -> 90;
@@ -240,6 +253,11 @@ public class BeamSearchRoutePlanner {
     }
 
     private static LocalTime defaultTime(String timeLabel) {
+        try {
+            return LocalTime.parse(timeLabel);
+        } catch (java.time.format.DateTimeParseException ignored) {
+            // 기존 템플릿 라벨도 계속 지원한다.
+        }
         return switch (timeLabel) {
             case "morning" -> LocalTime.of(10, 0);
             case "late_morning" -> LocalTime.of(11, 0);

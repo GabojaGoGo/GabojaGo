@@ -38,6 +38,39 @@ services:
     networks:
       - app-network
 
+  osrm:
+    image: ${OSRM_IMAGE:-ghcr.io/project-osrm/osrm-backend:latest}
+    container_name: gabojago-osrm
+    restart: unless-stopped
+    command:
+      - osrm-routed
+      - --algorithm
+      - mld
+      - /data/yeongnam-car.osrm
+    volumes:
+      - ./infra/osrm/yeongnam/car:/data:ro
+    expose:
+      - "5000"
+    networks:
+      - app-network
+
+  osrm-foot:
+    profiles: ["walking"]
+    image: ${OSRM_IMAGE:-ghcr.io/project-osrm/osrm-backend:latest}
+    container_name: gabojago-osrm-foot
+    restart: unless-stopped
+    command:
+      - osrm-routed
+      - --algorithm
+      - mld
+      - /data/yeongnam-foot.osrm
+    volumes:
+      - ./infra/osrm/yeongnam/foot:/data:ro
+    expose:
+      - "5000"
+    networks:
+      - app-network
+
   backend:
     build:
       context: .
@@ -49,6 +82,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      osrm:
+        condition: service_started
     ports:
       - "8080:8080"
     networks:

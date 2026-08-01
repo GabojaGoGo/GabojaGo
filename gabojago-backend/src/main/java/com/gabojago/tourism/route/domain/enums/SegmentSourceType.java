@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum SegmentSourceType {
+    OSRM("OSRM 도로 그래프"),
+    OSRM_FOOT("OSRM 보행 그래프"),
     HAVERSINE_APPROX("직선거리 근사"),
     KAKAO_MOBILITY("카카오모빌리티"),
     ODSAY("ODSAY");

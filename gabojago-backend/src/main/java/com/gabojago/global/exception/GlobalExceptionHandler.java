@@ -31,6 +31,7 @@ public class GlobalExceptionHandler {
             case NOT_FOUND -> ErrorCode.NOT_FOUND;
             case UNAUTHORIZED -> ErrorCode.UNAUTHORIZED;
             case CONFLICT -> ErrorCode.CONFLICT;
+            case SERVICE_UNAVAILABLE -> ErrorCode.ROUTING_UNAVAILABLE;
             default -> ErrorCode.INTERNAL_SERVER_ERROR;
         };
         return build(errorCode, e.getReason());
