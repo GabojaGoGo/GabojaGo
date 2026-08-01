@@ -17,6 +17,7 @@ public record RouteRecommendationResponse(
             String regionKey,
             String regionName,
             String duration,
+            String travelConcept,
             TravelMode travelMode,
             LocalDateTime departureAt,
             boolean debugUseImported
@@ -29,8 +30,15 @@ public record RouteRecommendationResponse(
             double totalScore,
             Map<String, Double> scoreBreakdown,
             List<String> warnings,
-            List<DayPlan> days
+            List<DayPlan> days,
+            List<RoutePath> routePaths
     ) {
+    }
+
+    public record RoutePath(int day, List<RoutePoint> points) {
+    }
+
+    public record RoutePoint(BigDecimal lat, BigDecimal lng) {
     }
 
     public record DayPlan(
@@ -44,6 +52,7 @@ public record RouteRecommendationResponse(
             int day,
             String timeLabel,
             RecommendationSlotType slotType,
+            List<String> subtypeCodes,
             Long placeId,
             String placeName,
             PlaceType placeType,

@@ -26,6 +26,17 @@ public class CandidateQueryService {
         );
     }
 
+    public List<Place> findCandidates(
+            Long regionId, RecommendationSlotType slotType, List<String> subtypeCodes, boolean debugUseImported
+    ) {
+        if (subtypeCodes == null || subtypeCodes.isEmpty()) {
+            return findCandidates(regionId, slotType, debugUseImported);
+        }
+        return placeRepository.findAllByRegionAndTypeAndSubtypeCodes(
+                regionId, placeTypesFor(slotType), subtypeCodes
+        );
+    }
+
     private List<PlaceType> placeTypesFor(RecommendationSlotType slotType) {
         return switch (slotType) {
             case SIGHT -> List.of(

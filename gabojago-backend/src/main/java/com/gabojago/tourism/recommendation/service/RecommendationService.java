@@ -12,6 +12,7 @@ import com.gabojago.tourism.recommendation.domain.RecommendationSlot;
 import com.gabojago.tourism.recommendation.dto.request.RouteRecommendationRequest;
 import com.gabojago.tourism.recommendation.dto.response.RouteRecommendationResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,9 +29,11 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RecommendationService {
 
-    private static final int SLOT_CANDIDATE_LIMIT = 12;
+    // 1박 2일(9 슬롯) 기준으로 OSRM 기본 table 상한 100 좌표 안에 유지한다.
+    private static final int SLOT_CANDIDATE_LIMIT = 10;
 
     private final RegionRepository regionRepository;
     private final SlotTemplateFactory slotTemplateFactory;
@@ -39,6 +42,7 @@ public class RecommendationService {
     private final PlaceCategoryRepository placeCategoryRepository;
     private final PlaceScoringService placeScoringService;
     private final BeamSearchRoutePlanner beamSearchRoutePlanner;
+    private final RoutingRouteClient routingRouteClient;
 
     @Transactional(readOnly = true)
     public RouteRecommendationResponse recommend(RouteRecommendationRequest request) {
@@ -46,7 +50,9 @@ public class RecommendationService {
         Region region = regionRepository.findByRegionKey(normalized.regionKey())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Region not found"));
 
-        List<RecommendationSlot> slots = slotTemplateFactory.build(normalized.duration());
+        List<RecommendationSlot> slots = normalized.slots().isEmpty()
+                ? slotTemplateFactory.build(normalized.duration())
+                : normalized.slots();
         List<List<ScoredPlace>> candidatesBySlot = slots.stream()
                 .map(slot -> scoreCandidates(region.getId(), slot, normalized))
                 .toList();
@@ -69,11 +75,12 @@ public class RecommendationService {
                         normalized.regionKey(),
                         region.getName(),
                         normalized.duration(),
+                        normalized.travelConcept(),
                         normalized.travelMode(),
                         normalized.departureAt(),
                         normalized.debugUseImported()
                 ),
-                toRouteCandidates(region, plannedRoutes)
+                toRouteCandidates(region, plannedRoutes, normalized.travelMode())
         );
     }
 
@@ -83,10 +90,11 @@ public class RecommendationService {
             NormalizedRequest request
     ) {
         List<Place> candidates = candidateQueryService.findCandidates(
-                regionId,
-                slot.slotType(),
-                request.debugUseImported()
+                regionId, slot.slotType(), slot.subtypeCodes(), request.debugUseImported()
         );
+        candidates = candidates.stream()
+                .filter(place -> place.getLatitude() != null && place.getLongitude() != null)
+                .toList();
         List<Long> placeIds = candidates.stream().map(Place::getId).toList();
         Map<Long, List<PlaceAttribute>> attributesByPlaceId = placeAttributeRepository
                 .findAllByPlace_IdIn(placeIds)
@@ -112,7 +120,8 @@ public class RecommendationService {
 
     private List<RouteRecommendationResponse.RouteCandidate> toRouteCandidates(
             Region region,
-            List<BeamSearchRoutePlanner.PlannedRoute> plannedRoutes
+            List<BeamSearchRoutePlanner.PlannedRoute> plannedRoutes,
+            TravelMode travelMode
     ) {
         return java.util.stream.IntStream.range(0, plannedRoutes.size())
                 .mapToObj(index -> {
@@ -123,10 +132,38 @@ public class RecommendationService {
                             route.totalScore(),
                             route.scoreBreakdown(),
                             route.warnings(),
-                            toDayPlans(route)
+                            toDayPlans(route),
+                            toRoutePaths(route, travelMode)
                     );
                 })
                 .toList();
+    }
+
+    private List<RouteRecommendationResponse.RoutePath> toRoutePaths(
+            BeamSearchRoutePlanner.PlannedRoute route,
+            TravelMode travelMode
+    ) {
+        Map<Integer, List<Place>> placesByDay = new LinkedHashMap<>();
+        for (BeamSearchRoutePlanner.PlannedStop stop : route.stops()) {
+            placesByDay.computeIfAbsent(stop.scoredPlace().slot().day(), ignored -> new java.util.ArrayList<>())
+                    .add(stop.scoredPlace().place());
+        }
+        try {
+            return placesByDay.entrySet().stream()
+                    .map(entry -> new RouteRecommendationResponse.RoutePath(
+                            entry.getKey(),
+                            routingRouteClient.getRoute(entry.getValue(), travelMode).stream()
+                                    .map(point -> new RouteRecommendationResponse.RoutePoint(
+                                            point.latitude(), point.longitude()
+                                    ))
+                                    .toList()
+                    ))
+                    .filter(path -> !path.points().isEmpty())
+                    .toList();
+        } catch (ResponseStatusException e) {
+            log.warn("OSRM route geometry lookup failed; falling back to straight lines", e);
+            return List.of();
+        }
     }
 
     private List<RouteRecommendationResponse.DayPlan> toDayPlans(
@@ -142,6 +179,7 @@ public class RecommendationService {
                             scoredPlace.slot().day(),
                             scoredPlace.slot().timeLabel(),
                             scoredPlace.slot().slotType(),
+                            scoredPlace.slot().subtypeCodes(),
                             place.getId(),
                             place.getName(),
                             place.getPlaceType(),
@@ -179,11 +217,24 @@ public class RecommendationService {
 
     private NormalizedRequest normalize(RouteRecommendationRequest request) {
         String regionKey = request == null || request.regionKey() == null || request.regionKey().isBlank()
-                ? "TOUR:6"
+                ? "busan"
                 : request.regionKey();
         String duration = request == null || request.duration() == null || request.duration().isBlank()
                 ? "1n2d"
                 : request.duration();
+        String travelConcept = request == null || request.travelConcept() == null
+                ? ""
+                : request.travelConcept().trim();
+        List<RecommendationSlot> slots = request == null || request.slots() == null ? List.of()
+                : java.util.stream.IntStream.range(0, request.slots().size())
+                .mapToObj(i -> {
+                    var slot = request.slots().get(i);
+                    if (slot.slotType() == null || slot.day() < 1 || slot.timeLabel() == null || slot.timeLabel().isBlank()) {
+                        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "유효하지 않은 일정 슬롯입니다.");
+                    }
+                    return new RecommendationSlot(i + 1, slot.day(), slot.timeLabel(), slot.slotType(),
+                            slot.subtypeCodes() == null ? List.of() : List.copyOf(slot.subtypeCodes()));
+                }).toList();
         TravelMode travelMode = request == null || request.travelMode() == null
                 ? TravelMode.CAR
                 : request.travelMode();
@@ -192,15 +243,11 @@ public class RecommendationService {
                 : request.departureAt();
         boolean debugUseImported = request == null || request.debugUseImported() == null
                 || request.debugUseImported();
-        return new NormalizedRequest(regionKey, duration, travelMode, departureAt, debugUseImported);
+        return new NormalizedRequest(regionKey, duration, travelConcept, slots, travelMode, departureAt, debugUseImported);
     }
 
     private String titleSuffix(int index) {
-        return switch (index) {
-            case 0 -> "균형 루트";
-            case 1 -> "이동 절약 루트";
-            default -> "대안 루트";
-        };
+        return "균형 루트";
     }
 
     private String category(Place place) {
@@ -214,6 +261,8 @@ public class RecommendationService {
     private record NormalizedRequest(
             String regionKey,
             String duration,
+            String travelConcept,
+            List<RecommendationSlot> slots,
             TravelMode travelMode,
             LocalDateTime departureAt,
             boolean debugUseImported

@@ -68,4 +68,18 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
     );
 
     List<Place> findAllByRegion_IdAndPlaceTypeIn(Long regionId, List<PlaceType> placeTypes);
+
+    @Query("""
+            SELECT p FROM Place p
+            WHERE p.region.id = :regionId AND p.placeType IN :placeTypes
+              AND EXISTS (SELECT pc.id FROM PlaceCategory pc
+                          WHERE pc.place = p AND pc.status = com.gabojago.place.domain.enums.PlaceCategoryStatus.INCLUDED
+                            AND pc.category.kind = com.gabojago.place.domain.enums.CategoryKind.SUBTYPE
+                            AND pc.category.active = true AND pc.category.code IN :subtypeCodes)
+            """)
+    List<Place> findAllByRegionAndTypeAndSubtypeCodes(
+            @Param("regionId") Long regionId,
+            @Param("placeTypes") List<PlaceType> placeTypes,
+            @Param("subtypeCodes") List<String> subtypeCodes
+    );
 }
