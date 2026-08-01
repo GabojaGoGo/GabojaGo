@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:tripmate/core/models/user_prefs.dart';
 import 'package:tripmate/core/services/user_data_service.dart';
 import 'package:tripmate/infrastructure/api_service.dart';
-import 'package:tripmate/features/auth/travel_setup_screen.dart';
 import 'package:tripmate/features/benefit/receipt_screen.dart';
 import 'package:tripmate/features/course/widgets/recommended_tab.dart';
 import 'package:tripmate/features/course/widgets/saved_courses_tab.dart';
+import 'package:tripmate/features/course/planner_builder_screen.dart';
 
 class PlannerScreen extends StatefulWidget {
   const PlannerScreen({super.key});
@@ -50,8 +50,8 @@ class _PlannerScreenState extends State<PlannerScreen>
 
   Future<void> _loadCourses(UserPrefs prefs) async {
     setState(() {
-      _loading   = true;
-      _hasError  = false;
+      _loading = true;
+      _hasError = false;
       _loadedPrefs = prefs;
     });
     try {
@@ -59,32 +59,47 @@ class _PlannerScreenState extends State<PlannerScreen>
         purposes: prefs.purposes,
         duration: prefs.duration,
       );
-      if (mounted) setState(() { _recommended = courses; _loading = false; });
+      if (mounted)
+        setState(() {
+          _recommended = courses;
+          _loading = false;
+        });
     } catch (_) {
       if (mounted) {
-        setState(() { _recommended = []; _loading = false; _hasError = true; });
+        setState(() {
+          _recommended = [];
+          _loading = false;
+          _hasError = true;
+        });
       }
     }
   }
 
   void _goToSetup() => Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => const TravelSetupScreen(showCourseResult: false)),
-      );
+    context,
+    MaterialPageRoute(builder: (_) => const PlannerBuilderScreen()),
+  );
 
   void _onSaveChanged() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
-    final prefs      = UserPrefsScope.of(context).prefs;
+    final prefs = UserPrefsScope.of(context).prefs;
     final savedCount = UserDataService.instance.getSavedCourses().length;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI 여행 플래너'),
+        title: const Text('여행 플래너'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_calendar_outlined),
+            tooltip: '내 일정 만들기',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PlannerBuilderScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.receipt_long_outlined),
             onPressed: () => Navigator.push(
@@ -100,11 +115,16 @@ class _PlannerScreenState extends State<PlannerScreen>
           unselectedLabelColor: const Color(0xFF9CA3AF),
           indicatorColor: colorScheme.primary,
           indicatorWeight: 2,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-          unselectedLabelStyle:
-              const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+          ),
           tabs: [
-            const Tab(text: 'AI 추천'),
+            const Tab(text: '코스 추천'),
             Tab(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -114,7 +134,9 @@ class _PlannerScreenState extends State<PlannerScreen>
                     const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 1),
+                        horizontal: 6,
+                        vertical: 1,
+                      ),
                       decoration: BoxDecoration(
                         color: colorScheme.primary,
                         borderRadius: BorderRadius.circular(10),
@@ -122,9 +144,10 @@ class _PlannerScreenState extends State<PlannerScreen>
                       child: Text(
                         '$savedCount',
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700),
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
