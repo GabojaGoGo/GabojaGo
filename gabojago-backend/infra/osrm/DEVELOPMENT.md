@@ -133,6 +133,15 @@ curl -X POST 'http://localhost:8080/api/planner/next-options' \
 
 현재 `POST /api/planner/slot-options`는 사용자가 선택한 임의 슬롯에 후보 최대 5개를 반환한다. `next-options`는 첫 번째 빈 슬롯을 찾아 같은 서비스에 위임한다.
 
+두 API의 OpenAPI 명세와 요청 예시는 실행 중인 백엔드의 `/swagger-ui.html`에서 확인한다. 후보 응답의 `scoreBreakdown`은 다음 키를 사용한다.
+
+- `distance`: 확정된 앞뒤 일정 기준의 즉시 동선 점수
+- `lookAhead`: 뒤의 미확정 슬롯 최대 두 개까지 연결했을 때의 동선 점수
+- `lookAheadApplied`: look-ahead 경로를 계산했으면 `1`, 후보 부족·경로 단절 등으로 기본 점수로 폴백했으면 `0`
+- `lookAheadSlots`: 점수 계산에 포함한 후속 슬롯 수
+
+후속 미확정 슬롯이 없는 요청은 기존 즉시 동선 점수만 사용한다. 지도 미리보기 경로는 사용자가 아직 확정하지 않은 미래 후보를 포함하지 않고, 현재 선택 후보까지만 표시한다.
+
 현재 후보 점수:
 
 1. 슬롯 대분류·하위 카테고리로 후보 검색

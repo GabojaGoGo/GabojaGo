@@ -87,9 +87,52 @@ class InteractivePlannerServiceTest {
                 .hasMessageContaining("HH:mm");
     }
 
+    @Test
+    void 다음_미확정_슬롯의_도로_연결성을_후보_점수에_반영한다() {
+        Region region = org.mockito.Mockito.mock(Region.class);
+        Place selected = place(1L, "해운대 해수욕장", PlaceType.TOURIST_SPOT, 35.158, 129.160);
+        Place candidate = place(2L, "해운대 국밥", PlaceType.RESTAURANT, 35.160, 129.164);
+        Place futureCafe = place(3L, "달맞이 카페", PlaceType.CAFE, 35.165, 129.170);
+        when(regionRepository.findByRegionKey("busan")).thenReturn(Optional.of(region));
+        when(region.getId()).thenReturn(10L);
+        when(placeRepository.findAllById(List.of(1L))).thenReturn(List.of(selected));
+        when(candidateQueryService.findCandidates(eq(10L), eq(RecommendationSlotType.MEAL), ArgumentMatchers.anyList(), eq(true)))
+                .thenReturn(List.of(candidate));
+        when(candidateQueryService.findCandidates(eq(10L), eq(RecommendationSlotType.CAFE), ArgumentMatchers.anyList(), eq(true)))
+                .thenReturn(List.of(futureCafe));
+        RoutingMatrixClient.TravelMatrix travelMatrix = new RoutingMatrixClient.TravelMatrix(Map.of(
+                new RoutingMatrixClient.RouteKey(1L, 2L), new RoutingMatrixClient.TravelCost(600, 1_000),
+                new RoutingMatrixClient.RouteKey(2L, 1L), new RoutingMatrixClient.TravelCost(600, 1_000),
+                new RoutingMatrixClient.RouteKey(2L, 3L), new RoutingMatrixClient.TravelCost(1_200, 2_000),
+                new RoutingMatrixClient.RouteKey(3L, 2L), new RoutingMatrixClient.TravelCost(1_200, 2_000)
+        ));
+        when(routingMatrixClient.getMatrix(anyList(), eq(TravelMode.CAR))).thenReturn(travelMatrix);
+        when(routingRouteClient.getRoute(anyList(), eq(TravelMode.CAR))).thenReturn(List.of());
+        when(slotCandidateScoringService.score(eq(candidate), ArgumentMatchers.any(), eq(""), eq(1_000), eq(2_000)))
+                .thenReturn(new SlotCandidateScoringService.CandidateScore(
+                        88.0, Map.of("distance", 90.9, "lookAhead", 83.3, "lookAheadApplied", 1.0), false, "stub"
+                ));
+
+        PlannerSlotOptionsResponse response = service().nextOptions(new PlannerSlotOptionsRequest(
+                "busan", TravelMode.CAR, LocalDateTime.of(2026, 8, 10, 10, 0), null,
+                List.of(
+                        new PlannerSlotRequest(1, 1, "10:00", RecommendationSlotType.SIGHT, List.of(), 1L),
+                        new PlannerSlotRequest(2, 1, "13:00", RecommendationSlotType.MEAL, List.of(), null),
+                        new PlannerSlotRequest(3, 1, "15:00", RecommendationSlotType.CAFE, List.of(), null)
+                ), true));
+
+        assertThat(response.options()).singleElement().satisfies(option -> {
+            assertThat(option.score()).isEqualTo(88.0);
+            assertThat(option.scoreBreakdown()).containsEntry("lookAheadSlots", 1.0);
+            assertThat(option.scoreBreakdown()).containsEntry("lookAheadDistanceMeters", 2_000.0);
+            assertThat(option.reason()).contains("이후 일정");
+        });
+    }
+
     private InteractivePlannerService service() {
         return new InteractivePlannerService(regionRepository, placeRepository, candidateQueryService,
-                routingMatrixClient, routingRouteClient, slotCandidateScoringService);
+                routingMatrixClient, routingRouteClient, slotCandidateScoringService,
+                new PlannerLookAheadService(candidateQueryService));
     }
 
     private RoutingMatrixClient.TravelMatrix matrix(Long fromId, Long toId) {

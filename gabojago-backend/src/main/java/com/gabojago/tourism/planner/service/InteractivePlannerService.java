@@ -49,6 +49,7 @@ public class InteractivePlannerService {
     private final RoutingMatrixClient routingMatrixClient;
     private final RoutingRouteClient routingRouteClient;
     private final SlotCandidateScoringService slotCandidateScoringService;
+    private final PlannerLookAheadService plannerLookAheadService;
 
     @Transactional(readOnly = true)
     public PlannerSlotOptionsResponse slotOptions(PlannerSlotOptionsRequest request) {
@@ -84,13 +85,26 @@ public class InteractivePlannerService {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "선택한 슬롯 조건의 장소 후보가 없습니다.");
         }
 
+        PlanningWindow planningWindow = planningWindow(request.slots(), target.order(), selectedPlaces);
+        List<RecommendationSlot> futureSlots = planningWindow.futureSlots().stream().map(NormalizedSlot::slot).toList();
+        PlannerLookAheadService.LookAheadPlan lookAheadPlan = plannerLookAheadService.prepare(
+                region.getId(), candidates, futureSlots, occupiedIds, request.debugUseImported()
+        );
         List<Place> matrixPlaces = new ArrayList<>(candidates);
         if (previous != null) matrixPlaces.add(previous);
-        if (next != null) matrixPlaces.add(next);
+        matrixPlaces.addAll(lookAheadPlan.allCandidates());
+        if (planningWindow.anchor() != null) matrixPlaces.add(planningWindow.anchor());
         RoutingMatrixClient.TravelMatrix matrix = routingMatrixClient.getMatrix(matrixPlaces, request.travelMode());
-        Integer directDistance = previous != null && next != null ? distance(matrix, previous, next) : 0;
+        boolean hasFutureSlots = !futureSlots.isEmpty();
+        Place immediateNext = hasFutureSlots ? null : planningWindow.anchor();
+        Integer directDistance = previous != null && immediateNext != null ? distance(matrix, previous, immediateNext) : 0;
         List<PlannerSlotOptionsResponse.CandidateOption> options = candidates.stream()
-                .map(candidate -> candidateOption(candidate, target, request, previous, previousSlot, next, matrix, directDistance))
+                .map(candidate -> candidateOption(
+                        candidate, target, request, previous, previousSlot, immediateNext, matrix, directDistance,
+                        plannerLookAheadService.evaluate(
+                                candidate, lookAheadPlan, planningWindow.anchor(), matrix, request.travelMode()
+                        )
+                ))
                 .filter(option -> option.fromPrevious() == null || option.fromPrevious().distanceMeters() != null)
                 .sorted(Comparator.comparing(PlannerSlotOptionsResponse.CandidateOption::score).reversed())
                 .limit(RESULT_LIMIT)
@@ -112,7 +126,8 @@ public class InteractivePlannerService {
             NormalizedSlot previousSlot,
             Place next,
             RoutingMatrixClient.TravelMatrix matrix,
-            Integer directDistance
+            Integer directDistance,
+            PlannerLookAheadService.LookAheadResult lookAhead
     ) {
         Integer fromDistance = previous == null ? 0 : distance(matrix, previous, candidate);
         Integer fromMinutes = previous == null ? 0 : minutes(matrix, previous, candidate);
@@ -124,10 +139,16 @@ public class InteractivePlannerService {
                     travel(fromDistance, fromMinutes), travel(toDistance, toMinutes), 0.0, Map.of(), "도로 이동시간을 계산할 수 없습니다.", List.of());
         }
         int detourMeters = next == null ? fromDistance : Math.max(0, fromDistance + toDistance - directDistance);
-        SlotCandidateScoringService.CandidateScore score = slotCandidateScoringService.score(candidate, target.slot(), "", detourMeters);
+        SlotCandidateScoringService.CandidateScore score = lookAhead.applied()
+                ? slotCandidateScoringService.score(
+                        candidate, target.slot(), "", detourMeters, lookAhead.distanceMeters()
+                )
+                : slotCandidateScoringService.score(candidate, target.slot(), "", detourMeters);
         Map<String, Double> breakdown = new LinkedHashMap<>(score.breakdown());
-        // 다음 확정 장소가 있을 때 우회가 적은 후보를 별도 노출해 사용자가 이유를 이해할 수 있게 한다.
-        breakdown.put("lookAheadDistance", next == null ? 0.0 : round(100.0 * 10_000 / (10_000 + toDistance)));
+        breakdown.put("lookAheadSlots", (double) lookAhead.slotCount());
+        if (lookAhead.applied()) {
+            breakdown.put("lookAheadDistanceMeters", lookAhead.distanceMeters().doubleValue());
+        }
         LocalDateTime arrival = estimatedArrival(request.departureAt(), target.slot(), previousSlot, fromMinutes);
         int stayMinutes = stayMinutes(target.slot());
         List<Place> previewPlaces = new ArrayList<>();
@@ -137,7 +158,9 @@ public class InteractivePlannerService {
         return new PlannerSlotOptionsResponse.CandidateOption(candidate.getId(), candidate.getName(), candidate.getPlaceType(),
                 safe(candidate.getAddress()), candidate.getLatitude(), candidate.getLongitude(), candidate.getImageUrl(), arrival,
                 arrival.plusMinutes(stayMinutes), travel(fromDistance, fromMinutes), travel(toDistance, toMinutes),
-                score.totalScore(), Map.copyOf(breakdown), candidate.getPlaceType() + " 슬롯과 선택한 동선에 맞는 후보입니다.",
+                score.totalScore(), Map.copyOf(breakdown), candidate.getPlaceType() + (lookAhead.applied()
+                        ? " 슬롯과 이후 일정까지 고려한 동선에 맞는 후보입니다."
+                        : " 슬롯과 선택한 동선에 맞는 후보입니다."),
                 routePoints(previewPlaces, request.travelMode()));
     }
 
@@ -189,6 +212,29 @@ public class InteractivePlannerService {
     private Place selectedAfter(List<NormalizedSlot> slots, int order, Map<Long, Place> places) {
         return slots.stream().filter(slot -> slot.order() > order && slot.selectedPlaceId() != null)
                 .min(Comparator.comparingInt(NormalizedSlot::order)).map(slot -> places.get(slot.selectedPlaceId())).orElse(null);
+    }
+
+    private PlanningWindow planningWindow(
+            List<NormalizedSlot> slots,
+            int targetOrder,
+            Map<Long, Place> selectedPlaces
+    ) {
+        List<NormalizedSlot> futureSlots = new ArrayList<>();
+        for (NormalizedSlot slot : slots) {
+            if (slot.order() <= targetOrder) {
+                continue;
+            }
+            if (slot.selectedPlaceId() != null) {
+                // 아직 고려하지 않은 빈 슬롯이 있으면 이 앵커까지의 직결 비용은 추측하지 않는다.
+                return new PlanningWindow(List.copyOf(futureSlots), futureSlots.size() < 2
+                        ? selectedPlaces.get(slot.selectedPlaceId()) : null);
+            }
+            if (futureSlots.size() == 2) {
+                return new PlanningWindow(List.copyOf(futureSlots), null);
+            }
+            futureSlots.add(slot);
+        }
+        return new PlanningWindow(List.copyOf(futureSlots), null);
     }
 
     private LocalDateTime estimatedArrival(
@@ -270,4 +316,5 @@ public class InteractivePlannerService {
     private record NormalizedRequest(String regionKey, TravelMode travelMode, LocalDateTime departureAt, NormalizedSlot targetSlot,
                                      List<NormalizedSlot> slots, boolean debugUseImported) { }
     private record NormalizedSlot(int order, RecommendationSlot slot, Long selectedPlaceId) { }
+    private record PlanningWindow(List<NormalizedSlot> futureSlots, Place anchor) { }
 }

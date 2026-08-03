@@ -18,17 +18,42 @@ public class SlotCandidateScoringService {
     }
 
     public CandidateScore score(Place place, RecommendationSlot slot, String travelConcept, int detourMeters) {
-        // 우회거리 0m=100점, 거리가 늘수록 완만히 감소한다. 취향 모듈 도입 전에는 거리만 총점에 반영한다.
-        double distanceScore = round(100.0 * 10_000.0 / (10_000.0 + detourMeters));
+        return score(place, slot, travelConcept, detourMeters, null);
+    }
+
+    /**
+     * 현재 슬롯의 확정 동선과 이후 미확정 슬롯의 연결성을 분리해 점수화한다.
+     * 이후 경로는 사용자가 바꿀 수 있는 예상치이므로, 적용되더라도 즉시 동선보다 낮은 비중을 둔다.
+     */
+    public CandidateScore score(
+            Place place,
+            RecommendationSlot slot,
+            String travelConcept,
+            int detourMeters,
+            Integer lookAheadDistanceMeters
+    ) {
+        // 거리 0m=100점, 거리가 늘수록 완만히 감소한다.
+        double immediateDistanceScore = distanceScore(detourMeters);
+        boolean lookAheadApplied = lookAheadDistanceMeters != null;
+        double lookAheadScore = lookAheadApplied ? distanceScore(lookAheadDistanceMeters) : 0.0;
+        double movementScore = lookAheadApplied
+                ? round(immediateDistanceScore * 0.7 + lookAheadScore * 0.3)
+                : immediateDistanceScore;
         PreferenceScoreProvider.PreferenceScore preference = preferenceScoreProvider.score(place, slot, travelConcept);
         double totalScore = preference.available()
-                ? round(distanceScore * 0.7 + preference.score() * 0.3)
-                : distanceScore;
+                ? round(movementScore * 0.7 + preference.score() * 0.3)
+                : movementScore;
 
         Map<String, Double> breakdown = new LinkedHashMap<>();
-        breakdown.put("distance", distanceScore);
+        breakdown.put("distance", immediateDistanceScore);
+        breakdown.put("lookAhead", lookAheadScore);
+        breakdown.put("lookAheadApplied", lookAheadApplied ? 1.0 : 0.0);
         breakdown.put("preference", preference.score());
         return new CandidateScore(totalScore, Map.copyOf(breakdown), preference.available(), preference.source());
+    }
+
+    private double distanceScore(int distanceMeters) {
+        return round(100.0 * 10_000.0 / (10_000.0 + Math.max(0, distanceMeters)));
     }
 
     private double round(double value) {
