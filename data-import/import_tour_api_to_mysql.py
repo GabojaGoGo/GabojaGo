@@ -82,7 +82,6 @@ def main() -> int:
     print(f"  미지원 유형: {summary.unsupported}건")
     print(f"  잘못된 데이터: {summary.invalid}건")
     print(f"  신규 광역지역: {summary.new_regions}건")
-    print(f"  신규 SUBTYPE 정의: {summary.new_categories}건")
     print(f"  SUBTYPE 연결: {summary.subtype_links}건")
     print(f"  다중 SUBTYPE 장소: {summary.multi_subtype_places}건")
     print(f"  미매핑 SUBTYPE: {summary.unmapped_subtype}건")

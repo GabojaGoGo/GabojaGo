@@ -2,6 +2,8 @@ package com.gabojago.place.domain;
 
 import com.gabojago.global.domain.BaseTimeEntity;
 import com.gabojago.place.domain.enums.CategoryKind;
+import com.gabojago.place.domain.enums.PlacePurposeCode;
+import com.gabojago.place.domain.enums.PlaceSubtypeCode;
 import com.gabojago.place.domain.enums.PlaceType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,21 +18,25 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Check;
 
 /**
- * 카테고리 정의. 대분류(place_type)에 종속된다.
- *
- * PURPOSE는 세분화 필드 기준 충족 시 자동 분류로 부여되고,
- * SUBTYPE은 데이터 수집 시점에 확정되는 사실 값이다.
+ * Enum으로 정의한 SUBTYPE과 PURPOSE의 DB 표현.
+ * SUBTYPE은 PlaceType에 종속되고 PURPOSE는 모든 PlaceType이 공유한다.
  */
 @Entity
 @Table(
         name = "categories",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_category_type_kind_code",
-                columnNames = {"place_type", "kind", "code"}
+                name = "uk_category_kind_code",
+                columnNames = {"kind", "code"}
         ),
-        indexes = @Index(name = "idx_category_type_kind", columnList = "place_type,kind,is_active")
+        indexes = @Index(name = "idx_category_type_kind", columnList = "place_type,kind")
+)
+@Check(
+        name = "chk_category_kind_place_type",
+        constraints = "(kind = 'SUBTYPE' AND place_type IS NOT NULL) "
+                + "OR (kind = 'PURPOSE' AND place_type IS NULL)"
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -41,7 +47,7 @@ public class Category extends BaseTimeEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "place_type", nullable = false, length = 24)
+    @Column(name = "place_type", length = 24)
     private PlaceType placeType;
 
     @Enumerated(EnumType.STRING)
@@ -57,30 +63,31 @@ public class Category extends BaseTimeEntity {
     @Column(length = 300)
     private String description;
 
-    @Column(name = "is_active", nullable = false)
-    private boolean active;
-
-    public static Category of(PlaceType placeType, CategoryKind kind, String code, String name, String description) {
+    public static Category subtype(PlaceSubtypeCode subtypeCode) {
         Category category = new Category();
-        category.placeType = placeType;
-        category.kind = kind;
-        category.code = code;
-        category.name = name;
-        category.description = description;
-        category.active = true;
+        category.synchronize(subtypeCode);
         return category;
     }
 
-    public void updateDefinition(String name, String description) {
-        this.name = name;
-        this.description = description;
+    public static Category purpose(PlacePurposeCode purposeCode) {
+        Category category = new Category();
+        category.synchronize(purposeCode);
+        return category;
     }
 
-    public void activate() {
-        this.active = true;
+    public void synchronize(PlaceSubtypeCode subtypeCode) {
+        this.placeType = subtypeCode.getPlaceType();
+        this.kind = CategoryKind.SUBTYPE;
+        this.code = subtypeCode.name();
+        this.name = subtypeCode.getDisplayName();
+        this.description = null;
     }
 
-    public void deactivate() {
-        this.active = false;
+    public void synchronize(PlacePurposeCode purposeCode) {
+        this.placeType = null;
+        this.kind = CategoryKind.PURPOSE;
+        this.code = purposeCode.name();
+        this.name = purposeCode.getDisplayName();
+        this.description = null;
     }
 }

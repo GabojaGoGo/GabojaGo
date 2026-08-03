@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -6,6 +7,7 @@ from data_import.tour_api.importer import (
     RegionTarget,
     SubtypeMapping,
     TourApiImportError,
+    load_subtype_category_ids,
     load_subtype_mappings,
     resolve_region,
     to_place_record,
@@ -120,6 +122,48 @@ def test_review_mapping_becomes_need_review() -> None:
     )
 
     assert mapping.place_category_status == "NEED_REVIEW"
+
+
+def test_load_subtype_category_ids_uses_existing_enum_synced_category() -> None:
+    connection = MagicMock()
+    cursor = connection.cursor.return_value.__enter__.return_value
+    cursor.fetchall.return_value = [
+        {
+            "id": 40,
+            "place_type": "SHOP",
+            "code": "OUTLET",
+            "name": "아울렛",
+        }
+    ]
+    mapping = SubtypeMapping(
+        "38",
+        "SH020200",
+        "SHOP",
+        "OUTLET",
+        "아울렛",
+        "CONFIRMED",
+    )
+
+    category_ids = load_subtype_category_ids(connection, [mapping])
+
+    assert category_ids == {("SHOP", "OUTLET"): 40}
+
+
+def test_load_subtype_category_ids_rejects_code_missing_from_backend_enum() -> None:
+    connection = MagicMock()
+    cursor = connection.cursor.return_value.__enter__.return_value
+    cursor.fetchall.return_value = []
+    mapping = SubtypeMapping(
+        "38",
+        "SH020200",
+        "SHOP",
+        "OUTLETT",
+        "아울렛",
+        "CONFIRMED",
+    )
+
+    with pytest.raises(TourApiImportError, match="not defined by backend enum"):
+        load_subtype_category_ids(connection, [mapping])
 
 
 def test_to_place_record_rejects_missing_coordinate() -> None:

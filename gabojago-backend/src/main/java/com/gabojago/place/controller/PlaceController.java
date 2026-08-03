@@ -46,7 +46,7 @@ public class PlaceController {
 
     @Operation(
             summary = "① PlaceType별 SUBTYPE 선택 목록 조회",
-            description = "PlaceType을 선택하면 해당 대분류에서 사용할 수 있는 활성 SUBTYPE 코드와 한글 이름을 반환합니다."
+            description = "PlaceType을 선택하면 해당 대분류에서 사용할 수 있는 SUBTYPE 코드와 한글 이름을 반환합니다."
     )
     @GetMapping("/subtypes")
     public List<PlaceSubtypeOptionResponse> getSubtypeOptions(
