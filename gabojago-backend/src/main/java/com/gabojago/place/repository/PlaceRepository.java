@@ -73,7 +73,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
               AND EXISTS (SELECT pc.id FROM PlaceCategory pc
                           WHERE pc.place = p AND pc.status = com.gabojago.place.domain.enums.PlaceCategoryStatus.INCLUDED
                             AND pc.category.kind = com.gabojago.place.domain.enums.CategoryKind.SUBTYPE
-                            AND pc.category.active = true AND pc.category.code IN :subtypeCodes)
+                            AND pc.category.code IN :subtypeCodes)
             """)
     List<Place> findAllByRegionAndTypeAndSubtypeCodes(
             @Param("regionId") Long regionId,
