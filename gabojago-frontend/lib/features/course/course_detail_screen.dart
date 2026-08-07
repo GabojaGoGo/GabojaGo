@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlong;
+import 'package:tripmate/core/models/route_preview.dart';
 import 'package:tripmate/infrastructure/api_service.dart';
 import 'package:tripmate/core/services/user_data_service.dart';
 import 'package:tripmate/features/course/widgets/slot_suggestion_sheet.dart';
@@ -158,10 +159,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       if (placeIndex < updated.length - 1) {
         updated[placeIndex]['travelMinutesToNext'] = null;
       }
+
+      List<dynamic> routePaths = const [];
+      try {
+        routePaths = await _reloadRoutePaths(updated);
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('도로 경로를 다시 불러오지 못해 직선으로 표시합니다.')),
+          );
+        }
+      }
+      if (!mounted) return;
       setState(() {
-        _detail = {...?_detail, 'places': updated, 'routePaths': <dynamic>[]};
+        _detail = {...?_detail, 'places': updated, 'routePaths': routePaths};
         widget.course['places'] = updated;
-        widget.course['routePaths'] = <dynamic>[];
+        widget.course['routePaths'] = routePaths;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${selected['placeName']}(으)로 바꿨어요.')),
@@ -173,6 +186,16 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         ).showSnackBar(const SnackBar(content: Text('교체할 장소를 찾지 못했어요.')));
       }
     }
+  }
+
+  Future<List<dynamic>> _reloadRoutePaths(
+    List<Map<String, dynamic>> places,
+  ) async {
+    final routePaths = await ApiService.getRoutePreview(
+      travelMode: widget.course['travelMode'] as String? ?? 'CAR',
+      days: RoutePreviewDay.fromCoursePlaces(places),
+    );
+    return routePaths.map((path) => path.toLegacyMap()).toList();
   }
 
   @override

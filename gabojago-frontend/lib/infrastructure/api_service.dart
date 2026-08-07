@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:tripmate/core/models/route_preview.dart';
 
 class ApiService {
   // API_BASE_URL은 .env에서 읽음:
@@ -298,6 +299,29 @@ class ApiService {
           as Map<String, dynamic>;
     }
     throw Exception('슬롯 후보 요청 실패: ${response.statusCode}');
+  }
+
+  /// 장소 교체 뒤 일자별 장소 순서로 OSRM 도로 geometry를 다시 계산한다.
+  static Future<List<RoutePreviewPath>> getRoutePreview({
+    required String travelMode,
+    required List<RoutePreviewDay> days,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/recommendations/routes/preview'),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'travelMode': travelMode,
+            'days': days.map((day) => day.toJson()).toList(),
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      return RoutePreviewPath.listFromResponse(
+        json.decode(utf8.decode(response.bodyBytes)),
+      );
+    }
+    throw Exception('경로 미리보기 요청 실패: ${response.statusCode}');
   }
 
   static Future<List<Map<String, dynamic>>> getSubtypeOptions(
