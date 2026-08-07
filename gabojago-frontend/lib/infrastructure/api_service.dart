@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:tripmate/core/models/route_preview.dart';
 
 class ApiService {
   // API_BASE_URL은 .env에서 읽음:
@@ -93,7 +94,11 @@ class ApiService {
     }
   }
 
-  static Future<List<dynamic>> getNearbySpots(double lat, double lng, {int limit = 10}) async {
+  static Future<List<dynamic>> getNearbySpots(
+    double lat,
+    double lng, {
+    int limit = 10,
+  }) async {
     final url = '$baseUrl/spots?lat=$lat&lng=$lng&limit=$limit';
     debugPrint('Requesting: $url');
     try {
@@ -166,7 +171,8 @@ class ApiService {
           .get(Uri.parse(url))
           .timeout(const Duration(seconds: 30));
       if (response.statusCode == 200) {
-        return json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        return json.decode(utf8.decode(response.bodyBytes))
+            as Map<String, dynamic>;
       }
       throw Exception('Server error: ${response.statusCode}');
     } on TimeoutException {
@@ -184,28 +190,40 @@ class ApiService {
     double? lat,
     double? lng,
   }) async {
-    final courses = await getCourses(purposes: purposes, duration: duration, lat: lat, lng: lng);
+    final courses = await getCourses(
+      purposes: purposes,
+      duration: duration,
+      lat: lat,
+      lng: lng,
+    );
     if (courses.isEmpty) return [];
 
-    final alreadyHydrated =
-        courses.every((c) => (c['places'] as List?)?.isNotEmpty == true);
+    final alreadyHydrated = courses.every(
+      (c) => (c['places'] as List?)?.isNotEmpty == true,
+    );
     if (alreadyHydrated) return courses;
 
     final details = await Future.wait(
-      courses.map((c) => getCourseDetail(
-        c['contentId'] as String? ?? '',
-        purposes: purposes,
-      ).catchError((_) => <String, dynamic>{})),
+      courses.map(
+        (c) => getCourseDetail(
+          c['contentId'] as String? ?? '',
+          purposes: purposes,
+        ).catchError((_) => <String, dynamic>{}),
+      ),
     );
 
-    return List.generate(courses.length, (i) => {
-      ...courses[i],
-      'places':   (details[i]['places']   as List?) ?? [],
-      'distance': (details[i]['distance'] as String?) ?? '',
-      'taketime': (details[i]['taketime'] as String?) ?? '',
-      'nearbyRestaurants':    (details[i]['nearbyRestaurants']    as List?) ?? [],
-      'nearbyAccommodations': (details[i]['nearbyAccommodations'] as List?) ?? [],
-    });
+    return List.generate(
+      courses.length,
+      (i) => {
+        ...courses[i],
+        'places': (details[i]['places'] as List?) ?? [],
+        'distance': (details[i]['distance'] as String?) ?? '',
+        'taketime': (details[i]['taketime'] as String?) ?? '',
+        'nearbyRestaurants': (details[i]['nearbyRestaurants'] as List?) ?? [],
+        'nearbyAccommodations':
+            (details[i]['nearbyAccommodations'] as List?) ?? [],
+      },
+    );
   }
 
   static Future<List<Map<String, dynamic>>> getCourses({
@@ -214,6 +232,7 @@ class ApiService {
     double? lat,
     double? lng,
     String? preferredAnchor,
+    String? travelConcept,
   }) async {
     final purposesParam = purposes.join(',');
     var url = '$baseUrl/courses?purposes=$purposesParam&duration=$duration';
@@ -222,6 +241,9 @@ class ApiService {
     }
     if (preferredAnchor != null && preferredAnchor.isNotEmpty) {
       url += '&preferredAnchor=${Uri.encodeComponent(preferredAnchor)}';
+    }
+    if (travelConcept != null && travelConcept.isNotEmpty) {
+      url += '&travelConcept=${Uri.encodeComponent(travelConcept)}';
     }
     debugPrint('Requesting: $url');
     try {
@@ -239,6 +261,126 @@ class ApiService {
       debugPrint('Connection Error (Courses): $e');
       rethrow;
     }
+  }
+
+  static Future<Map<String, dynamic>> getSlotSuggestions({
+    required String regionKey,
+    required String duration,
+    required String travelConcept,
+    required String travelMode,
+    required int slotOrder,
+    int? day,
+    String? timeLabel,
+    String? slotType,
+    List<String> subtypeCodes = const [],
+    required List<int> currentPlaceIds,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/recommendations/slots/suggestions'),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'regionKey': regionKey,
+            'duration': duration,
+            'travelConcept': travelConcept,
+            'travelMode': travelMode,
+            'debugUseImported': true,
+            'slotOrder': slotOrder,
+            'day': ?day,
+            'timeLabel': ?timeLabel,
+            'slotType': ?slotType,
+            'subtypeCodes': subtypeCodes,
+            'currentPlaceIds': currentPlaceIds,
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      return json.decode(utf8.decode(response.bodyBytes))
+          as Map<String, dynamic>;
+    }
+    throw Exception('슬롯 후보 요청 실패: ${response.statusCode}');
+  }
+
+  /// 장소 교체 뒤 일자별 장소 순서로 OSRM 도로 geometry를 다시 계산한다.
+  static Future<List<RoutePreviewPath>> getRoutePreview({
+    required String travelMode,
+    required List<RoutePreviewDay> days,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/recommendations/routes/preview'),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'travelMode': travelMode,
+            'days': days.map((day) => day.toJson()).toList(),
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      return RoutePreviewPath.listFromResponse(
+        json.decode(utf8.decode(response.bodyBytes)),
+      );
+    }
+    throw Exception('경로 미리보기 요청 실패: ${response.statusCode}');
+  }
+
+  static Future<List<Map<String, dynamic>>> getSubtypeOptions(
+    String placeType,
+  ) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/places/subtypes?placeType=$placeType'),
+    );
+    if (response.statusCode != 200) throw Exception('하위 카테고리 요청 실패');
+    return (json.decode(utf8.decode(response.bodyBytes)) as List)
+        .map((value) => Map<String, dynamic>.from(value as Map))
+        .toList();
+  }
+
+  /// 편집 중인 일정의 특정 슬롯에 넣을 후보를 조회한다.
+  static Future<Map<String, dynamic>> getPlannerSlotOptions({
+    required String travelMode,
+    required String departureAt,
+    required int targetSlotOrder,
+    required List<Map<String, dynamic>> slots,
+    List<Map<String, dynamic>> dayStartAnchors = const [],
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/planner/slot-options'),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'regionKey': 'busan',
+            'travelMode': travelMode,
+            'departureAt': departureAt,
+            'targetSlotOrder': targetSlotOrder,
+            'slots': slots,
+            'dayStartAnchors': dayStartAnchors,
+            'debugUseImported': true,
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(
+        json.decode(utf8.decode(response.bodyBytes)) as Map,
+      );
+    }
+    throw Exception('플래너 슬롯 후보 요청 실패: ${response.statusCode}');
+  }
+
+  static Future<Map<String, dynamic>> createPlannedRoute(
+    Map<String, dynamic> request,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/recommendations/routes'),
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode(request),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('코스 생성 실패: ${response.statusCode}');
+    }
+    return Map<String, dynamic>.from(
+      json.decode(utf8.decode(response.bodyBytes)) as Map,
+    );
   }
 
   static Future<List<dynamic>> getNearbyFestivals(

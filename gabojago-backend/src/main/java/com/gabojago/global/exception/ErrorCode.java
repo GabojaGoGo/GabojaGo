@@ -33,6 +33,7 @@ public enum ErrorCode {
     INVALID_PLACE_ATTRIBUTE(HttpStatus.BAD_REQUEST, "장소 속성 값이 올바르지 않습니다."),
 
     // ===== Common =====
+    ROUTING_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "이동 경로를 계산할 수 없습니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 리소스를 찾을 수 없습니다."),
     CONFLICT(HttpStatus.CONFLICT, "이미 존재하는 리소스입니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다.");

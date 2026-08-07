@@ -27,11 +27,12 @@ public class CourseController {
             @RequestParam(defaultValue = "") String purposes,
             @RequestParam(defaultValue = "") String duration,
             @RequestParam(required = false) Double lat,
-            @RequestParam(required = false) Double lng) {
+            @RequestParam(required = false) Double lng,
+            @RequestParam(defaultValue = "") String travelConcept) {
         List<String> purposeList = purposes.isBlank()
                 ? List.of()
                 : Arrays.asList(purposes.split(","));
-        return courseService.getRecommendedCourses(purposeList, duration, lat, lng);
+        return courseService.getRecommendedCourses(purposeList, duration, lat, lng, travelConcept);
     }
 
     @GetMapping("/{contentId}/detail")

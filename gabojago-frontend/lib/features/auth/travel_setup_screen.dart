@@ -3,7 +3,7 @@ import 'package:tripmate/core/models/user_prefs.dart';
 import 'package:tripmate/core/services/auth_service.dart';
 import 'package:tripmate/core/services/user_data_service.dart';
 import 'package:tripmate/core/theme/app_theme.dart';
-import 'package:tripmate/features/course/travel_course_result_screen.dart';
+import 'package:tripmate/features/course/course_loading_screen.dart';
 
 class TravelSetupScreen extends StatefulWidget {
   /// true(기본값): 완료 후 코스 추천 화면으로 이동
@@ -75,14 +75,15 @@ class _TravelSetupScreenState extends State<TravelSetupScreen> {
       purposes: _selectedPurposes.toList(),
       duration: _selectedDuration,
     );
-    UserDataService.instance.savePrefs(_selectedPurposes.toList(), _selectedDuration);
+    UserDataService.instance.savePrefs(
+      _selectedPurposes.toList(),
+      _selectedDuration,
+    );
 
     if (widget.showCourseResult) {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => TravelCourseResultScreen(prefs: prefs),
-        ),
+        MaterialPageRoute(builder: (_) => CourseLoadingScreen(prefs: prefs)),
       );
     } else {
       Navigator.pop(context);
@@ -126,52 +127,55 @@ class _TravelSetupScreenState extends State<TravelSetupScreen> {
         decoration: kAppGradient,
         child: SafeArea(
           child: Column(
-        children: [
-          // 진행 바
-          _StepProgressBar(currentStep: _currentPage, totalSteps: 2),
-          const SizedBox(height: 8),
-          // 페이지 컨텐츠
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _PurposeSelectionPage(
-                  selected: _selectedPurposes,
-                  onToggle: (key) => setState(() {
-                    if (_selectedPurposes.contains(key)) {
-                      _selectedPurposes.remove(key);
-                    } else if (_selectedPurposes.length < 3) {
-                      _selectedPurposes.add(key);
-                    }
-                  }),
-                ),
-                _DurationSelectionPage(
-                  selected: _selectedDuration,
-                  onSelect: (key) => setState(() => _selectedDuration = key),
-                ),
-              ],
-            ),
-          ),
-          // 하단 버튼
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-            child: SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: FilledButton(
-                onPressed: _canProceed ? _goNext : null,
-                child: Text(
-                  _currentPage == 1
-                      ? (widget.showCourseResult ? '추천 코스 보기' : '저장')
-                      : '다음',
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700),
+            children: [
+              // 진행 바
+              _StepProgressBar(currentStep: _currentPage, totalSteps: 2),
+              const SizedBox(height: 8),
+              // 페이지 컨텐츠
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    _PurposeSelectionPage(
+                      selected: _selectedPurposes,
+                      onToggle: (key) => setState(() {
+                        if (_selectedPurposes.contains(key)) {
+                          _selectedPurposes.remove(key);
+                        } else if (_selectedPurposes.length < 3) {
+                          _selectedPurposes.add(key);
+                        }
+                      }),
+                    ),
+                    _DurationSelectionPage(
+                      selected: _selectedDuration,
+                      onSelect: (key) =>
+                          setState(() => _selectedDuration = key),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ),
-        ],
+              // 하단 버튼
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton(
+                    onPressed: _canProceed ? _goNext : null,
+                    child: Text(
+                      _currentPage == 1
+                          ? (widget.showCourseResult ? '추천 코스 보기' : '저장')
+                          : '다음',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ), // Column
         ), // SafeArea
       ), // Container (gradient)
@@ -184,8 +188,7 @@ class _StepProgressBar extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
 
-  const _StepProgressBar(
-      {required this.currentStep, required this.totalSteps});
+  const _StepProgressBar({required this.currentStep, required this.totalSteps});
 
   @override
   Widget build(BuildContext context) {
@@ -218,8 +221,7 @@ class _PurposeSelectionPage extends StatelessWidget {
   final Set<String> selected;
   final void Function(String) onToggle;
 
-  const _PurposeSelectionPage(
-      {required this.selected, required this.onToggle});
+  const _PurposeSelectionPage({required this.selected, required this.onToggle});
 
   @override
   Widget build(BuildContext context) {
@@ -235,8 +237,7 @@ class _PurposeSelectionPage extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '최대 3개까지 선택할 수 있어요',
-            style: TextStyle(
-                fontSize: 14, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           const SizedBox(height: 24),
           GridView.count(
@@ -290,8 +291,8 @@ class _PurposeChip extends StatelessWidget {
           color: isSelected
               ? kChipSelectedColor
               : disabled
-                  ? kChipUnselectedColor.withValues(alpha: 0.5)
-                  : kChipUnselectedColor,
+              ? kChipUnselectedColor.withValues(alpha: 0.5)
+              : kChipUnselectedColor,
           border: Border.all(
             color: isSelected ? kPrimaryColor : Colors.transparent,
             width: 2,
@@ -301,7 +302,10 @@ class _PurposeChip extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(icon, style: TextStyle(fontSize: 28, color: disabled ? null : null)),
+            Text(
+              icon,
+              style: TextStyle(fontSize: 28, color: disabled ? null : null),
+            ),
             const SizedBox(height: 6),
             Text(
               label,
@@ -311,8 +315,8 @@ class _PurposeChip extends StatelessWidget {
                 color: isSelected
                     ? kPrimaryColor
                     : disabled
-                        ? Colors.black.withValues(alpha: 0.3)
-                        : const Color(0xFF1A1A1A),
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : const Color(0xFF1A1A1A),
               ),
             ),
           ],
@@ -327,8 +331,10 @@ class _DurationSelectionPage extends StatelessWidget {
   final String selected;
   final void Function(String) onSelect;
 
-  const _DurationSelectionPage(
-      {required this.selected, required this.onSelect});
+  const _DurationSelectionPage({
+    required this.selected,
+    required this.onSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -405,7 +411,9 @@ class _DurationCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: isSelected ? kPrimaryColor : const Color(0xFF1A1A1A),
+                      color: isSelected
+                          ? kPrimaryColor
+                          : const Color(0xFF1A1A1A),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -422,8 +430,11 @@ class _DurationCard extends StatelessWidget {
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle_rounded,
-                  color: kPrimaryColor, size: 22),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: kPrimaryColor,
+                size: 22,
+              ),
           ],
         ),
       ),

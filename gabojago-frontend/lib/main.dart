@@ -2,6 +2,8 @@
 // 앱 진입점 — Material 3 테마 설정 및 BottomNavigationBar 4탭 구성
 // 탭: 홈 / 내 주변 / 플래너 / 기록  (혜택은 홈 화면 전체보기 버튼으로 접근)
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
@@ -22,25 +24,57 @@ import 'package:tripmate/features/my_trip/my_trip_screen.dart';
 
 const _startLogoLab = bool.fromEnvironment('LOGO_LAB');
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 어떤 네이티브 초기화가 지연되더라도 첫 프레임은 즉시 표시한다.
+  runApp(const GabojaGoApp());
+  unawaited(_initializeApp());
+}
+
+Future<void> _initializeApp() async {
   const env = String.fromEnvironment('ENV', defaultValue: 'local');
   final envFile = switch (env) {
     'imac' => '.env.imac',
     'tailscale' => '.env.tailscale',
     _ => '.env',
   };
-  await dotenv.load(fileName: envFile);
-  await AuthService.instance.init();
-  await UserDataService.instance.init();
-  await NotificationService.instance.init();
+  try {
+    await dotenv.load(fileName: envFile);
+  } catch (error) {
+    debugPrint('[Startup] failed to load $envFile: $error');
+    return;
+  }
+
   final kakaoNativeAppKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
   if (kakaoNativeAppKey == null || kakaoNativeAppKey.isEmpty) {
-    throw StateError('KAKAO_NATIVE_APP_KEY is missing in .env');
+    debugPrint('[Startup] KAKAO_NATIVE_APP_KEY is missing in $envFile');
+    return;
   }
   KakaoSdk.init(nativeAppKey: kakaoNativeAppKey);
-  await KakaoMapsFlutter.init(kakaoNativeAppKey);
-  runApp(const GabojaGoApp());
+
+  try {
+    await AuthService.instance.init();
+    await UserDataService.instance.init();
+  } catch (error) {
+    debugPrint('[Startup] local storage initialization failed: $error');
+  }
+
+  unawaited(_initializeDeferredServices(kakaoNativeAppKey));
+}
+
+Future<void> _initializeDeferredServices(String kakaoNativeAppKey) async {
+  try {
+    await NotificationService.instance.init();
+  } catch (error) {
+    debugPrint('[Startup] notification initialization failed: $error');
+  }
+
+  try {
+    await KakaoMapsFlutter.init(kakaoNativeAppKey);
+  } catch (error) {
+    debugPrint('[Startup] Kakao Maps initialization failed: $error');
+  }
 }
 
 class GabojaGoApp extends StatefulWidget {
