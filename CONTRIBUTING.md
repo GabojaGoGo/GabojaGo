@@ -113,6 +113,8 @@ docker compose logs -f backend
 ## PR 체크리스트
 
 PR 올리기 전 스스로 확인:
+- [ ] 루트에서 `make verify`를 실행했는가
+- [ ] 프론트 변경이 있으면 `make format-check`를 통과했는가
 - [ ] `develop` 최신 상태에서 브랜치 생성했는가
 - [ ] `.env` 파일이 커밋에 포함되지 않았는가
 - [ ] 빌드 오류 없이 실행되는가
