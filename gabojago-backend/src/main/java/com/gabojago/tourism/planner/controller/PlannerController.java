@@ -28,8 +28,10 @@ public class PlannerController {
     @Operation(
             summary = "지정 슬롯의 장소 후보 추천",
             description = "targetSlotOrder의 빈 슬롯에 후보 최대 5개를 반환합니다. 확정된 앞뒤 장소와 "
-                    + "이후 미확정 슬롯 최대 두 개를 함께 평가하며, scoreBreakdown의 lookAheadApplied가 1이면 "
-                    + "후속 일정 연결성까지 점수에 반영됐음을 뜻합니다. 대중교통은 아직 지원하지 않습니다."
+                    + "이후 미확정 슬롯 최대 두 개를 함께 평가합니다. dayStartAnchors로 DAY 2 이후의 숙소 "
+                    + "출발 좌표를 보내면 그날 첫 후보의 동선 점수와 경로 미리보기에 반영됩니다. "
+                    + "scoreBreakdown의 lookAheadApplied가 1이면 후속 일정 연결성까지 점수에 반영됐음을 뜻합니다. "
+                    + "대중교통은 아직 지원하지 않습니다."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "후보 추천 성공"),

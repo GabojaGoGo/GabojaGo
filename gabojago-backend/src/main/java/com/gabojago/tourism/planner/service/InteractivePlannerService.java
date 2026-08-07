@@ -67,9 +67,11 @@ public class InteractivePlannerService {
         Region region = regionRepository.findByRegionKey(request.regionKey())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Region not found"));
         Map<Long, Place> selectedPlaces = resolveSelectedPlaces(request.slots());
+        Map<Integer, Place> dayStartAnchors = resolveDayStartAnchors(request.dayStartAnchors());
         NormalizedSlot target = request.targetSlot();
-        Place previous = selectedBefore(request.slots(), target.order(), selectedPlaces);
-        NormalizedSlot previousSlot = selectedSlotBefore(request.slots(), target.order());
+        Place previousOnDay = selectedBeforeOnDay(request.slots(), target, selectedPlaces);
+        Place previous = previousOnDay == null ? dayStartAnchors.get(target.slot().day()) : previousOnDay;
+        NormalizedSlot previousSlot = selectedSlotBeforeOnDay(request.slots(), target);
         Place next = selectedAfter(request.slots(), target.order(), selectedPlaces);
         Set<Long> occupiedIds = Set.copyOf(selectedPlaces.keySet());
 
@@ -199,13 +201,30 @@ public class InteractivePlannerService {
         return places;
     }
 
-    private Place selectedBefore(List<NormalizedSlot> slots, int order, Map<Long, Place> places) {
-        return slots.stream().filter(slot -> slot.order() < order && slot.selectedPlaceId() != null)
+    private Map<Integer, Place> resolveDayStartAnchors(List<PlannerSlotOptionsRequest.DayStartAnchor> anchors) {
+        if (anchors == null) return Map.of();
+        Map<Integer, Place> result = new LinkedHashMap<>();
+        for (PlannerSlotOptionsRequest.DayStartAnchor anchor : anchors) {
+            if (anchor == null || anchor.day() == null || anchor.day() < 2
+                    || anchor.lat() == null || anchor.lng() == null) {
+                throw invalid("숙소 출발 기준점은 DAY 2 이후의 좌표가 필요합니다.");
+            }
+            if (result.putIfAbsent(anchor.day(), Place.routingAnchor(-anchor.day().longValue(), anchor.lat(), anchor.lng())) != null) {
+                throw invalid("하루에는 숙소 출발 기준점을 하나만 설정할 수 있습니다.");
+            }
+        }
+        return Map.copyOf(result);
+    }
+
+    private Place selectedBeforeOnDay(List<NormalizedSlot> slots, NormalizedSlot target, Map<Long, Place> places) {
+        return slots.stream().filter(slot -> slot.slot().day() == target.slot().day()
+                        && slot.order() < target.order() && slot.selectedPlaceId() != null)
                 .max(Comparator.comparingInt(NormalizedSlot::order)).map(slot -> places.get(slot.selectedPlaceId())).orElse(null);
     }
 
-    private NormalizedSlot selectedSlotBefore(List<NormalizedSlot> slots, int order) {
-        return slots.stream().filter(slot -> slot.order() < order && slot.selectedPlaceId() != null)
+    private NormalizedSlot selectedSlotBeforeOnDay(List<NormalizedSlot> slots, NormalizedSlot target) {
+        return slots.stream().filter(slot -> slot.slot().day() == target.slot().day()
+                        && slot.order() < target.order() && slot.selectedPlaceId() != null)
                 .max(Comparator.comparingInt(NormalizedSlot::order)).orElse(null);
     }
 
@@ -266,7 +285,7 @@ public class InteractivePlannerService {
                 request.regionKey() == null || request.regionKey().isBlank() ? "busan" : request.regionKey(),
                 travelMode,
                 request.departureAt() == null ? LocalDateTime.now().withHour(10).withMinute(0).withSecond(0).withNano(0) : request.departureAt(),
-                target, slots, Boolean.TRUE.equals(request.debugUseImported()));
+                target, slots, request.dayStartAnchors(), Boolean.TRUE.equals(request.debugUseImported()));
     }
 
     private NormalizedSlot normalizeSlot(PlannerSlotRequest slot) {
@@ -314,7 +333,9 @@ public class InteractivePlannerService {
     private ResponseStatusException invalid(String message) { return new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, message); }
 
     private record NormalizedRequest(String regionKey, TravelMode travelMode, LocalDateTime departureAt, NormalizedSlot targetSlot,
-                                     List<NormalizedSlot> slots, boolean debugUseImported) { }
+                                     List<NormalizedSlot> slots,
+                                     List<PlannerSlotOptionsRequest.DayStartAnchor> dayStartAnchors,
+                                     boolean debugUseImported) { }
     private record NormalizedSlot(int order, RecommendationSlot slot, Long selectedPlaceId) { }
     private record PlanningWindow(List<NormalizedSlot> futureSlots, Place anchor) { }
 }

@@ -336,6 +336,37 @@ class ApiService {
         .toList();
   }
 
+  /// 편집 중인 일정의 특정 슬롯에 넣을 후보를 조회한다.
+  static Future<Map<String, dynamic>> getPlannerSlotOptions({
+    required String travelMode,
+    required String departureAt,
+    required int targetSlotOrder,
+    required List<Map<String, dynamic>> slots,
+    List<Map<String, dynamic>> dayStartAnchors = const [],
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/planner/slot-options'),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'regionKey': 'busan',
+            'travelMode': travelMode,
+            'departureAt': departureAt,
+            'targetSlotOrder': targetSlotOrder,
+            'slots': slots,
+            'dayStartAnchors': dayStartAnchors,
+            'debugUseImported': true,
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(
+        json.decode(utf8.decode(response.bodyBytes)) as Map,
+      );
+    }
+    throw Exception('플래너 슬롯 후보 요청 실패: ${response.statusCode}');
+  }
+
   static Future<Map<String, dynamic>> createPlannedRoute(
     Map<String, dynamic> request,
   ) async {

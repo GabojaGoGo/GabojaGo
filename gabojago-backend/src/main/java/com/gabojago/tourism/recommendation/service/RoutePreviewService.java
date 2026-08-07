@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -61,7 +62,15 @@ public class RoutePreviewService {
         if (day.day() == null || day.day() < 1 || day.placeIds() == null) {
             throw invalid("day와 placeIds는 올바르게 지정해야 합니다.");
         }
-        List<Place> orderedPlaces = day.placeIds().stream().map(places::get).toList();
+        List<Place> orderedPlaces = new ArrayList<>();
+        if (day.startAnchor() != null) {
+            RoutePreviewRequest.StartAnchor anchor = day.startAnchor();
+            if (anchor.lat() == null || anchor.lng() == null) {
+                throw invalid("숙소 출발 기준점의 좌표가 필요합니다.");
+            }
+            orderedPlaces.add(Place.routingAnchor(-day.day().longValue(), anchor.lat(), anchor.lng()));
+        }
+        orderedPlaces.addAll(day.placeIds().stream().map(places::get).toList());
         if (orderedPlaces.size() < 2) {
             return new RoutePreviewResponse.RoutePath(day.day(), List.of());
         }

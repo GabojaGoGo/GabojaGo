@@ -3,10 +3,15 @@
 /// JSON의 untyped 값은 이 모델을 만들 때만 다루고, 화면과 서비스 사이에는
 /// 타입이 있는 값을 전달한다.
 class RoutePreviewDay {
-  const RoutePreviewDay({required this.day, required this.placeIds});
+  const RoutePreviewDay({
+    required this.day,
+    required this.placeIds,
+    this.startAnchor,
+  });
 
   final int day;
   final List<int> placeIds;
+  final RoutePreviewStartAnchor? startAnchor;
 
   static List<RoutePreviewDay> fromCoursePlaces(
     Iterable<Map<String, Object?>> places,
@@ -26,12 +31,30 @@ class RoutePreviewDay {
         .toList();
   }
 
-  Map<String, Object> toJson() => {'day': day, 'placeIds': placeIds};
+  Map<String, Object?> toJson() => {
+    'day': day,
+    'placeIds': placeIds,
+    'startAnchor': ?startAnchor?.toJson(),
+  };
 
   static int _dayFromLabel(String? label) {
     final value = RegExp(r'\d+').firstMatch(label ?? '')?.group(0);
     return value == null ? 1 : int.parse(value);
   }
+}
+
+class RoutePreviewStartAnchor {
+  const RoutePreviewStartAnchor({
+    required this.name,
+    required this.lat,
+    required this.lng,
+  });
+
+  final String name;
+  final double lat;
+  final double lng;
+
+  Map<String, Object> toJson() => {'name': name, 'lat': lat, 'lng': lng};
 }
 
 class RoutePreviewPath {

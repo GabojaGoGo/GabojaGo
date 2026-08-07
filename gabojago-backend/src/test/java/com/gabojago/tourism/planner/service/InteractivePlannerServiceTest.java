@@ -66,7 +66,7 @@ class InteractivePlannerServiceTest {
                 List.of(
                         new PlannerSlotRequest(1, 1, "10:00", RecommendationSlotType.SIGHT, List.of(), 1L),
                         new PlannerSlotRequest(2, 1, "13:00", RecommendationSlotType.MEAL, List.of(), null)
-                ), true));
+                ), List.of(), true));
 
         assertThat(response.targetSlot().order()).isEqualTo(2);
         assertThat(response.options()).singleElement().satisfies(option -> {
@@ -80,11 +80,36 @@ class InteractivePlannerServiceTest {
     @Test
     void 잘못된_시간_형식은_추천_계산_전에_거절한다() {
         PlannerSlotOptionsRequest request = new PlannerSlotOptionsRequest("busan", TravelMode.CAR, null, 1,
-                List.of(new PlannerSlotRequest(1, 1, "오후", RecommendationSlotType.SIGHT, List.of(), null)), true);
+                List.of(new PlannerSlotRequest(1, 1, "오후", RecommendationSlotType.SIGHT, List.of(), null)), List.of(), true);
 
         assertThatThrownBy(() -> service().slotOptions(request))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("HH:mm");
+    }
+
+    @Test
+    void DAY2_첫_슬롯은_숙소_출발_기준점으로_후보를_평가한다() {
+        Region region = org.mockito.Mockito.mock(Region.class);
+        Place candidate = place(2L, "해운대 해수욕장", PlaceType.TOURIST_SPOT, 35.160, 129.164);
+        when(regionRepository.findByRegionKey("busan")).thenReturn(Optional.of(region));
+        when(region.getId()).thenReturn(10L);
+        when(candidateQueryService.findCandidates(eq(10L), eq(RecommendationSlotType.SIGHT), ArgumentMatchers.anyList(), eq(true)))
+                .thenReturn(List.of(candidate));
+        when(routingMatrixClient.getMatrix(anyList(), eq(TravelMode.CAR))).thenReturn(matrix(-2L, 2L));
+        when(slotCandidateScoringService.score(eq(candidate), ArgumentMatchers.any(), eq(""), eq(1_000)))
+                .thenReturn(new SlotCandidateScoringService.CandidateScore(90.0, Map.of(), false, "stub"));
+
+        PlannerSlotOptionsResponse response = service().slotOptions(new PlannerSlotOptionsRequest(
+                "busan", TravelMode.CAR, LocalDateTime.of(2026, 8, 10, 10, 0), 2,
+                List.of(
+                        new PlannerSlotRequest(1, 1, "10:00", RecommendationSlotType.SIGHT, List.of(), null),
+                        new PlannerSlotRequest(2, 2, "10:00", RecommendationSlotType.SIGHT, List.of(), null)
+                ), List.of(new PlannerSlotOptionsRequest.DayStartAnchor(
+                        2, "해운대 숙소", BigDecimal.valueOf(35.159), BigDecimal.valueOf(129.161)
+                )), true));
+
+        assertThat(response.options()).singleElement().satisfies(option ->
+                assertThat(option.fromPrevious().durationMinutes()).isEqualTo(10));
     }
 
     @Test
@@ -119,7 +144,7 @@ class InteractivePlannerServiceTest {
                         new PlannerSlotRequest(1, 1, "10:00", RecommendationSlotType.SIGHT, List.of(), 1L),
                         new PlannerSlotRequest(2, 1, "13:00", RecommendationSlotType.MEAL, List.of(), null),
                         new PlannerSlotRequest(3, 1, "15:00", RecommendationSlotType.CAFE, List.of(), null)
-                ), true));
+                ), List.of(), true));
 
         assertThat(response.options()).singleElement().satisfies(option -> {
             assertThat(option.score()).isEqualTo(88.0);

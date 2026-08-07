@@ -34,14 +34,15 @@ class RoutePreviewServiceTest {
 
         RoutePreviewResponse response = service.preview(new RoutePreviewRequest(
                 TravelMode.CAR, List.of(
-                        new RoutePreviewRequest.DayRoute(1, List.of(1L, 2L)),
-                        new RoutePreviewRequest.DayRoute(2, List.of(3L))
+                        new RoutePreviewRequest.DayRoute(1, List.of(1L, 2L), null),
+                        new RoutePreviewRequest.DayRoute(2, List.of(3L),
+                                new RoutePreviewRequest.StartAnchor("해운대 숙소", BigDecimal.valueOf(35.16), BigDecimal.valueOf(129.17)))
                 )
         ));
 
         assertThat(response.routePaths()).hasSize(2);
         assertThat(response.routePaths().get(0).points()).hasSize(2);
-        assertThat(response.routePaths().get(1).points()).isEmpty();
+        assertThat(response.routePaths().get(1).points()).hasSize(2);
     }
 
     private Place place(long id, double latitude, double longitude) {
