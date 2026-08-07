@@ -7,7 +7,8 @@ created_files=()
 
 cleanup() {
   local file
-  for file in "${created_files[@]}"; do
+  for file in "${created_files[@]:-}"; do
+    [[ -z "$file" ]] && continue
     rm -f "$file"
   done
 }
