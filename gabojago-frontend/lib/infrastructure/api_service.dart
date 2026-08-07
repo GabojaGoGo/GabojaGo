@@ -286,9 +286,9 @@ class ApiService {
             'travelMode': travelMode,
             'debugUseImported': true,
             'slotOrder': slotOrder,
-            if (day != null) 'day': day,
-            if (timeLabel != null) 'timeLabel': timeLabel,
-            if (slotType != null) 'slotType': slotType,
+            'day': ?day,
+            'timeLabel': ?timeLabel,
+            'slotType': ?slotType,
             'subtypeCodes': subtypeCodes,
             'currentPlaceIds': currentPlaceIds,
           }),
@@ -344,8 +344,9 @@ class ApiService {
       headers: const {'Content-Type': 'application/json'},
       body: jsonEncode(request),
     );
-    if (response.statusCode != 200)
+    if (response.statusCode != 200) {
       throw Exception('코스 생성 실패: ${response.statusCode}');
+    }
     return Map<String, dynamic>.from(
       json.decode(utf8.decode(response.bodyBytes)) as Map,
     );

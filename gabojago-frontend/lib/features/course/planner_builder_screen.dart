@@ -79,8 +79,9 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
     final wanted = <String>{'SIGHT', 'MEAL'};
     for (final concept in _concepts.where(
       (item) => _selectedConcepts.contains(item.title),
-    ))
+    )) {
       wanted.add(concept.slotType);
+    }
     _slots
       ..clear()
       ..addAll(
@@ -182,15 +183,17 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
           ),
         ),
       );
-      if (result != null && mounted)
+      if (result != null && mounted) {
         setState(
           () => _slots[index] = slot.copyWith(subtypeCodes: result.toList()),
         );
+      }
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('하위 카테고리를 불러오지 못했어요.')));
+      }
     }
   }
 
@@ -238,12 +241,13 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
         ),
       );
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('현재 조건으로 코스를 만들지 못했어요. 슬롯 조건을 조금 넓혀보세요.'),
           ),
         );
+      }
     } finally {
       if (mounted) setState(() => _creating = false);
     }
@@ -422,7 +426,7 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
         ),
         const SizedBox(height: 20),
         DropdownButtonFormField<String>(
-          value: _duration,
+          initialValue: _duration,
           decoration: const InputDecoration(
             labelText: '여행 기간',
             border: OutlineInputBorder(),
@@ -562,7 +566,7 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
             ],
           ),
           DropdownButtonFormField<String>(
-            value: _slots[i].type,
+            initialValue: _slots[i].type,
             decoration: const InputDecoration(labelText: '장소 종류'),
             items: _types.entries
                 .map(

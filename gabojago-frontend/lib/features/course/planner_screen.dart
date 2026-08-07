@@ -59,11 +59,12 @@ class _PlannerScreenState extends State<PlannerScreen>
         purposes: prefs.purposes,
         duration: prefs.duration,
       );
-      if (mounted)
+      if (mounted) {
         setState(() {
           _recommended = courses;
           _loading = false;
         });
+      }
     } catch (_) {
       if (mounted) {
         setState(() {
