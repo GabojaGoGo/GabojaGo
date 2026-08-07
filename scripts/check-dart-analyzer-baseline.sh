@@ -39,7 +39,21 @@ if [[ ! -f "$baseline_file" ]]; then
   exit 1
 fi
 
-if ! diff -u "$baseline_file" <(normalize "$current_file"); then
+new_diagnostics="$(
+  awk -F'|' '
+    NR == FNR {
+      baseline[$2 FS $3 FS $4] = $1
+      next
+    }
+    {
+      key = $2 FS $3 FS $4
+      if (($1 + 0) > (baseline[key] + 0)) print
+    }
+  ' "$baseline_file" <(normalize "$current_file")
+)"
+
+if [[ -n "$new_diagnostics" ]]; then
+  echo "$new_diagnostics" >&2
   echo "analyzer baseline: 새 warning 또는 info가 추가됐습니다." >&2
   exit 1
 fi
