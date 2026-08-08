@@ -97,13 +97,17 @@ class RecommendedTab extends StatelessWidget {
                     children: [
                       const Text('😔', style: TextStyle(fontSize: 40)),
                       const SizedBox(height: 12),
-                      const Text('조건에 맞는 코스가 없어요',
-                          style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w600)),
+                      const Text(
+                        '조건에 맞는 코스가 없어요',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       TextButton(
                         onPressed: onGoToSetup,
-                        child: const Text('다른 취향으로 다시 추천받기'),
+                        child: const Text('내 일정 직접 만들기'),
                       ),
                     ],
                   ),
@@ -125,14 +129,18 @@ class _PrefsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final purposeLabels = prefs.purposes
-        .map((k) => kPurposeOptions
-            .firstWhere((o) => o['key'] == k,
-                orElse: () => {'label': k})['label']!)
+        .map(
+          (k) => kPurposeOptions.firstWhere(
+            (o) => o['key'] == k,
+            orElse: () => {'label': k},
+          )['label']!,
+        )
         .toList();
     final durationLabel = prefs.duration.isNotEmpty
-        ? kDurationOptions
-            .firstWhere((o) => o['key'] == prefs.duration,
-                orElse: () => {'label': prefs.duration})['label']!
+        ? kDurationOptions.firstWhere(
+            (o) => o['key'] == prefs.duration,
+            orElse: () => {'label': prefs.duration},
+          )['label']!
         : '';
 
     return Container(
@@ -141,8 +149,7 @@ class _PrefsHeader extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: colorScheme.primary.withValues(alpha: 0.15)),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.15)),
       ),
       child: Row(
         children: [
@@ -161,13 +168,14 @@ class _PrefsHeader extends StatelessWidget {
             onPressed: onGoToSetup,
             style: TextButton.styleFrom(
               foregroundColor: colorScheme.primary,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               minimumSize: Size.zero,
             ),
-            child: const Text('다른\n취향',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+            child: const Text(
+              '일정\n만들기',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -217,30 +225,37 @@ class _EmptySetup extends StatelessWidget {
           children: [
             const Text('🗺️', style: TextStyle(fontSize: 56)),
             const SizedBox(height: 20),
-            const Text('취향을 먼저 설정해보세요',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3)),
+            const Text(
+              '내 여행 일정을 먼저 만들어보세요',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.3,
+              ),
+            ),
             const SizedBox(height: 8),
             const Text(
-              '취향에 딱 맞는 맞춤 코스를\n추천해드릴게요',
+              '이동수단과 기간을 고르고\n원하는 장소 순서를 직접 정할 수 있어요',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF6B7280),
-                  height: 1.6),
+                fontSize: 14,
+                color: Color(0xFF6B7280),
+                height: 1.6,
+              ),
             ),
             const SizedBox(height: 28),
             FilledButton.icon(
               onPressed: onGoToSetup,
-              icon: const Icon(Icons.tune_outlined, size: 18),
-              label: const Text('취향 설정하기'),
+              icon: const Icon(Icons.edit_calendar_outlined, size: 18),
+              label: const Text('일정 만들기'),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 14),
+                  horizontal: 24,
+                  vertical: 14,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -264,15 +279,21 @@ class _ErrorBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.wifi_off_outlined,
-              size: 18, color: Color(0xFFF59E0B)),
+          const Icon(
+            Icons.wifi_off_outlined,
+            size: 18,
+            color: Color(0xFFF59E0B),
+          ),
           const SizedBox(width: 10),
           const Expanded(
-            child: Text('코스를 불러오지 못했어요',
-                style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF92400E),
-                    fontWeight: FontWeight.w500)),
+            child: Text(
+              '코스를 불러오지 못했어요',
+              style: TextStyle(
+                fontSize: 13,
+                color: Color(0xFF92400E),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           TextButton(
             onPressed: onRetry,
@@ -281,8 +302,10 @@ class _ErrorBanner extends StatelessWidget {
               padding: EdgeInsets.zero,
               minimumSize: Size.zero,
             ),
-            child: const Text('재시도',
-                style: TextStyle(fontWeight: FontWeight.w700)),
+            child: const Text(
+              '재시도',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),

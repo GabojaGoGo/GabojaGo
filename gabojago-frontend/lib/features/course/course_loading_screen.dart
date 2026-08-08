@@ -6,7 +6,11 @@ import 'package:tripmate/features/course/travel_course_result_screen.dart';
 class CourseLoadingScreen extends StatefulWidget {
   final UserPrefs prefs;
   final String? preferredAnchor;
-  const CourseLoadingScreen({super.key, required this.prefs, this.preferredAnchor});
+  const CourseLoadingScreen({
+    super.key,
+    required this.prefs,
+    this.preferredAnchor,
+  });
 
   @override
   State<CourseLoadingScreen> createState() => _CourseLoadingScreenState();
@@ -23,6 +27,7 @@ class _CourseLoadingScreenState extends State<CourseLoadingScreen>
   bool _minTimeElapsed = false;
   bool _navStarted = false;
   List<Map<String, dynamic>> _courses = [];
+  String _travelConcept = '';
 
   @override
   void initState() {
@@ -33,9 +38,10 @@ class _CourseLoadingScreenState extends State<CourseLoadingScreen>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     )..repeat(reverse: true);
-    _shakeAnim = Tween<double>(begin: -0.15, end: 0.15).animate(
-      CurvedAnimation(parent: _shakeCtrl, curve: Curves.easeInOut),
-    );
+    _shakeAnim = Tween<double>(
+      begin: -0.15,
+      end: 0.15,
+    ).animate(CurvedAnimation(parent: _shakeCtrl, curve: Curves.easeInOut));
 
     // 체크마크 fade-in
     _checkCtrl = AnimationController(
@@ -52,6 +58,19 @@ class _CourseLoadingScreenState extends State<CourseLoadingScreen>
       }
     });
 
+    WidgetsBinding.instance.addPostFrameCallback((_) => _pickConceptAndFetch());
+  }
+
+  Future<void> _pickConceptAndFetch() async {
+    final concept = await showModalBottomSheet<String>(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      isScrollControlled: true,
+      builder: (_) => const _TravelConceptSheet(),
+    );
+    if (!mounted) return;
+    _travelConcept = concept ?? '여유롭게 둘러보기';
     _fetchCourses();
   }
 
@@ -71,6 +90,7 @@ class _CourseLoadingScreenState extends State<CourseLoadingScreen>
         lat: lat,
         lng: lng,
         preferredAnchor: widget.preferredAnchor,
+        travelConcept: _travelConcept,
       );
       if (mounted) {
         _courses = courses;
@@ -101,6 +121,7 @@ class _CourseLoadingScreenState extends State<CourseLoadingScreen>
           builder: (_) => TravelCourseResultScreen(
             prefs: widget.prefs,
             preloadedCourses: _courses,
+            travelConcept: _travelConcept,
           ),
         ),
       );
@@ -118,15 +139,20 @@ class _CourseLoadingScreenState extends State<CourseLoadingScreen>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final purposeLabels = widget.prefs.purposes
-        .map((k) => kPurposeOptions
-            .firstWhere((o) => o['key'] == k,
-                orElse: () => {'label': k, 'icon': ''})
-            .let((o) => '${o['icon']} ${o['label']}'))
+        .map(
+          (k) => kPurposeOptions
+              .firstWhere(
+                (o) => o['key'] == k,
+                orElse: () => {'label': k, 'icon': ''},
+              )
+              .let((o) => '${o['icon']} ${o['label']}'),
+        )
         .toList();
     final durationLabel = widget.prefs.duration.isNotEmpty
-        ? kDurationOptions
-            .firstWhere((o) => o['key'] == widget.prefs.duration,
-                orElse: () => {'label': widget.prefs.duration})['label']!
+        ? kDurationOptions.firstWhere(
+            (o) => o['key'] == widget.prefs.duration,
+            orElse: () => {'label': widget.prefs.duration},
+          )['label']!
         : null;
 
     return Scaffold(
@@ -151,8 +177,11 @@ class _CourseLoadingScreenState extends State<CourseLoadingScreen>
                     runSpacing: 8,
                     alignment: WrapAlignment.center,
                     children: [
-                      ...purposeLabels.map((label) => _LoadingChip(label: label)),
-                      if (durationLabel != null) _LoadingChip(label: durationLabel),
+                      ...purposeLabels.map(
+                        (label) => _LoadingChip(label: label),
+                      ),
+                      if (durationLabel != null)
+                        _LoadingChip(label: durationLabel),
                     ],
                   ),
                   const SizedBox(height: 48),
@@ -215,6 +244,98 @@ class _CourseLoadingScreenState extends State<CourseLoadingScreen>
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TravelConceptSheet extends StatefulWidget {
+  const _TravelConceptSheet();
+
+  @override
+  State<_TravelConceptSheet> createState() => _TravelConceptSheetState();
+}
+
+class _TravelConceptSheetState extends State<_TravelConceptSheet> {
+  static const _concepts = [
+    ('여유롭게 둘러보기', '무리 없는 동선으로 천천히 즐겨요', Icons.spa_outlined),
+    ('맛집 중심', '식사와 카페를 자연스럽게 이어요', Icons.restaurant_outlined),
+    ('사진·명소 중심', '대표 장소를 우선으로 담아요', Icons.photo_camera_outlined),
+    ('알차게 많이 보기', '이동 낭비를 줄여 더 많이 방문해요', Icons.explore_outlined),
+  ];
+  String _selected = _concepts.first.$1;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.82,
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            18,
+            20,
+            20 + MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '이번 여행은 어떤 느낌인가요?',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                '이번 코스에만 적용돼요.',
+                style: TextStyle(color: Color(0xFF6B7280)),
+              ),
+              const SizedBox(height: 16),
+              ..._concepts.map(
+                (concept) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: ChoiceChip(
+                    selected: _selected == concept.$1,
+                    onSelected: (_) => setState(() => _selected = concept.$1),
+                    avatar: Icon(concept.$3, size: 18, color: cs.primary),
+                    label: SizedBox(
+                      width: double.infinity,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              concept.$1,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              concept.$2,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, _selected),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+                child: const Text('이 컨셉으로 코스 만들기'),
+              ),
+            ],
           ),
         ),
       ),

@@ -39,3 +39,8 @@ out/
 ### Environment variable files ###
 .env
 .env.*
+
+### OSRM routing data (large, generated from OpenStreetMap) ###
+/infra/osrm/data/
+/infra/osrm/foot/
+/infra/osrm/yeongnam/

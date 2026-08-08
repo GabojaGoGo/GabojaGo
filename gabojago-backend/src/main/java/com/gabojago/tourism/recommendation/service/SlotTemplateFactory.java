@@ -35,7 +35,7 @@ public class SlotTemplateFactory {
         List<RecommendationSlot> slots = new ArrayList<>();
         for (int i = 0; i < seeds.size(); i++) {
             SlotSeed seed = seeds.get(i);
-            slots.add(new RecommendationSlot(i + 1, seed.day(), seed.timeLabel(), seed.slotType()));
+            slots.add(new RecommendationSlot(i + 1, seed.day(), seed.timeLabel(), seed.slotType(), List.of()));
         }
         return slots;
     }

@@ -76,7 +76,7 @@ public class RouteSegment extends BaseTimeEntity {
     @Column(name = "transfer_count")
     private Integer transferCount;
 
-    /** [시스템] Haversine, Kakao Mobility, ODsay 중 실제 계산 출처. */
+    /** [시스템] OSRM, Haversine, Kakao Mobility, ODsay 중 실제 계산 출처. */
     @Enumerated(EnumType.STRING)
     @Column(name = "source_type", nullable = false, length = 24)
     private SegmentSourceType sourceType;

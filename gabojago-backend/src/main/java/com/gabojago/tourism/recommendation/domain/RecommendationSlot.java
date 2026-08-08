@@ -4,6 +4,7 @@ public record RecommendationSlot(
         int order,
         int day,
         String timeLabel,
-        RecommendationSlotType slotType
+        RecommendationSlotType slotType,
+        java.util.List<String> subtypeCodes
 ) {
 }

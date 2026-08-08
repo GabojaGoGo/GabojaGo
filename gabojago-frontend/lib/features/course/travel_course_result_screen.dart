@@ -7,11 +7,13 @@ import 'package:tripmate/features/course/course_detail_screen.dart';
 class TravelCourseResultScreen extends StatefulWidget {
   final UserPrefs prefs;
   final List<Map<String, dynamic>>? preloadedCourses;
+  final String travelConcept;
 
   const TravelCourseResultScreen({
     super.key,
     required this.prefs,
     this.preloadedCourses,
+    this.travelConcept = '',
   });
 
   @override
@@ -40,10 +42,21 @@ class _TravelCourseResultScreenState extends State<TravelCourseResultScreen> {
       final courses = await ApiService.getCourses(
         purposes: widget.prefs.purposes,
         duration: widget.prefs.duration,
+        travelConcept: widget.travelConcept,
       );
-      if (mounted) setState(() { _courses = courses; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _courses = courses;
+          _loading = false;
+        });
+      }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -51,13 +64,17 @@ class _TravelCourseResultScreenState extends State<TravelCourseResultScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final purposeLabels = widget.prefs.purposes
-        .map((k) => kPurposeOptions
-            .firstWhere((o) => o['key'] == k,
-                orElse: () => {'label': k})['label']!)
+        .map(
+          (k) => kPurposeOptions.firstWhere(
+            (o) => o['key'] == k,
+            orElse: () => {'label': k},
+          )['label']!,
+        )
         .toList();
-    final durationLabel = kDurationOptions
-        .firstWhere((o) => o['key'] == widget.prefs.duration,
-            orElse: () => {'label': widget.prefs.duration})['label']!;
+    final durationLabel = kDurationOptions.firstWhere(
+      (o) => o['key'] == widget.prefs.duration,
+      orElse: () => {'label': widget.prefs.duration},
+    )['label']!;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -98,12 +115,16 @@ class _TravelCourseResultScreenState extends State<TravelCourseResultScreen> {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
-                              ...purposeLabels.map((label) => Padding(
-                                    padding: const EdgeInsets.only(right: 6),
-                                    child: _SummaryChip(label: label),
-                                  )),
+                              ...purposeLabels.map(
+                                (label) => Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: _SummaryChip(label: label),
+                                ),
+                              ),
                               if (widget.prefs.duration.isNotEmpty)
                                 _SummaryChip(label: durationLabel),
+                              if (widget.travelConcept.isNotEmpty)
+                                _SummaryChip(label: widget.travelConcept),
                             ],
                           ),
                         ),
@@ -130,12 +151,17 @@ class _TravelCourseResultScreenState extends State<TravelCourseResultScreen> {
                   children: [
                     const Text('🗺️', style: TextStyle(fontSize: 48)),
                     const SizedBox(height: 12),
-                    const Text('코스를 불러오지 못했어요',
-                        style: TextStyle(fontSize: 16, color: Colors.grey)),
+                    const Text(
+                      '코스를 불러오지 못했어요',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () {
-                        setState(() { _loading = true; _error = null; });
+                        setState(() {
+                          _loading = true;
+                          _error = null;
+                        });
                         _loadCourses();
                       },
                       child: const Text('다시 시도'),
@@ -154,8 +180,10 @@ class _TravelCourseResultScreenState extends State<TravelCourseResultScreen> {
                   children: [
                     Text('🗺️', style: TextStyle(fontSize: 48)),
                     SizedBox(height: 12),
-                    Text('조건에 맞는 코스를 찾고 있어요',
-                        style: TextStyle(fontSize: 16, color: Colors.grey)),
+                    Text(
+                      '조건에 맞는 코스를 찾고 있어요',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
                   ],
                 ),
               ),
@@ -167,7 +195,7 @@ class _TravelCourseResultScreenState extends State<TravelCourseResultScreen> {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
               sliver: SliverToBoxAdapter(
                 child: Text(
-                  '${_courses.length}개 코스를 찾았어요',
+                  '자동차와 도보, ${_courses.length}개 균형 코스를 찾았어요',
                   style: TextStyle(
                     fontSize: 14,
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -181,7 +209,11 @@ class _TravelCourseResultScreenState extends State<TravelCourseResultScreen> {
                 delegate: SliverChildBuilderDelegate(
                   (context, i) => Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: _CourseCard(course: _courses[i], purposes: widget.prefs.purposes),
+                    child: _CourseCard(
+                      course: _courses[i],
+                      purposes: widget.prefs.purposes,
+                      travelConcept: widget.travelConcept,
+                    ),
                   ),
                   childCount: _courses.length,
                 ),
@@ -223,7 +255,12 @@ class _SummaryChip extends StatelessWidget {
 class _CourseCard extends StatefulWidget {
   final Map<String, dynamic> course;
   final List<String> purposes;
-  const _CourseCard({required this.course, this.purposes = const []});
+  final String travelConcept;
+  const _CourseCard({
+    required this.course,
+    this.purposes = const [],
+    this.travelConcept = '',
+  });
 
   @override
   State<_CourseCard> createState() => _CourseCardState();
@@ -235,8 +272,9 @@ class _CourseCardState extends State<_CourseCard> {
   @override
   void initState() {
     super.initState();
-    _saved = UserDataService.instance
-        .isCourseSaved(widget.course['contentId'] as String? ?? '');
+    _saved = UserDataService.instance.isCourseSaved(
+      widget.course['contentId'] as String? ?? '',
+    );
   }
 
   Future<void> _toggleSave() async {
@@ -249,9 +287,9 @@ class _CourseCardState extends State<_CourseCard> {
       if (mounted) setState(() => _saved = true);
     }
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(_saved ? '플래너에 저장됐어요!' : '플래너에서 삭제됐어요'),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_saved ? '플래너에 저장됐어요!' : '플래너에서 삭제됐어요')),
+      );
     }
   }
 
@@ -259,32 +297,50 @@ class _CourseCardState extends State<_CourseCard> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final imageUrl = widget.course['imageUrl'] as String? ?? '';
-    final hasImage =
-        imageUrl.isNotEmpty && !imageUrl.contains('placeholder');
+    final hasImage = imageUrl.isNotEmpty && !imageUrl.contains('placeholder');
     final overview = widget.course['overview'] as String? ?? '';
 
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CourseDetailScreen(course: widget.course, purposes: widget.purposes),
-        ),
-      ).then((_) {
-        // 상세 화면에서 저장 토글 시 카드 상태 갱신
-        final contentId = widget.course['contentId'] as String? ?? '';
-        if (mounted) {
-          setState(() => _saved =
-              UserDataService.instance.isCourseSaved(contentId));
-        }
-      }),
+      onTap: () =>
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CourseDetailScreen(
+                course: widget.course,
+                purposes: widget.purposes,
+                travelConcept: widget.travelConcept,
+              ),
+            ),
+          ).then((_) {
+            // 상세 화면에서 저장 토글 시 카드 상태 갱신
+            final contentId = widget.course['contentId'] as String? ?? '';
+            if (mounted) {
+              setState(
+                () =>
+                    _saved = UserDataService.instance.isCourseSaved(contentId),
+              );
+            }
+          }),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
-            const BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
-            const BoxShadow(color: Color(0x14000000), blurRadius: 16, offset: Offset(0, 4)),
+            const BoxShadow(
+              color: Color(0x05000000),
+              blurRadius: 0,
+              spreadRadius: 1,
+            ),
+            const BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+            const BoxShadow(
+              color: Color(0x14000000),
+              blurRadius: 16,
+              offset: Offset(0, 4),
+            ),
           ],
         ),
         clipBehavior: Clip.antiAlias,
@@ -299,7 +355,10 @@ class _CourseCardState extends State<_CourseCard> {
                 fit: BoxFit.cover,
                 loadingBuilder: (context, child, progress) {
                   if (progress == null) return child;
-                  return _CourseImagePlaceholder(course: widget.course, height: 160);
+                  return _CourseImagePlaceholder(
+                    course: widget.course,
+                    height: 160,
+                  );
                 },
                 errorBuilder: (context, error, stack) =>
                     _CourseImagePlaceholder(course: widget.course, height: 160),
@@ -328,11 +387,18 @@ class _CourseCardState extends State<_CourseCard> {
                         visualDensity: VisualDensity.compact,
                       ),
                     ),
+                  _TravelModeChip(
+                    travelMode: widget.course['travelMode'] as String? ?? 'CAR',
+                  ),
+                  const SizedBox(height: 6),
                   if ((widget.course['region'] as String? ?? '').isNotEmpty)
                     Row(
                       children: [
-                        Icon(Icons.location_on_outlined,
-                            size: 14, color: colorScheme.primary),
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
+                          color: colorScheme.primary,
+                        ),
                         const SizedBox(width: 2),
                         Text(
                           widget.course['region'] as String,
@@ -346,12 +412,15 @@ class _CourseCardState extends State<_CourseCard> {
                         Text(
                           '상세 보기',
                           style: TextStyle(
-                              fontSize: 12,
-                              color: colorScheme.primary.withValues(alpha: 0.7)),
+                            fontSize: 12,
+                            color: colorScheme.primary.withValues(alpha: 0.7),
+                          ),
                         ),
-                        Icon(Icons.chevron_right,
-                            size: 16,
-                            color: colorScheme.primary.withValues(alpha: 0.7)),
+                        Icon(
+                          Icons.chevron_right,
+                          size: 16,
+                          color: colorScheme.primary.withValues(alpha: 0.7),
+                        ),
                       ],
                     ),
                   const SizedBox(height: 6),
@@ -381,9 +450,13 @@ class _CourseCardState extends State<_CourseCard> {
 
                   // 장소 미리보기 (DAY별)
                   if ((widget.course['places'] as List?)?.isNotEmpty == true)
-                    _PlacesPreview(places: List<Map<String, dynamic>>.from(
-                      (widget.course['places'] as List).map(
-                        (e) => Map<String, dynamic>.from(e as Map)))),
+                    _PlacesPreview(
+                      places: List<Map<String, dynamic>>.from(
+                        (widget.course['places'] as List).map(
+                          (e) => Map<String, dynamic>.from(e as Map),
+                        ),
+                      ),
+                    ),
 
                   const SizedBox(height: 12),
 
@@ -392,17 +465,18 @@ class _CourseCardState extends State<_CourseCard> {
                     child: FilledButton.icon(
                       onPressed: _toggleSave,
                       icon: Icon(
-                          _saved
-                              ? Icons.bookmark
-                              : Icons.bookmark_add_outlined,
-                          size: 18),
+                        _saved ? Icons.bookmark : Icons.bookmark_add_outlined,
+                        size: 18,
+                      ),
                       label: Text(_saved ? '저장됨' : '플래너에 저장'),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        backgroundColor:
-                            _saved ? Colors.grey[400] : colorScheme.primary,
+                        backgroundColor: _saved
+                            ? Colors.grey[400]
+                            : colorScheme.primary,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
@@ -412,6 +486,35 @@ class _CourseCardState extends State<_CourseCard> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TravelModeChip extends StatelessWidget {
+  final String travelMode;
+  const _TravelModeChip({required this.travelMode});
+
+  @override
+  Widget build(BuildContext context) {
+    final isWalk = travelMode == 'WALK';
+    final color = isWalk ? const Color(0xFF0F766E) : const Color(0xFF1D4ED8);
+    return Chip(
+      avatar: Icon(
+        isWalk ? Icons.directions_walk : Icons.directions_car,
+        size: 16,
+        color: color,
+      ),
+      label: Text(isWalk ? '도보 기준' : '자동차 기준'),
+      labelStyle: TextStyle(
+        fontSize: 11,
+        color: color,
+        fontWeight: FontWeight.w700,
+      ),
+      backgroundColor: color.withValues(alpha: 0.10),
+      side: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
     );
   }
 }
@@ -474,8 +577,11 @@ class _PlacesPreview extends StatelessWidget {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: List.generate(dayPlaces.length * 2 - 1, (i) {
                   if (i.isOdd) {
-                    return Icon(Icons.arrow_forward_ios,
-                        size: 8, color: Colors.grey[400]);
+                    return Icon(
+                      Icons.arrow_forward_ios,
+                      size: 8,
+                      color: Colors.grey[400],
+                    );
                   }
                   final place = dayPlaces[i ~/ 2];
                   final slot = place['slotType'] as String? ?? 'sight';
@@ -490,7 +596,10 @@ class _PlacesPreview extends StatelessWidget {
                         constraints: const BoxConstraints(maxWidth: 80),
                         child: Text(
                           place['subname'] as String? ?? '',
-                          style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[700],
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -512,10 +621,7 @@ class _CourseImagePlaceholder extends StatelessWidget {
   final Map<String, dynamic> course;
   final double height;
 
-  const _CourseImagePlaceholder({
-    required this.course,
-    required this.height,
-  });
+  const _CourseImagePlaceholder({required this.course, required this.height});
 
   static const _gradients = [
     [Color(0xFF2E7D6B), Color(0xFF1B5E4A)],
@@ -551,7 +657,11 @@ class _CourseImagePlaceholder extends StatelessWidget {
             if (region.isNotEmpty)
               Row(
                 children: [
-                  const Icon(Icons.location_on, color: Colors.white70, size: 12),
+                  const Icon(
+                    Icons.location_on,
+                    color: Colors.white70,
+                    size: 12,
+                  ),
                   const SizedBox(width: 3),
                   Text(
                     region,

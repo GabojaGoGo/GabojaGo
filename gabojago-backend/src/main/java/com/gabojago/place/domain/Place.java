@@ -105,6 +105,19 @@ public class Place extends BaseTimeEntity {
         return place;
     }
 
+    /**
+     * 사용자가 직접 입력한 숙소처럼 DB에 저장되지 않는 경로 기준점이다.
+     * 추천·OSRM 계산에만 사용하며 영속화하지 않는다.
+     */
+    public static Place routingAnchor(Long id, BigDecimal latitude, BigDecimal longitude) {
+        Place place = new Place();
+        place.id = id;
+        place.name = "숙소";
+        place.latitude = latitude;
+        place.longitude = longitude;
+        return place;
+    }
+
     public void updateBasicInfo(
             Region region,
             PlaceType placeType,

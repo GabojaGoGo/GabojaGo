@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum TravelMode {
     CAR("자차"),
+    WALK("도보"),
     PUBLIC_TRANSIT("대중교통");
 
     private final String description;
