@@ -12,11 +12,11 @@ import com.gabojago.member.auth.dto.response.OAuthLoginResponse;
 import com.gabojago.member.user.domain.SocialAccount;
 import com.gabojago.member.user.domain.User;
 import com.gabojago.member.user.enums.OAuthProvider;
-import com.gabojago.member.user.enums.UserStatus;
 import com.gabojago.member.user.repository.SocialAccountRepository;
 import com.gabojago.member.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -91,10 +91,6 @@ public class OAuthLoginService {
             return issueTokens(user, false);
         }
 
-        // (provider, providerUserId)가 신규일 때, 같은 이메일의 활성 유저가
-        // 다른 provider로 이미 가입돼 있으면 가입을 차단한다(provider 고정 정책, 이슈 #24).
-        blockIfEmailBoundToAnotherProvider(userInfo);
-
         User user = User.create(userInfo.nickname(), userInfo.email());
         user.recordLogin();
         userRepository.save(user);
@@ -106,28 +102,18 @@ public class OAuthLoginService {
         return issueTokens(user, true);
     }
 
-    private void blockIfEmailBoundToAnotherProvider(OAuth2UserInfo userInfo) {
-        String email = User.normalizeEmail(userInfo.email());
-        if (email == null) {
-            return; // 이메일이 없으면 교차 provider 식별이 불가능 → 신규 가입 허용
-        }
-        userRepository.findFirstByEmailAndStatus(email, UserStatus.ACTIVE).ifPresent(existing -> {
-            OAuthProvider boundProvider = socialAccountRepository.findByUser_Id(existing.getId()).stream()
-                    .map(SocialAccount::getProvider)
-                    .findFirst()
-                    .orElse(null);
-            log.info("이메일 중복 차단: userId={}, 기존 provider={}, 시도 provider={}",
-                    existing.getId(), boundProvider, userInfo.provider());
-            throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_CONFLICT,
-                    boundProvider != null ? boundProvider.name() : null);
-        });
-    }
-
     private OAuthLoginResponse issueTokens(User user, boolean isNewUser) {
         String userId = String.valueOf(user.getId());
         String accessToken = jwtUtils.generateAccessToken(userId);
-        String refreshToken = refreshTokenService.issue(user.getId());
-        return new OAuthLoginResponse(accessToken, refreshToken, userId, user.getNickname(), isNewUser);
+        try {
+            String refreshToken = refreshTokenService.issue(user.getId());
+            return new OAuthLoginResponse(accessToken, refreshToken, userId, user.getNickname(), isNewUser);
+        } catch (RedisConnectionFailureException e) {
+            // Redis는 refresh token의 단일 저장소다. 로그인 성공처럼 보이는 JWT만 반환하면
+            // 앱 재시작·갱신 때 즉시 깨지므로, 명확한 503으로 전체 로그인 요청을 실패시킨다.
+            log.error("로그인 세션 저장소 연결 실패: userId={}", user.getId(), e);
+            throw new BusinessException(ErrorCode.AUTH_SESSION_STORE_UNAVAILABLE, null, e);
+        }
     }
 
     public OAuth2UserInfo getUserInfo(OAuthProvider provider, String accessToken) {

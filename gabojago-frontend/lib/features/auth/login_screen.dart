@@ -28,7 +28,6 @@ class _LoginScreenState extends State<LoginScreen>
   // 어느 provider가 로그인 진행 중인지 — 눌린 버튼에만 스피너를 띄우기 위함
   SocialLoginProvider? _loadingProvider;
   bool get _isLoading => _loadingProvider != null;
-  String? _errorMessage;
 
   static const _primary = Color(0xFF2E7D6B);
 
@@ -58,16 +57,21 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _socialLogin(SocialLoginProvider provider) async {
     setState(() {
       _loadingProvider = provider;
-      _errorMessage = null;
     });
     try {
       debugPrint('[LoginScreen] ${provider.apiValue} login start');
       final result = await AuthService.instance.loginWithProvider(provider);
-      debugPrint('[LoginScreen] ${provider.apiValue} token exchange done: isNewUser=${result.isNewUser}');
-      await UserDataService.instance.syncFromServer()
-          .timeout(const Duration(seconds: 12), onTimeout: () {
-        debugPrint('[LoginScreen] syncFromServer timeout; continue navigation');
-      });
+      debugPrint(
+        '[LoginScreen] ${provider.apiValue} token exchange done: isNewUser=${result.isNewUser}',
+      );
+      await UserDataService.instance.syncFromServer().timeout(
+        const Duration(seconds: 12),
+        onTimeout: () {
+          debugPrint(
+            '[LoginScreen] syncFromServer timeout; continue navigation',
+          );
+        },
+      );
       final udPrefs = UserDataService.instance.getPrefs();
       final purposes = List<String>.from(udPrefs['purposes'] as List? ?? []);
       final duration = (udPrefs['duration'] as String?) ?? '';
@@ -87,24 +91,34 @@ class _LoginScreenState extends State<LoginScreen>
       debugPrint('[LoginScreen] ${provider.apiValue} login cancelled by user');
       if (!mounted) return;
       setState(() => _loadingProvider = null);
-    } on SocialAccountConflictException catch (e) {
-      debugPrint('[LoginScreen] ${provider.apiValue} conflict: bound=${e.boundProvider?.apiValue}');
+    } on SocialLoginFailure catch (error) {
+      debugPrint('[LoginScreen] social login failure: ${error.logLabel}');
       if (!mounted) return;
-      setState(() {
-        _loadingProvider = null;
-        _errorMessage = e.boundProvider != null
-            ? '이미 ${e.boundProvider!.label}로 가입된 계정이에요.\n${e.boundProvider!.label}로 로그인해 주세요.'
-            : '이미 다른 소셜 계정으로 가입된 이메일이에요.\n처음 가입한 소셜 계정으로 로그인해 주세요.';
-      });
-    } catch (e, st) {
-      debugPrint('[LoginScreen] ${provider.apiValue} login failed: $e');
-      debugPrint('$st');
+      setState(() => _loadingProvider = null);
+      _showLoginToast(error.userMessage);
+    } catch (error) {
+      final failure = SocialLoginFailure(
+        provider: provider,
+        code: SocialLoginFailureCode.unexpected,
+        causeType: error.runtimeType.toString(),
+      );
+      debugPrint('[LoginScreen] social login failure: ${failure.logLabel}');
       if (!mounted) return;
-      setState(() {
-        _loadingProvider = null;
-        _errorMessage = '로그인을 완료할 수 없습니다.\n$e';
-      });
+      setState(() => _loadingProvider = null);
+      _showLoginToast(failure.userMessage);
     }
+  }
+
+  void _showLoginToast(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
   }
 
   void _showComingSoon(String label) {
@@ -160,12 +174,12 @@ class _LoginScreenState extends State<LoginScreen>
 
                             // ── 소셜 로그인 버튼들 ────────────
                             _SocialLoginButton(
-                              isLoading: _loadingProvider ==
-                                  SocialLoginProvider.kakao,
+                              isLoading:
+                                  _loadingProvider == SocialLoginProvider.kakao,
                               onTap: _isLoading
                                   ? null
-                                  : () => _socialLogin(
-                                      SocialLoginProvider.kakao),
+                                  : () =>
+                                        _socialLogin(SocialLoginProvider.kakao),
                               backgroundColor: const Color(0xFFFEE500),
                               foregroundColor: const Color(0xFF191919),
                               icon: const _KakaoIcon(),
@@ -173,12 +187,12 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             const SizedBox(height: 10),
                             _SocialLoginButton(
-                              isLoading: _loadingProvider ==
-                                  SocialLoginProvider.naver,
+                              isLoading:
+                                  _loadingProvider == SocialLoginProvider.naver,
                               onTap: _isLoading
                                   ? null
-                                  : () => _socialLogin(
-                                      SocialLoginProvider.naver),
+                                  : () =>
+                                        _socialLogin(SocialLoginProvider.naver),
                               backgroundColor: const Color(0xFF03C75A),
                               foregroundColor: Colors.white,
                               icon: const _NaverIcon(),
@@ -186,12 +200,14 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             const SizedBox(height: 10),
                             _SocialLoginButton(
-                              isLoading: _loadingProvider ==
+                              isLoading:
+                                  _loadingProvider ==
                                   SocialLoginProvider.google,
                               onTap: _isLoading
                                   ? null
                                   : () => _socialLogin(
-                                      SocialLoginProvider.google),
+                                      SocialLoginProvider.google,
+                                    ),
                               backgroundColor: Colors.white,
                               foregroundColor: const Color(0xFF191919),
                               borderColor: const Color(0xFFE0E0E0),
@@ -209,20 +225,6 @@ class _LoginScreenState extends State<LoginScreen>
                                 foregroundColor: Colors.white,
                                 icon: const _AppleIcon(),
                                 label: 'Apple로 계속하기',
-                              ),
-                            ],
-
-                            // ── 에러 메시지 ─────────────────
-                            if (_errorMessage != null) ...[
-                              const SizedBox(height: 12),
-                              Text(
-                                _errorMessage!,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Color(0xFFD32F2F),
-                                  height: 1.5,
-                                ),
                               ),
                             ],
 
@@ -259,11 +261,11 @@ class _LoginScreenState extends State<LoginScreen>
                               onPressed: _isLoading
                                   ? null
                                   : () async {
-                                      await AuthService.instance
-                                          .setGuestMode();
+                                      await AuthService.instance.setGuestMode();
                                       if (mounted) {
-                                        Navigator.of(context)
-                                            .pushReplacementNamed('/main');
+                                        Navigator.of(
+                                          context,
+                                        ).pushReplacementNamed('/main');
                                       }
                                     },
                               child: Text(
@@ -273,8 +275,9 @@ class _LoginScreenState extends State<LoginScreen>
                                   fontWeight: FontWeight.w600,
                                   color: Colors.black.withValues(alpha: 0.65),
                                   decoration: TextDecoration.underline,
-                                  decorationColor:
-                                      Colors.black.withValues(alpha: 0.3),
+                                  decorationColor: Colors.black.withValues(
+                                    alpha: 0.3,
+                                  ),
                                 ),
                               ),
                             ),
@@ -351,8 +354,9 @@ class _SocialLoginButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: backgroundColor,
             borderRadius: BorderRadius.circular(14),
-            border:
-                borderColor == null ? null : Border.all(color: borderColor!),
+            border: borderColor == null
+                ? null
+                : Border.all(color: borderColor!),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.08),
