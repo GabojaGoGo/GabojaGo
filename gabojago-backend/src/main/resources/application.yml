@@ -24,15 +24,10 @@ spring:
         boot:
           allow_jdbc_metadata_access: false
 
+# 장소 데이터는 Python 수집기가 적재한다. 런타임 호출은 축제 조회 전용이다.
 tour-api:
   base-url: https://apis.data.go.kr/B551011/KorService2
-  datalab-url: https://apis.data.go.kr/B551011/DataLabService
   service-key: ${TOUR_API_SERVICE_KEY}
-
-congestion:
-  sync:
-    zone: Asia/Seoul
-    cron: 0 50 23 * * *
 
 kakao:
   client-id: ${KAKAO_REST_API_KEY}
