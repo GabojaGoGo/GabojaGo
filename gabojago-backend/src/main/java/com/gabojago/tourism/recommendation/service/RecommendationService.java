@@ -7,6 +7,7 @@ import com.gabojago.place.domain.Region;
 import com.gabojago.place.domain.enums.TravelMode;
 import com.gabojago.place.repository.PlaceAttributeRepository;
 import com.gabojago.place.repository.PlaceCategoryRepository;
+import com.gabojago.place.repository.PlaceRepository;
 import com.gabojago.place.repository.RegionRepository;
 import com.gabojago.tourism.recommendation.domain.RecommendationSlot;
 import com.gabojago.tourism.recommendation.dto.request.RouteRecommendationRequest;
@@ -36,6 +37,7 @@ public class RecommendationService {
     private static final int SLOT_CANDIDATE_LIMIT = 10;
 
     private final RegionRepository regionRepository;
+    private final PlaceRepository placeRepository;
     private final SlotTemplateFactory slotTemplateFactory;
     private final CandidateQueryService candidateQueryService;
     private final PlaceAttributeRepository placeAttributeRepository;
@@ -54,7 +56,9 @@ public class RecommendationService {
                 ? slotTemplateFactory.build(normalized.duration())
                 : normalized.slots();
         List<List<ScoredPlace>> candidatesBySlot = slots.stream()
-                .map(slot -> scoreCandidates(region.getId(), slot, normalized))
+                .map(slot -> scoreCandidates(
+                        region.getId(), slot, normalized, normalized.selectedPlaceIds().get(slot.order())
+                ))
                 .toList();
 
         if (candidatesBySlot.stream().anyMatch(List::isEmpty)) {
@@ -87,11 +91,18 @@ public class RecommendationService {
     private List<ScoredPlace> scoreCandidates(
             Long regionId,
             RecommendationSlot slot,
-            NormalizedRequest request
+            NormalizedRequest request,
+            Long selectedPlaceId
     ) {
-        List<Place> candidates = candidateQueryService.findCandidates(
-                regionId, slot.slotType(), slot.subtypeCodes(), request.debugUseImported()
-        );
+        List<Place> candidates = selectedPlaceId == null
+                ? candidateQueryService.findCandidates(
+                        regionId, slot.slotType(), slot.subtypeCodes(), request.debugUseImported()
+                )
+                : List.of(placeRepository.findById(selectedPlaceId)
+                        .filter(place -> place.getRegion().getId().equals(regionId))
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.UNPROCESSABLE_ENTITY, "선택한 장소를 찾을 수 없어요."
+                        )));
         candidates = candidates.stream()
                 .filter(place -> place.getLatitude() != null && place.getLongitude() != null)
                 .toList();
@@ -243,7 +254,17 @@ public class RecommendationService {
                 : request.departureAt();
         boolean debugUseImported = request == null || request.debugUseImported() == null
                 || request.debugUseImported();
-        return new NormalizedRequest(regionKey, duration, travelConcept, slots, travelMode, departureAt, debugUseImported);
+        Map<Integer, Long> selectedPlaceIds = request == null || request.slots() == null ? Map.of()
+                : java.util.stream.IntStream.range(0, request.slots().size())
+                .filter(i -> request.slots().get(i).selectedPlaceId() != null)
+                .boxed()
+                .collect(Collectors.toUnmodifiableMap(
+                        i -> i + 1,
+                        i -> request.slots().get(i).selectedPlaceId()
+                ));
+        return new NormalizedRequest(
+                regionKey, duration, travelConcept, slots, selectedPlaceIds, travelMode, departureAt, debugUseImported
+        );
     }
 
     private String titleSuffix(int index) {
@@ -263,6 +284,7 @@ public class RecommendationService {
             String duration,
             String travelConcept,
             List<RecommendationSlot> slots,
+            Map<Integer, Long> selectedPlaceIds,
             TravelMode travelMode,
             LocalDateTime departureAt,
             boolean debugUseImported

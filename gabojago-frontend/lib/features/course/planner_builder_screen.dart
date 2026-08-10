@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 
 import 'package:tripmate/core/models/route_preview.dart';
+import 'package:tripmate/core/services/auth_service.dart';
 import 'package:tripmate/features/course/course_detail_screen.dart';
 import 'package:tripmate/infrastructure/api_service.dart';
 
@@ -628,7 +629,14 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
   Future<void> _create() async {
     setState(() => _creating = true);
     try {
-      final result = await ApiService.createPlannedRoute(_routeRequest());
+      final token = await AuthService.instance.getValidAccessToken();
+      if (token == null) {
+        throw Exception('로그인이 필요해요.');
+      }
+      final result = await ApiService.createSavedPlannedRoute(
+        _routeRequest(),
+        accessToken: token,
+      );
       final routes = result['routes'] as List? ?? const [];
       if (routes.isEmpty) throw Exception();
       if (!mounted) return;
@@ -1481,6 +1489,7 @@ class _PlannerSlot {
     'timeLabel': time,
     'slotType': type,
     'subtypeCodes': subtypeCodes,
+    'selectedPlaceId': ?selectedPlace?.placeId,
   };
 
   Map<String, dynamic> toPlannerJson({required int order}) => {

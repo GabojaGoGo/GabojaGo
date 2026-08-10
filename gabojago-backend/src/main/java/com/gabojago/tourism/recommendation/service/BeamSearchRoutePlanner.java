@@ -54,7 +54,10 @@ public class BeamSearchRoutePlanner {
             List<RouteState> expanded = new ArrayList<>();
             for (RouteState state : beam) {
                 for (ScoredPlace candidate : slotCandidates) {
-                    if (state.usedPlaceIds().contains(candidate.place().getId())) {
+                    PlannedStop previous = state.stops().isEmpty()
+                            ? null : state.stops().get(state.stops().size() - 1);
+                    if (state.usedPlaceIds().contains(candidate.place().getId())
+                            && !canRepeatLodging(previous, candidate)) {
                         continue;
                     }
                     RouteState nextState = state.add(candidate, travelMatrix, travelMode);
@@ -77,6 +80,13 @@ public class BeamSearchRoutePlanner {
                 .sorted(Comparator.comparingDouble(PlannedRoute::totalScore).reversed())
                 .limit(RESULT_LIMIT)
                 .toList();
+    }
+
+    private static boolean canRepeatLodging(PlannedStop previous, ScoredPlace candidate) {
+        return previous != null
+                && previous.scoredPlace().slot().slotType() == RecommendationSlotType.LODGING
+                && candidate.slot().slotType() == RecommendationSlotType.LODGING
+                && previous.scoredPlace().slot().day() < candidate.slot().day();
     }
 
     private record RouteState(
