@@ -2,10 +2,10 @@ import 'package:flutter/widgets.dart';
 
 /// 사용자 여행 취향 & 기간 + 인증 상태 통합 모델
 class UserPrefs {
-  final String nickname;           // 닉네임 (온보딩에서 설정)
-  final String loginProvider;      // kakao / naver / google / ''
-  final List<String> purposes;     // 여행 목적 (멀티셀렉트)
-  final String duration;           // 여행 기간
+  final String nickname; // 닉네임 (온보딩에서 설정)
+  final String loginProvider; // kakao / naver / google / ''
+  final List<String> purposes; // 여행 목적 (멀티셀렉트)
+  final String duration; // 여행 기간
 
   const UserPrefs({
     this.nickname = '',
@@ -14,8 +14,9 @@ class UserPrefs {
     this.duration = '',
   });
 
-  bool get hasPrefs     => purposes.isNotEmpty && duration.isNotEmpty;
-  bool get isLoggedIn   => loginProvider.isNotEmpty;
+  bool get hasPrefs => purposes.isNotEmpty && duration.isNotEmpty;
+  bool get isLoggedIn => loginProvider.isNotEmpty;
+
   /// 홈 화면 인사말용: 닉네임 있으면 "OO님", 없으면 빈 문자열
   String get displayName => nickname.isNotEmpty ? '$nickname님' : '';
 
@@ -26,10 +27,10 @@ class UserPrefs {
     String? duration,
   }) {
     return UserPrefs(
-      nickname:      nickname      ?? this.nickname,
+      nickname: nickname ?? this.nickname,
       loginProvider: loginProvider ?? this.loginProvider,
-      purposes:      purposes      ?? this.purposes,
-      duration:      duration      ?? this.duration,
+      purposes: purposes ?? this.purposes,
+      duration: duration ?? this.duration,
     );
   }
 }
@@ -58,10 +59,10 @@ class UserPrefsScope extends InheritedWidget {
 
   @override
   bool updateShouldNotify(UserPrefsScope oldWidget) {
-    return prefs.nickname      != oldWidget.prefs.nickname      ||
-           prefs.loginProvider != oldWidget.prefs.loginProvider ||
-           prefs.purposes      != oldWidget.prefs.purposes      ||
-           prefs.duration      != oldWidget.prefs.duration;
+    return prefs.nickname != oldWidget.prefs.nickname ||
+        prefs.loginProvider != oldWidget.prefs.loginProvider ||
+        prefs.purposes != oldWidget.prefs.purposes ||
+        prefs.duration != oldWidget.prefs.duration;
   }
 }
 
@@ -203,15 +204,16 @@ const kRecommendedCourses = <Map<String, dynamic>>[
 
 /// 취향 목록 + 기간으로 가장 잘 맞는 코스 필터링
 List<Map<String, dynamic>> getRecommendedCourses(
-    List<String> purposes, String duration) {
+  List<String> purposes,
+  String duration,
+) {
   if (purposes.isEmpty) return kRecommendedCourses;
 
   // 매칭 점수 계산: 공통 purpose 수 기준
   final scored = kRecommendedCourses.map((course) {
     final coursePurposes = List<String>.from(course['purposes'] as List);
     final durationMatch = duration.isEmpty || course['duration'] == duration;
-    final overlap =
-        purposes.where((p) => coursePurposes.contains(p)).length;
+    final overlap = purposes.where((p) => coursePurposes.contains(p)).length;
     return {'course': course, 'score': overlap + (durationMatch ? 2 : 0)};
   }).toList();
 

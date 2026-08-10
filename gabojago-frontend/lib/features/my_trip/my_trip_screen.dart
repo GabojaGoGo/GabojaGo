@@ -11,9 +11,9 @@ import 'package:tripmate/features/my_trip/widgets/taste_profile.dart';
 import 'package:tripmate/features/my_trip/widgets/user_profile_header.dart';
 
 const _kPrimary = Color(0xFF2E7D6B);
-const _kText1   = Color(0xFF1A1A1A);
-const _kText2   = Color(0xFF707070);
-const _kBorder  = Color(0xFFE8EAED);
+const _kText1 = Color(0xFF1A1A1A);
+const _kText2 = Color(0xFF707070);
+const _kBorder = Color(0xFFE8EAED);
 
 class MyTripScreen extends StatefulWidget {
   const MyTripScreen({super.key});
@@ -23,9 +23,10 @@ class MyTripScreen extends StatefulWidget {
 }
 
 class _MyTripScreenState extends State<MyTripScreen> {
-
   String _fmt(int n) => n.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+    (m) => '${m[1]},',
+  );
 
   void _refresh() => setState(() {});
 
@@ -34,8 +35,10 @@ class _MyTripScreenState extends State<MyTripScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('로그아웃',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          '로그아웃',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         content: const Text('로그아웃하면 저장된 취향 정보가\n초기화됩니다. 계속할까요?'),
         actions: [
           TextButton(
@@ -44,9 +47,10 @@ class _MyTripScreenState extends State<MyTripScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('로그아웃',
-                style: TextStyle(
-                    color: Colors.red, fontWeight: FontWeight.w700)),
+            child: const Text(
+              '로그아웃',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -64,10 +68,13 @@ class _MyTripScreenState extends State<MyTripScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('회원탈퇴',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          '회원탈퇴',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         content: const Text(
-            '탈퇴하면 계정 연동이 해제되고\n저장된 모든 정보가 삭제됩니다.\n이 작업은 되돌릴 수 없어요. 계속할까요?'),
+          '탈퇴하면 계정 연동이 해제되고\n저장된 모든 정보가 삭제됩니다.\n이 작업은 되돌릴 수 없어요. 계속할까요?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -75,9 +82,10 @@ class _MyTripScreenState extends State<MyTripScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('탈퇴하기',
-                style: TextStyle(
-                    color: Colors.red, fontWeight: FontWeight.w700)),
+            child: const Text(
+              '탈퇴하기',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -103,49 +111,58 @@ class _MyTripScreenState extends State<MyTripScreen> {
       ),
     );
     if (!mounted) return;
-    final udPrefs   = UserDataService.instance.getPrefs();
-    final purposes  = List<String>.from(udPrefs['purposes'] as List? ?? []);
-    final duration  = (udPrefs['duration'] as String?) ?? '';
-    UserPrefsScope.maybeOf(context)?.onUpdate(
-      prefs.copyWith(purposes: purposes, duration: duration),
-    );
+    final udPrefs = UserDataService.instance.getPrefs();
+    final purposes = List<String>.from(udPrefs['purposes'] as List? ?? []);
+    final duration = (udPrefs['duration'] as String?) ?? '';
+    UserPrefsScope.maybeOf(
+      context,
+    )?.onUpdate(prefs.copyWith(purposes: purposes, duration: duration));
   }
 
   Future<void> _addBucketItem() async {
     final titleCtrl = TextEditingController();
-    final areaCtrl  = TextEditingController();
-    final noteCtrl  = TextEditingController();
+    final areaCtrl = TextEditingController();
+    final noteCtrl = TextEditingController();
     try {
       final ok = await showDialog<bool>(
         context: context,
         builder: (_) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('버킷리스트 추가',
-              style: TextStyle(fontWeight: FontWeight.w800)),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextField(
-              controller: titleCtrl,
-              decoration: const InputDecoration(labelText: '여행지 / 목표'),
-              autofocus: true,
-            ),
-            TextField(
-              controller: areaCtrl,
-              decoration: const InputDecoration(labelText: '지역 (예: 강원도 속초)'),
-            ),
-            TextField(
-              controller: noteCtrl,
-              decoration: const InputDecoration(labelText: '메모 (선택)'),
-            ),
-          ]),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            '버킷리스트 추가',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleCtrl,
+                decoration: const InputDecoration(labelText: '여행지 / 목표'),
+                autofocus: true,
+              ),
+              TextField(
+                controller: areaCtrl,
+                decoration: const InputDecoration(labelText: '지역 (예: 강원도 속초)'),
+              ),
+              TextField(
+                controller: noteCtrl,
+                decoration: const InputDecoration(labelText: '메모 (선택)'),
+              ),
+            ],
+          ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('취소')),
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('취소'),
+            ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('추가',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700, color: _kPrimary)),
+              child: const Text(
+                '추가',
+                style: TextStyle(fontWeight: FontWeight.w700, color: _kPrimary),
+              ),
             ),
           ],
         ),
@@ -153,8 +170,8 @@ class _MyTripScreenState extends State<MyTripScreen> {
       if (ok == true && titleCtrl.text.trim().isNotEmpty) {
         await UserDataService.instance.addBucketItem(
           title: titleCtrl.text.trim(),
-          area:  areaCtrl.text.trim(),
-          note:  noteCtrl.text.trim(),
+          area: areaCtrl.text.trim(),
+          note: noteCtrl.text.trim(),
         );
         _refresh();
       }
@@ -173,9 +190,18 @@ class _MyTripScreenState extends State<MyTripScreen> {
       ),
       builder: (_) {
         return SettingsSheet(
-          onLogout: () { Navigator.pop(context); _logout(); },
-          onEditPrefs: () { Navigator.pop(context); _goToTravelSetup(); },
-          onWithdraw: () { Navigator.pop(context); _withdraw(); },
+          onLogout: () {
+            Navigator.pop(context);
+            _logout();
+          },
+          onEditPrefs: () {
+            Navigator.pop(context);
+            _goToTravelSetup();
+          },
+          onWithdraw: () {
+            Navigator.pop(context);
+            _withdraw();
+          },
         );
       },
     );
@@ -183,15 +209,17 @@ class _MyTripScreenState extends State<MyTripScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final prefs   = UserPrefsScope.maybeOf(context)?.prefs ?? const UserPrefs();
+    final prefs = UserPrefsScope.maybeOf(context)?.prefs ?? const UserPrefs();
 
-    final footprints    = UserDataService.instance.getFootprints();
-    final bucketList    = UserDataService.instance.getBucketList();
-    final benefitData   = UserDataService.instance.getBenefitReports();
-    final totalSaved    = (benefitData['totalSaved'] as int?) ?? 0;
-    final benefitItems  = List<Map<String, dynamic>>.from(
-        (benefitData['items'] as List? ?? [])
-            .map((e) => Map<String, dynamic>.from(e as Map)));
+    final footprints = UserDataService.instance.getFootprints();
+    final bucketList = UserDataService.instance.getBucketList();
+    final benefitData = UserDataService.instance.getBenefitReports();
+    final totalSaved = (benefitData['totalSaved'] as int?) ?? 0;
+    final benefitItems = List<Map<String, dynamic>>.from(
+      (benefitData['items'] as List? ?? []).map(
+        (e) => Map<String, dynamic>.from(e as Map),
+      ),
+    );
     final uniqueRegions = footprints
         .map((f) => f['regionName'] as String? ?? '')
         .toSet();
@@ -213,19 +241,21 @@ class _MyTripScreenState extends State<MyTripScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             UserProfileHeader(
-                prefs: prefs,
-                fmt: _fmt,
-                tripCount: footprints.length,
-                totalSaved: totalSaved,
-              ),
+              prefs: prefs,
+              fmt: _fmt,
+              tripCount: footprints.length,
+              totalSaved: totalSaved,
+            ),
 
             ...[
               _SectionTitle(
                 title: '내 취향 프로필',
                 trailing: TextButton(
                   onPressed: _goToTravelSetup,
-                  child: const Text('재설정',
-                      style: TextStyle(fontSize: 12, color: _kPrimary)),
+                  child: const Text(
+                    '재설정',
+                    style: TextStyle(fontSize: 12, color: _kPrimary),
+                  ),
                 ),
               ),
               TasteProfileSection(prefs: prefs),
@@ -246,28 +276,31 @@ class _MyTripScreenState extends State<MyTripScreen> {
                 trailing: TextButton.icon(
                   onPressed: _addBucketItem,
                   icon: const Icon(Icons.add, size: 15, color: _kPrimary),
-                  label: const Text('추가',
-                      style: TextStyle(fontSize: 12, color: _kPrimary)),
+                  label: const Text(
+                    '추가',
+                    style: TextStyle(fontSize: 12, color: _kPrimary),
+                  ),
                 ),
               ),
               if (bucketList.isEmpty)
                 const EmptyBucket()
               else
-                ...bucketList.map((b) => BucketListItem(
-                      data: b,
-                      onDelete: () async {
-                        await UserDataService.instance
-                            .deleteBucketItem(b['id']);
-                        _refresh();
-                      },
-                      onToggleComplete: () async {
-                        await UserDataService.instance.updateBucketItem(
-                          b['id'],
-                          completed: !(b['completed'] as bool? ?? false),
-                        );
-                        _refresh();
-                      },
-                    )),
+                ...bucketList.map(
+                  (b) => BucketListItem(
+                    data: b,
+                    onDelete: () async {
+                      await UserDataService.instance.deleteBucketItem(b['id']);
+                      _refresh();
+                    },
+                    onToggleComplete: () async {
+                      await UserDataService.instance.updateBucketItem(
+                        b['id'],
+                        completed: !(b['completed'] as bool? ?? false),
+                      );
+                      _refresh();
+                    },
+                  ),
+                ),
             ],
 
             SettingsMenuSection(
@@ -300,17 +333,20 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 24, 16, 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: _kText1)),
-            if (trailing != null) trailing!,
-          ],
+    padding: const EdgeInsets.fromLTRB(16, 24, 16, 10),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: _kText1,
+          ),
         ),
-      );
+        if (trailing != null) trailing!,
+      ],
+    ),
+  );
 }
