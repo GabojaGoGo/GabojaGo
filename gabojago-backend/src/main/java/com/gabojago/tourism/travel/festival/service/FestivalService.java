@@ -1,51 +1,34 @@
 package com.gabojago.tourism.travel.festival.service;
 
 import com.gabojago.global.aop.TrackExecutionTime;
+import com.gabojago.infrastructure.tourapi.TourApiFestivalClient;
+import com.gabojago.infrastructure.tourapi.dto.TourApiFestivalResponse;
 import com.gabojago.tourism.travel.festival.dto.response.FestivalDto;
-import com.gabojago.infrastructure.tourapi.TourApiClient;
-import com.gabojago.infrastructure.tourapi.dto.TourApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @TrackExecutionTime
 public class FestivalService {
-    private static final String FESTIVAL_CONTENT_TYPE_ID = "15";
-    private static final int FESTIVAL_RADIUS_METER = 20000;
 
-    private final TourApiClient tourApiClient;
+    private static final int FESTIVAL_RADIUS_METER = 20000;
+    private static final int FESTIVAL_NUM_OF_ROWS = 10;
+
+    private final TourApiFestivalClient tourApiFestivalClient;
 
     // 주변 축제 정보를 조회하고, 프런트에서 쓰기 쉬운 DTO로 변환한다.
     public List<FestivalDto> getNearbyFestivals(double lat, double lng) {
-        TourApiResponse response = tourApiClient.fetchNearby(lat, lng, FESTIVAL_CONTENT_TYPE_ID, FESTIVAL_RADIUS_METER);
-        List<TourApiResponse.Item> items = extractItems(response);
-        if (items.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return items.stream()
+        return tourApiFestivalClient
+                .fetchNearbyFestivals(lat, lng, FESTIVAL_RADIUS_METER, FESTIVAL_NUM_OF_ROWS)
+                .stream()
                 .map(this::toFestivalDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    // 외부 응답 구조가 비정상인 경우를 방어해 빈 목록으로 처리한다.
-    private List<TourApiResponse.Item> extractItems(TourApiResponse response) {
-        if (response == null
-                || response.getResponse() == null
-                || response.getResponse().getBody() == null
-                || response.getResponse().getBody().getItems() == null
-                || response.getResponse().getBody().getItems().getItem() == null) {
-            return Collections.emptyList();
-        }
-        return response.getResponse().getBody().getItems().getItem();
-    }
-
-    private FestivalDto toFestivalDto(TourApiResponse.Item item) {
+    private FestivalDto toFestivalDto(TourApiFestivalResponse.Item item) {
         return new FestivalDto(
                 Long.parseLong(item.getContentid()),
                 item.getTitle(),
