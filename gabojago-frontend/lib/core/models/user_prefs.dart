@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 /// 사용자 여행 취향 & 기간 + 인증 상태 통합 모델
 class UserPrefs {
   final String nickname;           // 닉네임 (온보딩에서 설정)
-  final String loginProvider;      // kakao / naver / google / email / guest / ''
+  final String loginProvider;      // kakao / naver / google / ''
   final List<String> purposes;     // 여행 목적 (멀티셀렉트)
   final String duration;           // 여행 기간
 
@@ -16,7 +16,6 @@ class UserPrefs {
 
   bool get hasPrefs     => purposes.isNotEmpty && duration.isNotEmpty;
   bool get isLoggedIn   => loginProvider.isNotEmpty;
-  bool get isGuest      => loginProvider == 'guest';
   /// 홈 화면 인사말용: 닉네임 있으면 "OO님", 없으면 빈 문자열
   String get displayName => nickname.isNotEmpty ? '$nickname님' : '';
 

@@ -255,32 +255,6 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                               ),
                             ),
-
-                            // ── 비회원 둘러보기 ────────────────
-                            TextButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : () async {
-                                      await AuthService.instance.setGuestMode();
-                                      if (mounted) {
-                                        Navigator.of(
-                                          context,
-                                        ).pushReplacementNamed('/main');
-                                      }
-                                    },
-                              child: Text(
-                                '로그인 없이 둘러보기',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black.withValues(alpha: 0.65),
-                                  decoration: TextDecoration.underline,
-                                  decorationColor: Colors.black.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                ),
-                              ),
-                            ),
                             const SizedBox(height: 16),
                           ],
                         ),

@@ -7,14 +7,12 @@ const _kText3   = Color(0xFF9E9E9E);
 const _kBorder  = Color(0xFFE8EAED);
 
 class SettingsMenuSection extends StatelessWidget {
-  final bool isGuest;
   final VoidCallback onLogout;
   final VoidCallback onEditPrefs;
   final VoidCallback? onWithdraw;
 
   const SettingsMenuSection({
     super.key,
-    required this.isGuest,
     required this.onLogout,
     required this.onEditPrefs,
     this.onWithdraw,
@@ -30,8 +28,7 @@ class SettingsMenuSection extends StatelessWidget {
         border: Border.all(color: _kBorder),
       ),
       child: Column(children: [
-        if (!isGuest)
-          _MenuItem(
+        _MenuItem(
               icon: Icons.tune_outlined,
               label: '취향 재설정',
               onTap: onEditPrefs),
@@ -48,13 +45,13 @@ class SettingsMenuSection extends StatelessWidget {
         const Divider(height: 1, indent: 16, endIndent: 16),
         _MenuItem(
           icon: Icons.logout,
-          label: isGuest ? '게스트 종료' : '로그아웃',
+          label: '로그아웃',
           textColor: Colors.red.shade400,
           iconColor: Colors.red.shade400,
           onTap: onLogout,
           showChevron: false,
         ),
-        if (!isGuest && onWithdraw != null)
+        if (onWithdraw != null)
           _MenuItem(
             icon: Icons.person_remove_outlined,
             label: '회원탈퇴',

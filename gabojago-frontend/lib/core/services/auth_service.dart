@@ -47,6 +47,7 @@ class AuthService {
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    await _clearLegacyGuestSession();
     // refresh token이 있으면 자동으로 access token 복원 시도
     final rt = await _storage.read(key: _kRefreshToken);
     if (rt != null) {
@@ -326,13 +327,21 @@ class AuthService {
     await _clearLocal();
   }
 
-  // ── 비회원 모드 (기존 호환) ───────────────────────────────
-
-  Future<void> setGuestMode() async {
-    await _prefs?.setString(_kUserId, 'guest');
-  }
-
   // ── 내부 유틸 ────────────────────────────────────────────
+
+  /// 이전 버전의 게스트 상태가 남아 있어도 인증된 사용자로 취급하지 않는다.
+  Future<void> _clearLegacyGuestSession() async {
+    if (_prefs?.getString(_kUserId) != 'guest' &&
+        _prefs?.getString(_kProvider) != 'guest') {
+      return;
+    }
+    await _storage.delete(key: _kRefreshToken);
+    await _prefs?.remove(_kUserId);
+    await _prefs?.remove(_kNickname);
+    await _prefs?.remove(_kProvider);
+    await _prefs?.remove(_kPurposes);
+    await _prefs?.remove(_kDuration);
+  }
 
   Future<void> _refreshAccessToken(String rawRefreshToken) async {
     final response = await http

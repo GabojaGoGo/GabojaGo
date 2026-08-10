@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:tripmate/core/models/user_prefs.dart';
 import 'package:tripmate/core/services/auth_service.dart';
-import 'package:tripmate/core/services/social_login_clients.dart';
 import 'package:tripmate/core/services/user_data_service.dart';
 import 'package:tripmate/features/auth/travel_setup_screen.dart';
 import 'package:tripmate/features/my_trip/widgets/benefit_report_card.dart';
 import 'package:tripmate/features/my_trip/widgets/bucket_section.dart';
 import 'package:tripmate/features/my_trip/widgets/footprint_grid.dart';
-import 'package:tripmate/features/my_trip/widgets/guest_panel.dart';
 import 'package:tripmate/features/my_trip/widgets/settings_section.dart';
 import 'package:tripmate/features/my_trip/widgets/taste_profile.dart';
 import 'package:tripmate/features/my_trip/widgets/user_profile_header.dart';
@@ -15,7 +13,6 @@ import 'package:tripmate/features/my_trip/widgets/user_profile_header.dart';
 const _kPrimary = Color(0xFF2E7D6B);
 const _kText1   = Color(0xFF1A1A1A);
 const _kText2   = Color(0xFF707070);
-const _kText3   = Color(0xFF9E9E9E);
 const _kBorder  = Color(0xFFE8EAED);
 
 class MyTripScreen extends StatefulWidget {
@@ -90,46 +87,6 @@ class _MyTripScreenState extends State<MyTripScreen> {
       if (!mounted) return;
       UserPrefsScope.maybeOf(context)?.onUpdate(const UserPrefs());
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
-    }
-  }
-
-  Future<void> _linkAccount(String provider) async {
-    final socialProvider = switch (provider) {
-      'kakao'  => SocialLoginProvider.kakao,
-      'naver'  => SocialLoginProvider.naver,
-      'google' => SocialLoginProvider.google,
-      _        => null,
-    };
-    if (socialProvider == null) return;
-
-    try {
-      final result = await AuthService.instance.loginWithProvider(socialProvider);
-      await UserDataService.instance.syncFromServer();
-      final udPrefs   = UserDataService.instance.getPrefs();
-      final purposes  = List<String>.from(udPrefs['purposes'] as List? ?? []);
-      final duration  = (udPrefs['duration'] as String?) ?? '';
-      if (purposes.isNotEmpty || duration.isNotEmpty) {
-        await AuthService.instance.updatePrefs(purposes: purposes, duration: duration);
-      }
-      if (!mounted) return;
-      if (result.isNewUser || !AuthService.instance.hasNickname) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/onboarding', (_) => false);
-      } else {
-        UserPrefsScope.maybeOf(context)?.onUpdate(
-          AuthService.instance.toUserPrefs().copyWith(
-            loginProvider: AuthService.instance.provider,
-          ),
-        );
-      }
-    } catch (_) {
-      if (!mounted) return;
-      // TODO: 커스텀 상단 토스트로 교체
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-          content: Text('로그인에 실패했습니다. 다시 시도해주세요.'),
-          behavior: SnackBarBehavior.floating,
-        ));
     }
   }
 
@@ -215,14 +172,10 @@ class _MyTripScreenState extends State<MyTripScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) {
-        final isGuest = AuthService.instance.provider == 'guest' ||
-            !AuthService.instance.isLoggedIn;
         return SettingsSheet(
           onLogout: () { Navigator.pop(context); _logout(); },
           onEditPrefs: () { Navigator.pop(context); _goToTravelSetup(); },
-          onWithdraw: isGuest
-              ? null
-              : () { Navigator.pop(context); _withdraw(); },
+          onWithdraw: () { Navigator.pop(context); _withdraw(); },
         );
       },
     );
@@ -231,7 +184,6 @@ class _MyTripScreenState extends State<MyTripScreen> {
   @override
   Widget build(BuildContext context) {
     final prefs   = UserPrefsScope.maybeOf(context)?.prefs ?? const UserPrefs();
-    final isGuest = prefs.loginProvider == 'guest' || !prefs.isLoggedIn;
 
     final footprints    = UserDataService.instance.getFootprints();
     final bucketList    = UserDataService.instance.getBucketList();
@@ -260,17 +212,14 @@ class _MyTripScreenState extends State<MyTripScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (isGuest)
-              GuestPanel(onLink: _linkAccount)
-            else
-              UserProfileHeader(
+            UserProfileHeader(
                 prefs: prefs,
                 fmt: _fmt,
                 tripCount: footprints.length,
                 totalSaved: totalSaved,
               ),
 
-            if (!isGuest) ...[
+            ...[
               _SectionTitle(
                 title: '내 취향 프로필',
                 trailing: TextButton(
@@ -319,16 +268,12 @@ class _MyTripScreenState extends State<MyTripScreen> {
                         _refresh();
                       },
                     )),
-
-            ] else ...[
-              _LockedPreview(),
             ],
 
             SettingsMenuSection(
-              isGuest: isGuest,
               onLogout: _logout,
               onEditPrefs: _goToTravelSetup,
-              onWithdraw: isGuest ? null : _withdraw,
+              onWithdraw: _withdraw,
             ),
 
             const SizedBox(height: 40),
@@ -368,44 +313,4 @@ class _SectionTitle extends StatelessWidget {
           ],
         ),
       );
-}
-
-// ── 게스트 잠금 미리보기 ─────────────────────────────────────
-
-class _LockedPreview extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kBorder),
-      ),
-      child: Column(children: [
-        const Text('🔒', style: TextStyle(fontSize: 40)),
-        const SizedBox(height: 12),
-        const Text('로그인 후 이용 가능한 기능',
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: _kText1)),
-        const SizedBox(height: 16),
-        ...[
-          ('🗺️', '나의 족적 지도 — 방문 지역 기록'),
-          ('💰', '역대 절약 금액 · 혜택 리포트'),
-          ('❤️', '취향 프로필 저장 · 코스 즐겨찾기'),
-          ('📋', '버킷리스트 · 여행 알림'),
-        ].map((item) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Row(children: [
-            Text(item.$1, style: const TextStyle(fontSize: 18)),
-            const SizedBox(width: 12),
-            Text(item.$2, style: const TextStyle(fontSize: 13, color: _kText2)),
-          ]),
-        )),
-      ]),
-    );
-  }
 }
