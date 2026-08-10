@@ -3,7 +3,8 @@ services:
     image: mysql:8.0
     container_name: gabojago-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      # backend/.env의 DB_PASSWORD를 MySQL과 Spring Boot가 함께 사용한다.
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in backend/.env}
       MYSQL_DATABASE: gabojago
       TZ: Asia/Seoul
     command:
@@ -14,7 +15,7 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-proot" ]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p\"$$MYSQL_ROOT_PASSWORD\""]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -90,6 +91,16 @@ services:
       - app-network
     env_file:
       - .env
+    # Docker 내부 주소는 개발자별 환경값이 아니라 Compose 토폴로지다.
+    # env_file보다 우선해 컨테이너에서 localhost를 바라보는 실수를 막는다.
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/gabojago?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in backend/.env}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      OSRM_BASE_URL: http://osrm:5000
+      OSRM_FOOT_BASE_URL: http://osrm-foot:5000
 
 volumes:
   mysql-data:

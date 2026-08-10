@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:tripmate/core/models/user_prefs.dart';
+import 'package:tripmate/core/services/auth_service.dart';
 import 'package:tripmate/core/services/user_data_service.dart';
+import 'package:tripmate/features/auth/login_screen.dart';
 import 'package:tripmate/infrastructure/api_service.dart';
 import 'package:tripmate/features/benefit/receipt_screen.dart';
 import 'package:tripmate/features/course/widgets/recommended_tab.dart';
@@ -76,10 +78,23 @@ class _PlannerScreenState extends State<PlannerScreen>
     }
   }
 
-  void _goToSetup() => Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const PlannerBuilderScreen()),
-  );
+  Future<void> _goToSetup() async {
+    if (!AuthService.instance.isLoggedIn) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('내 코스를 만들려면 로그인이 필요해요.')));
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+      return;
+    }
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PlannerBuilderScreen()),
+    );
+  }
 
   void _onSaveChanged() => setState(() {});
 
@@ -96,10 +111,7 @@ class _PlannerScreenState extends State<PlannerScreen>
           IconButton(
             icon: const Icon(Icons.edit_calendar_outlined),
             tooltip: '내 일정 만들기',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const PlannerBuilderScreen()),
-            ),
+            onPressed: _goToSetup,
           ),
           IconButton(
             icon: const Icon(Icons.receipt_long_outlined),

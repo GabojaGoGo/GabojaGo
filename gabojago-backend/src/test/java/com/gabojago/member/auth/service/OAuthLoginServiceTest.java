@@ -12,7 +12,6 @@ import com.gabojago.member.auth.dto.response.OAuthLoginResponse;
 import com.gabojago.member.user.domain.SocialAccount;
 import com.gabojago.member.user.domain.User;
 import com.gabojago.member.user.enums.OAuthProvider;
-import com.gabojago.member.user.enums.UserStatus;
 import com.gabojago.member.user.repository.SocialAccountRepository;
 import com.gabojago.member.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,11 +19,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +33,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -71,10 +69,6 @@ class OAuthLoginServiceTest {
         // 기본 stub: 조회는 비어있고, 저장은 인자를 그대로 반환(신규 User엔 id 부여)
         when(socialAccountRepository.findByProviderAndProviderUserId(any(), any()))
                 .thenReturn(Optional.empty());
-        when(userRepository.findFirstByEmailAndStatus(any(), any()))
-                .thenReturn(Optional.empty());
-        when(socialAccountRepository.findByUser_Id(anyLong()))
-                .thenReturn(List.of());
         when(userRepository.save(any(User.class))).thenAnswer(inv -> {
             User u = inv.getArgument(0);
             if (ReflectionTestUtils.getField(u, "id") == null) {
@@ -99,7 +93,7 @@ class OAuthLoginServiceTest {
     }
 
     @Test
-    @DisplayName("완전 신규: 같은 소셜계정·이메일 모두 없으면 User+SocialAccount 생성")
+    @DisplayName("완전 신규: 같은 소셜 계정이 없으면 User+SocialAccount를 생성한다")
     void createsNewUserWhenNothingExists() {
         OAuthLoginResponse res = service.processLogin(info(OAuthProvider.KAKAO, "k1", "new@x.com"));
 
@@ -109,7 +103,7 @@ class OAuthLoginServiceTest {
     }
 
     @Test
-    @DisplayName("재로그인: 동일 (provider, providerUserId)면 기존 유저로 처리하고 이메일 검사를 건너뛴다")
+    @DisplayName("재로그인: 동일 (provider, providerUserId)면 기존 유저로 처리한다")
     void reusesExistingSocialAccount() {
         User user = activeUser(1L, "a@x.com");
         SocialAccount social = SocialAccount.create(user, OAuthProvider.KAKAO, "k1");
@@ -120,48 +114,26 @@ class OAuthLoginServiceTest {
 
         assertThat(res.isNewUser()).isFalse();
         assertThat(res.userId()).isEqualTo("1");
-        verify(userRepository, never()).save(any());
-        verify(socialAccountRepository, never()).save(any());
-        verify(userRepository, never()).findFirstByEmailAndStatus(any(), any());
+        verify(userRepository, org.mockito.Mockito.never()).save(any());
+        verify(socialAccountRepository, org.mockito.Mockito.never()).save(any());
     }
 
     @Test
-    @DisplayName("차단: 같은 이메일의 활성 유저가 다른 provider로 가입돼 있으면 409 + 기존 provider 반환")
-    void blocksWhenEmailBoundToAnotherProvider() {
+    @DisplayName("같은 이메일이라도 다른 소셜 계정이면 별도 User를 생성한다")
+    void createsSeparateUserWhenSameEmailComesFromAnotherProvider() {
         User existing = activeUser(1L, "a@x.com");
-        when(userRepository.findFirstByEmailAndStatus("a@x.com", UserStatus.ACTIVE))
-                .thenReturn(Optional.of(existing));
-        when(socialAccountRepository.findByUser_Id(1L))
-                .thenReturn(List.of(SocialAccount.create(existing, OAuthProvider.KAKAO, "k1")));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User saved = invocation.getArgument(0);
+            ReflectionTestUtils.setField(saved, "id", 200L);
+            return saved;
+        });
 
-        assertThatThrownBy(() -> service.processLogin(info(OAuthProvider.GOOGLE, "g1", "a@x.com")))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.getErrorCode()).isEqualTo(ErrorCode.SOCIAL_ACCOUNT_CONFLICT);
-                    assertThat(be.getDetail()).isEqualTo("KAKAO");
-                });
+        OAuthLoginResponse response = service.processLogin(info(OAuthProvider.GOOGLE, "g1", existing.getEmail()));
 
-        verify(userRepository, never()).save(any());
-        verify(socialAccountRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("정규화: 대소문자·공백이 달라도 같은 이메일로 보고 차단한다")
-    void normalizesEmailBeforeConflictCheck() {
-        User existing = activeUser(1L, "a@x.com");
-        when(userRepository.findFirstByEmailAndStatus("a@x.com", UserStatus.ACTIVE))
-                .thenReturn(Optional.of(existing));
-        when(socialAccountRepository.findByUser_Id(1L))
-                .thenReturn(List.of(SocialAccount.create(existing, OAuthProvider.NAVER, "n1")));
-
-        assertThatThrownBy(() -> service.processLogin(info(OAuthProvider.GOOGLE, "g1", "  A@X.COM ")))
-                .isInstanceOf(BusinessException.class)
-                .extracting(e -> ((BusinessException) e).getDetail())
-                .isEqualTo("NAVER");
-
-        // 조회 키가 정규화된 값이어야 한다
-        verify(userRepository).findFirstByEmailAndStatus("a@x.com", UserStatus.ACTIVE);
+        assertThat(response.isNewUser()).isTrue();
+        assertThat(response.userId()).isEqualTo("200");
+        verify(userRepository).save(any(User.class));
+        verify(socialAccountRepository).save(any(SocialAccount.class));
     }
 
     @Test
@@ -182,22 +154,32 @@ class OAuthLoginServiceTest {
     }
 
     @Test
-    @DisplayName("이메일 없음: null이면 충돌 검사를 건너뛰고 신규 생성")
-    void skipsConflictCheckWhenEmailNull() {
+    @DisplayName("이메일이 없어도 provider 사용자 ID로 신규 생성할 수 있다")
+    void createsUserWhenEmailNull() {
         OAuthLoginResponse res = service.processLogin(info(OAuthProvider.KAKAO, "k1", null));
 
         assertThat(res.isNewUser()).isTrue();
-        verify(userRepository, never()).findFirstByEmailAndStatus(any(), any());
         verify(userRepository).save(any(User.class));
     }
 
     @Test
-    @DisplayName("이메일 공백: 빈 문자열도 정규화 후 null로 보고 충돌 검사를 건너뛴다")
-    void skipsConflictCheckWhenEmailBlank() {
+    @DisplayName("이메일 공백은 프로필 값으로만 정규화하고 가입을 막지 않는다")
+    void createsUserWhenEmailBlank() {
         OAuthLoginResponse res = service.processLogin(info(OAuthProvider.KAKAO, "k1", "   "));
 
         assertThat(res.isNewUser()).isTrue();
-        verify(userRepository, never()).findFirstByEmailAndStatus(any(), any());
+    }
+
+    @Test
+    @DisplayName("세션 저장소 연결이 실패하면 로그인 세션 불가 503 오류로 변환한다")
+    void mapsRedisConnectionFailureToSessionStoreUnavailable() {
+        when(refreshTokenService.issue(anyLong()))
+                .thenThrow(new RedisConnectionFailureException("redis unavailable"));
+
+        assertThatThrownBy(() -> service.processLogin(info(OAuthProvider.KAKAO, "k1", "new@x.com")))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.AUTH_SESSION_STORE_UNAVAILABLE));
     }
 
     @Nested

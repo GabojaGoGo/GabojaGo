@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @Table(name = "social_accounts",
+        indexes = @Index(name = "idx_social_accounts_user_id", columnList = "user_id"),
         uniqueConstraints = @UniqueConstraint(
                 name = "uq_social_provider_user",
                 columnNames = {"provider", "provider_user_id"}))

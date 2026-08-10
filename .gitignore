@@ -45,6 +45,7 @@ migrate_working_dir/
 # Environment 파일 (민감한 정보: API 키, DB 자격증명 등)
 **/.env
 **/.env.local
+# 더는 실행에 사용하지 않지만, 기존 개인 파일이 실수로 추적되지 않도록 유지한다.
 **/.env.imac
 **/.env.tailscale
 **/.env.*.local

@@ -383,6 +383,27 @@ class ApiService {
     );
   }
 
+  /// 로그인 사용자의 플래너 코스를 생성하고 서버 계정에 저장한다.
+  static Future<Map<String, dynamic>> createSavedPlannedRoute(
+    Map<String, dynamic> request, {
+    required String accessToken,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/me/routes'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(request),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('저장 코스 생성 실패: ${response.statusCode}');
+    }
+    return Map<String, dynamic>.from(
+      json.decode(utf8.decode(response.bodyBytes)) as Map,
+    );
+  }
+
   static Future<List<dynamic>> getNearbyFestivals(
     double lat,
     double lng,

@@ -5,6 +5,7 @@
 // - nickname, userId: SharedPreferences (비민감 메타데이터)
 
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,11 +24,11 @@ class AuthService {
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
   static const _kRefreshToken = 'auth_refresh_token';
-  static const _kNickname  = 'auth_nickname';
-  static const _kUserId    = 'auth_user_id';
-  static const _kProvider  = 'auth_provider';
-  static const _kPurposes  = 'auth_purposes';
-  static const _kDuration  = 'auth_duration';
+  static const _kNickname = 'auth_nickname';
+  static const _kUserId = 'auth_user_id';
+  static const _kProvider = 'auth_provider';
+  static const _kPurposes = 'auth_purposes';
+  static const _kDuration = 'auth_duration';
 
   SharedPreferences? _prefs;
 
@@ -46,6 +47,7 @@ class AuthService {
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    await _clearLegacyGuestSession();
     // refresh token이 있으면 자동으로 access token 복원 시도
     final rt = await _storage.read(key: _kRefreshToken);
     if (rt != null) {
@@ -60,18 +62,15 @@ class AuthService {
   // ── 게터 ────────────────────────────────────────────────────
 
   bool get isLoggedIn => _prefs?.getString(_kUserId) != null;
-  String get userId   => _prefs?.getString(_kUserId)   ?? '';
+  String get userId => _prefs?.getString(_kUserId) ?? '';
   String get nickname => _prefs?.getString(_kNickname) ?? '';
-  bool   get hasNickname => nickname.trim().isNotEmpty;
+  bool get hasNickname => nickname.trim().isNotEmpty;
   List<String> get purposes => _prefs?.getStringList(_kPurposes) ?? [];
   String get duration => _prefs?.getString(_kDuration) ?? '';
   String get provider => _prefs?.getString(_kProvider) ?? '';
 
-  UserPrefs toUserPrefs() => UserPrefs(
-    nickname: nickname,
-    purposes: purposes,
-    duration: duration,
-  );
+  UserPrefs toUserPrefs() =>
+      UserPrefs(nickname: nickname, purposes: purposes, duration: duration);
 
   // ── 유효한 Access Token 반환 (만료 30초 전이면 자동 갱신) ──
   // 동시 호출 시 동일한 Future를 공유해 refresh 중복 방지 (RT Rotation 보호)
@@ -112,7 +111,8 @@ class AuthService {
       loginWithProvider(SocialLoginProvider.kakao);
 
   Future<({bool success, bool isNewUser})> loginWithProvider(
-      SocialLoginProvider provider) async {
+    SocialLoginProvider provider,
+  ) async {
     debugPrint('[AuthService] ${provider.apiValue} SDK login start');
     final providerToken = await _clientFor(provider).login();
     debugPrint('[AuthService] ${provider.apiValue} SDK token received');
@@ -120,53 +120,96 @@ class AuthService {
   }
 
   Future<({bool success, bool isNewUser})> _loginWithSocialToken(
-      SocialLoginToken providerToken) async {
-    final uri = Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/auth/oauth/login');
-    debugPrint('[AuthService] POST $uri provider=${providerToken.provider.apiValue}');
-    final response = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'provider': providerToken.provider.apiValue,
-        'accessToken': providerToken.accessToken,
-      }),
-    ).timeout(const Duration(seconds: 15));
+    SocialLoginToken providerToken,
+  ) async {
+    try {
+      final uri = Uri.parse(
+        '${ApiService.baseUrl.replaceAll('/api', '')}/auth/oauth/login',
+      );
+      debugPrint(
+        '[AuthService] POST $uri provider=${providerToken.provider.apiValue}',
+      );
+      final response = await http
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'provider': providerToken.provider.apiValue,
+              'accessToken': providerToken.accessToken,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
 
-    debugPrint('[AuthService] OAuth login response: ${response.statusCode}');
-    if (response.statusCode != 200) {
-      final body = utf8.decode(response.bodyBytes);
-      // 같은 이메일이 다른 provider로 이미 가입된 경우 → 안내용 전용 예외로 변환
-      if (response.statusCode == 409) {
-        try {
-          final err = json.decode(body) as Map<String, dynamic>;
-          if (err['code'] == 'SOCIAL_ACCOUNT_CONFLICT') {
-            throw SocialAccountConflictException(
-              SocialLoginProvider.fromApiValue(err['detail'] as String?),
-            );
-          }
-        } on FormatException {
-          // 본문이 JSON이 아니면 아래 generic 예외로 흐른다
-        }
+      debugPrint('[AuthService] OAuth login response: ${response.statusCode}');
+      if (response.statusCode != 200) {
+        final error = _readErrorResponse(response.bodyBytes);
+        throw SocialLoginFailure(
+          provider: providerToken.provider,
+          code: _failureCodeForHttp(response.statusCode, error.code),
+          causeType: 'http_${response.statusCode}:${error.code ?? 'unknown'}',
+        );
       }
-      throw Exception('소셜 로그인 실패: ${response.statusCode} $body');
+
+      final data =
+          json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      final accessToken = data['accessToken'] as String;
+      final refreshToken = data['refreshToken'] as String;
+      final uid = data['userId'] as String;
+      final nick = data['nickname'] as String? ?? '';
+      final isNewUser = data['isNewUser'] as bool? ?? false;
+
+      // 토큰 저장
+      _setAccessToken(accessToken);
+      await _storage.write(key: _kRefreshToken, value: refreshToken);
+      await _prefs?.setString(_kUserId, uid);
+      await _prefs?.setString(_kProvider, providerToken.provider.name);
+      if (nick.isNotEmpty) await _prefs?.setString(_kNickname, nick);
+
+      debugPrint(
+        '[AuthService] ${providerToken.provider.apiValue} 로그인 완료: userId=$uid, isNewUser=$isNewUser',
+      );
+      return (success: true, isNewUser: isNewUser);
+    } on SocialLoginFailure {
+      rethrow;
+    } on TimeoutException {
+      throw SocialLoginFailure(
+        provider: providerToken.provider,
+        code: SocialLoginFailureCode.requestTimeout,
+        causeType: 'http_timeout',
+      );
+    } catch (error) {
+      throw SocialLoginFailure(
+        provider: providerToken.provider,
+        code: SocialLoginFailureCode.unexpected,
+        causeType: error.runtimeType.toString(),
+      );
     }
+  }
 
-    final data = json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-    final accessToken = data['accessToken'] as String;
-    final refreshToken = data['refreshToken'] as String;
-    final uid = data['userId'] as String;
-    final nick = data['nickname'] as String? ?? '';
-    final isNewUser = data['isNewUser'] as bool? ?? false;
+  ({String? code, String? detail}) _readErrorResponse(List<int> bodyBytes) {
+    try {
+      final body = utf8.decode(bodyBytes);
+      final error = json.decode(body) as Map<String, dynamic>;
+      return (
+        code: error['code'] as String?,
+        detail: error['detail'] as String?,
+      );
+    } catch (_) {
+      return (code: null, detail: null);
+    }
+  }
 
-    // 토큰 저장
-    _setAccessToken(accessToken);
-    await _storage.write(key: _kRefreshToken, value: refreshToken);
-    await _prefs?.setString(_kUserId, uid);
-    await _prefs?.setString(_kProvider, providerToken.provider.name);
-    if (nick.isNotEmpty) await _prefs?.setString(_kNickname, nick);
-
-    debugPrint('[AuthService] ${providerToken.provider.apiValue} 로그인 완료: userId=$uid, isNewUser=$isNewUser');
-    return (success: true, isNewUser: isNewUser);
+  SocialLoginFailureCode _failureCodeForHttp(int status, String? errorCode) {
+    if (errorCode == 'AUTH_SESSION_STORE_UNAVAILABLE' || status >= 500) {
+      return SocialLoginFailureCode.backendUnavailable;
+    }
+    if (errorCode == 'OAUTH_USERINFO_FAILED' || status == 502) {
+      return SocialLoginFailureCode.providerUnavailable;
+    }
+    if (status == 400 || status == 401) {
+      return SocialLoginFailureCode.providerTokenRejected;
+    }
+    return SocialLoginFailureCode.unexpected;
   }
 
   // ── 프로필 저장 ──────────────────────────────────────────
@@ -183,14 +226,18 @@ class AuthService {
     // 백엔드 닉네임 동기화
     final token = await getValidAccessToken();
     if (token != null) {
-      final response = await http.patch(
-        Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/me/profile'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({'nickname': nickname.trim()}),
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .patch(
+            Uri.parse(
+              '${ApiService.baseUrl.replaceAll('/api', '')}/me/profile',
+            ),
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: json.encode({'nickname': nickname.trim()}),
+          )
+          .timeout(const Duration(seconds: 10));
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception(
           '닉네임 서버 저장 실패: ${response.statusCode} ${utf8.decode(response.bodyBytes)}',
@@ -216,14 +263,18 @@ class AuthService {
     // 백엔드 세션 폐기
     if (token != null && rt != null) {
       try {
-        await http.post(
-          Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/auth/logout'),
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-          body: json.encode({'refreshToken': rt}),
-        ).timeout(const Duration(seconds: 10));
+        await http
+            .post(
+              Uri.parse(
+                '${ApiService.baseUrl.replaceAll('/api', '')}/auth/logout',
+              ),
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Content-Type': 'application/json',
+              },
+              body: json.encode({'refreshToken': rt}),
+            )
+            .timeout(const Duration(seconds: 10));
       } catch (_) {}
     }
 
@@ -254,10 +305,14 @@ class AuthService {
     final token = _accessToken;
     if (token != null) {
       try {
-        await http.post(
-          Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/auth/unlink'),
-          headers: {'Authorization': 'Bearer $token'},
-        ).timeout(const Duration(seconds: 10));
+        await http
+            .post(
+              Uri.parse(
+                '${ApiService.baseUrl.replaceAll('/api', '')}/auth/unlink',
+              ),
+              headers: {'Authorization': 'Bearer $token'},
+            )
+            .timeout(const Duration(seconds: 10));
       } catch (_) {}
     }
 
@@ -272,20 +327,32 @@ class AuthService {
     await _clearLocal();
   }
 
-  // ── 비회원 모드 (기존 호환) ───────────────────────────────
-
-  Future<void> setGuestMode() async {
-    await _prefs?.setString(_kUserId, 'guest');
-  }
-
   // ── 내부 유틸 ────────────────────────────────────────────
 
+  /// 이전 버전의 게스트 상태가 남아 있어도 인증된 사용자로 취급하지 않는다.
+  Future<void> _clearLegacyGuestSession() async {
+    if (_prefs?.getString(_kUserId) != 'guest' &&
+        _prefs?.getString(_kProvider) != 'guest') {
+      return;
+    }
+    await _storage.delete(key: _kRefreshToken);
+    await _prefs?.remove(_kUserId);
+    await _prefs?.remove(_kNickname);
+    await _prefs?.remove(_kProvider);
+    await _prefs?.remove(_kPurposes);
+    await _prefs?.remove(_kDuration);
+  }
+
   Future<void> _refreshAccessToken(String rawRefreshToken) async {
-    final response = await http.post(
-      Uri.parse('${ApiService.baseUrl.replaceAll('/api', '')}/auth/refresh'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'refreshToken': rawRefreshToken}),
-    ).timeout(const Duration(seconds: 10));
+    final response = await http
+        .post(
+          Uri.parse(
+            '${ApiService.baseUrl.replaceAll('/api', '')}/auth/refresh',
+          ),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({'refreshToken': rawRefreshToken}),
+        )
+        .timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 401) {
       // refresh token 무효(재사용/만료) → 로컬 삭제 후 로그인 화면 이동 트리거
@@ -293,7 +360,9 @@ class AuthService {
       onSessionExpired?.call();
       throw Exception('세션 만료');
     }
-    if (response.statusCode != 200) throw Exception('갱신 실패: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw Exception('갱신 실패: ${response.statusCode}');
+    }
 
     final data = json.decode(response.body) as Map<String, dynamic>;
     _setAccessToken(data['accessToken'] as String);
@@ -307,10 +376,10 @@ class AuthService {
     try {
       final parts = token.split('.');
       final payload = json.decode(
-          utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))));
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+      );
       final exp = payload['exp'] as int;
-      _accessTokenExpiry =
-          DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+      _accessTokenExpiry = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
     } catch (_) {
       _accessTokenExpiry = DateTime.now().add(const Duration(minutes: 14));
     }
