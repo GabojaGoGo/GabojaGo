@@ -24,34 +24,21 @@ import 'package:tripmate/features/my_trip/my_trip_screen.dart';
 
 const _startLogoLab = bool.fromEnvironment('LOGO_LAB');
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // 어떤 네이티브 초기화가 지연되더라도 첫 프레임은 즉시 표시한다.
+  await _initializeApp();
   runApp(const GabojaGoApp());
-  unawaited(_initializeApp());
 }
 
 Future<void> _initializeApp() async {
-  const env = String.fromEnvironment('ENV', defaultValue: 'local');
-  final envFile = switch (env) {
-    'imac' => '.env.imac',
-    'tailscale' => '.env.tailscale',
-    _ => '.env',
-  };
+  const envFile = '.env';
+  String? kakaoNativeAppKey;
   try {
     await dotenv.load(fileName: envFile);
+    kakaoNativeAppKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
   } catch (error) {
     debugPrint('[Startup] failed to load $envFile: $error');
-    return;
   }
-
-  final kakaoNativeAppKey = dotenv.env['KAKAO_NATIVE_APP_KEY'];
-  if (kakaoNativeAppKey == null || kakaoNativeAppKey.isEmpty) {
-    debugPrint('[Startup] KAKAO_NATIVE_APP_KEY is missing in $envFile');
-    return;
-  }
-  KakaoSdk.init(nativeAppKey: kakaoNativeAppKey);
 
   try {
     await AuthService.instance.init();
@@ -60,6 +47,11 @@ Future<void> _initializeApp() async {
     debugPrint('[Startup] local storage initialization failed: $error');
   }
 
+  if (kakaoNativeAppKey == null || kakaoNativeAppKey.isEmpty) {
+    debugPrint('[Startup] KAKAO_NATIVE_APP_KEY is missing in $envFile');
+    return;
+  }
+  KakaoSdk.init(nativeAppKey: kakaoNativeAppKey);
   unawaited(_initializeDeferredServices(kakaoNativeAppKey));
 }
 

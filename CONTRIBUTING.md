@@ -96,10 +96,30 @@ refactor: ApiService HTTP 에러 처리 공통화
 ```bash
 cd gabojago-frontend
 flutter pub get
-flutter run --dart-define=ENV=imac      # 아이맥 서버 (같은 WiFi)
-flutter run --dart-define=ENV=tailscale # 외부 접속 (Tailscale VPN)
+sh tool/generate_ios_env.sh
+flutter run
 ```
 > Flutter 명령은 반드시 `gabojago-frontend/` 안에서 실행
+
+#### iOS 소셜 로그인 환경 변수
+
+iOS는 Flutter `.env`를 단일 원본으로 사용한다. `flutter_export_environment.sh`를 직접 실행하는 것으로는 Google·Kakao 로그인 설정이 적용되지 않는다.
+
+최초 한 번 아래 파일을 만들고, 별도 채널에서 공유받은 실제 값을 입력한다. 이 파일은 커밋하지 않는다.
+
+```bash
+cd gabojago-frontend
+cp .env.example .env
+sh tool/generate_ios_env.sh
+```
+
+- `.env`: `API_BASE_URL`, Kakao·Naver·Google 소셜 설정을 포함한 유일한 로컬 원본.
+- `ios/Flutter/Env.xcconfig`: `.env`에서 생성되는 iOS `Info.plist`용 파일. 직접 수정하지 않는다.
+- iOS Client ID·Reversed Client ID·URL scheme은 GCP 콘솔에 등록한 **현재 iOS Bundle ID**와 일치해야 한다.
+- iOS 네이티브 설정을 바꾼 뒤에는 생성 명령을 다시 실행하고 `flutter run`으로 재빌드한다.
+
+Google 로그인 직후 `You must specify |clientID| in |GIDConfiguration|`로 앱이 종료되면
+`Env.xcconfig`의 `GOOGLE_IOS_CLIENT_ID`가 비어 있거나 빌드에 반영되지 않은 경우다.
 
 ### 백엔드
 ```bash

@@ -16,7 +16,7 @@ trap cleanup EXIT
 
 # pubspec의 asset 선언은 테스트에서도 파일 존재를 요구한다. 로컬 .env는
 # 보존하고, 없는 파일만 테스트 실행 동안 빈 placeholder로 만든다.
-for filename in .env .env.imac .env.tailscale; do
+for filename in .env; do
   file="$frontend_dir/$filename"
   if [[ ! -e "$file" ]]; then
     : > "$file"
