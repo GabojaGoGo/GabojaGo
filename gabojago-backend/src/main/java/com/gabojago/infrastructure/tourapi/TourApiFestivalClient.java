@@ -74,7 +74,7 @@ public class TourApiFestivalClient {
     }
 
     /** 결과가 없으면 items가 빈 문자열로 내려오는 등 응답 구조가 일정하지 않아 단계마다 방어한다. */
-    private List<TourApiFestivalResponse.Item> extractItems(TourApiFestivalResponse response) {
+    static List<TourApiFestivalResponse.Item> extractItems(TourApiFestivalResponse response) {
         if (response == null
                 || response.getResponse() == null
                 || response.getResponse().getBody() == null
