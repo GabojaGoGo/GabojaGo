@@ -3,7 +3,7 @@ package com.gabojago.tourism.recommendation.service;
 import com.gabojago.place.domain.Place;
 import com.gabojago.place.domain.enums.TravelMode;
 import com.gabojago.tourism.recommendation.domain.RecommendationSlotType;
-import com.gabojago.tourism.transit.service.TransitRoutingClient;
+import com.gabojago.tourism.transit.service.TransitRoutingMatrixFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,27 +28,20 @@ public class BeamSearchRoutePlanner {
     private static final int RESULT_LIMIT = 1;
 
     private final RoutingMatrixClient routingMatrixClient;
-    private final TransitRoutingClient transitRoutingClient;
+    private final TransitRoutingMatrixFactory transitRoutingMatrixFactory;
 
     public List<PlannedRoute> plan(
             List<List<ScoredPlace>> candidatesBySlot,
             TravelMode travelMode,
         LocalDateTime departureAt
     ) {
-        if (travelMode == TravelMode.PUBLIC_TRANSIT) {
-            TransitRoutingClient.TransitRoutingStatus status = transitRoutingClient.status();
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    status.reason()
-            );
-        }
-        RoutingMatrixClient.TravelMatrix travelMatrix = routingMatrixClient.getMatrix(
-                candidatesBySlot.stream()
-                        .flatMap(List::stream)
-                        .map(ScoredPlace::place)
-                        .toList(),
-                travelMode
-        );
+        List<Place> matrixPlaces = candidatesBySlot.stream()
+                .flatMap(List::stream)
+                .map(ScoredPlace::place)
+                .toList();
+        RoutingMatrixClient.TravelMatrix travelMatrix = travelMode == TravelMode.PUBLIC_TRANSIT
+                ? transitRoutingMatrixFactory.create(matrixPlaces)
+                : routingMatrixClient.getMatrix(matrixPlaces, travelMode);
         List<RouteState> beam = List.of(RouteState.empty(departureAt));
         for (List<ScoredPlace> slotCandidates : candidatesBySlot) {
             List<RouteState> expanded = new ArrayList<>();
@@ -125,7 +118,8 @@ public class BeamSearchRoutePlanner {
                 travel = new TravelEstimate(
                         travelCost.distanceMeters(),
                         Math.max(1, (int) Math.ceil(travelCost.durationSeconds() / 60.0)),
-                        travelMode == TravelMode.WALK ? "OSRM_FOOT" : "OSRM"
+                        travelMode == TravelMode.WALK ? "OSRM_FOOT"
+                                : travelMode == TravelMode.PUBLIC_TRANSIT ? "BUSAN_METRO_OR_WALK" : "OSRM"
                 );
             }
 
