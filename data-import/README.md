@@ -17,6 +17,10 @@ MySQL places 테이블
 
 초기 구축이 끝난 후 서비스는 MySQL에 저장된 장소 데이터만 사용한다.
 
+부산 도시철도 그래프·역 좌표·출입구·열차 시간표도 같은 방식으로 `mappings/`의
+검증된 정적 원본에서 MySQL로 적재한다. 서비스 실행 중에는 공공데이터 API나 OSM을
+호출하지 않는다.
+
 ## 프로젝트 구조
 
 ```text
@@ -47,6 +51,8 @@ data-import/
 | `import_tour_api_to_mysql.py` | 수집한 JSON을 MySQL에 적재하는 실행 파일 |
 | `collector.py` | API 호출, 페이지 처리, 원본 파일 저장 |
 | `importer.py` | JSON 읽기, 검증, 유형 변환, MySQL upsert |
+| `import_busan_metro.py` | 백엔드 도시철도 적재 명령을 순서대로 실행하는 진입점 |
+| `export_busan_metro_access_points.py` | 현재 DB의 검수된 OSM 출입구를 재사용 CSV로 export |
 
 ## 실행 준비
 
@@ -258,6 +264,58 @@ MySQL 콘솔에 접속한다.
 docker exec -it gabojago-mysql \
   mysql --default-character-set=utf8mb4 -uroot -p gabojago
 ```
+
+## 부산 도시철도 정적 데이터
+
+도시철도 적재는 Python이 DB를 직접 수정하지 않는다. 백엔드의 CSV 파서와 전체 교체
+트랜잭션을 호출하므로, 서비스가 사용하는 역명 보정·시간표 검증 규칙과 동일하게
+처리된다.
+
+원본은 `mappings/`에 두며 제공기관·인코딩·기준일은
+[`mappings/busan_metro_manifest.json`](mappings/busan_metro_manifest.json)에서 관리한다.
+
+```text
+정적 그래프 → 공식 역 중심 좌표 → OSM 출입구 → 열차 시간표
+```
+
+### 1. 현재 DB의 출입구 CSV export
+
+현재 로컬 DB에 이미 검수한 출입구 데이터가 있다면 먼저 export한다. 이 명령은
+`metro_station_access_points`를 읽기만 하며, 생성된 CSV를 다음 적재의 정본으로 쓴다.
+
+```bash
+.venv/bin/python export_busan_metro_access_points.py
+```
+
+출력 경로는 `mappings/busan_metro_access_points.csv`이며, 팀원이 같은 결과를 재현할 수
+있도록 원본 CSV와 함께 커밋한다.
+
+### 2. 적재 전 전체 검증
+
+기본 명령은 DB를 수정하지 않고 정적 그래프·역 좌표·출입구·시간표를 모두 검증한다.
+
+```bash
+.venv/bin/python import_busan_metro.py
+```
+
+출입구 CSV를 아직 export하지 않은 초기 상황에서만 아래 옵션으로 나머지 세 종류를
+검증할 수 있다. 이 경우 출구 번호 안내는 재현되지 않는다.
+
+```bash
+.venv/bin/python import_busan_metro.py --without-access-points
+```
+
+### 3. 실제 전체 교체 적재
+
+검증을 통과한 뒤에만 `--write`를 붙인다. 각 단계는 현재 데이터 전체를 교체하므로
+부분 원본으로 운영 DB를 갱신하지 않는다.
+
+```bash
+.venv/bin/python import_busan_metro.py --write
+```
+
+실행 보고서는 `data/reports/busan-metro-import-*.json`에 남는다. 이 보고서에는 원본별
+SHA-256만 기록하며 DB 비밀번호나 환경 변수 값은 기록하지 않는다.
 
 비밀번호 입력 안내가 나오면 `.env`의 `DB_PASSWORD` 값을 입력한다.
 
