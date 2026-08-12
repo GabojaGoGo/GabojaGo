@@ -26,8 +26,9 @@ class _CourseCardState extends State<CourseCard> {
   @override
   void initState() {
     super.initState();
-    _saved = UserDataService.instance
-        .isCourseSaved(widget.course['contentId'] as String? ?? '');
+    _saved = UserDataService.instance.isCourseSaved(
+      widget.course['contentId'] as String? ?? '',
+    );
   }
 
   Future<void> _toggleSave() async {
@@ -39,16 +40,29 @@ class _CourseCardState extends State<CourseCard> {
     }
     if (mounted) setState(() => _saved = !_saved);
     widget.onSaveChanged();
+    if (_saved && mounted) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/main',
+        (_) => false,
+        arguments: 2,
+      );
+      return;
+    }
+    if (!mounted) return;
     if (mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          content: Text(_saved ? '플래너에 저장됐어요!' : '플래너에서 삭제됐어요'),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ));
+        ..showSnackBar(
+          SnackBar(
+            content: Text(_saved ? '플래너에 저장됐어요!' : '플래너에서 삭제됐어요'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
     }
   }
 
@@ -64,8 +78,9 @@ class _CourseCardState extends State<CourseCard> {
     ).then((_) {
       final contentId = widget.course['contentId'] as String? ?? '';
       if (mounted) {
-        setState(() => _saved =
-            UserDataService.instance.isCourseSaved(contentId));
+        setState(
+          () => _saved = UserDataService.instance.isCourseSaved(contentId),
+        );
       }
       widget.onSaveChanged();
     });
@@ -75,11 +90,13 @@ class _CourseCardState extends State<CourseCard> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final places = List<Map<String, dynamic>>.from(
-        (widget.course['places'] as List? ?? [])
-            .map((e) => Map<String, dynamic>.from(e as Map)));
+      (widget.course['places'] as List? ?? []).map(
+        (e) => Map<String, dynamic>.from(e as Map),
+      ),
+    );
     final distance = widget.course['distance'] as String? ?? '';
     final taketime = widget.course['taketime'] as String? ?? '';
-    final region   = widget.course['region']   as String? ?? '';
+    final region = widget.course['region'] as String? ?? '';
     final imageUrl = widget.course['imageUrl'] as String? ?? '';
     final hasImage = imageUrl.isNotEmpty && !imageUrl.contains('placeholder');
 
@@ -89,8 +106,16 @@ class _CourseCardState extends State<CourseCard> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
-          BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
-          BoxShadow(color: Color(0x14000000), blurRadius: 16, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
@@ -117,37 +142,52 @@ class _CourseCardState extends State<CourseCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (region.isNotEmpty) ...[
-                  Row(children: [
-                    Icon(Icons.location_on_outlined,
-                        size: 13, color: colorScheme.primary),
-                    const SizedBox(width: 2),
-                    Text(region,
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 13,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        region,
                         style: TextStyle(
-                            fontSize: 12,
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w600)),
-                  ]),
+                          fontSize: 12,
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 5),
                 ],
                 Text(
                   widget.course['title'] as String? ?? '',
                   style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.3),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 if (distance.isNotEmpty || taketime.isNotEmpty) ...[
-                  Row(children: [
-                    if (distance.isNotEmpty) ...[
-                      CourseInfoPill(
-                          icon: Icons.straighten_outlined, label: distance),
-                      const SizedBox(width: 8),
+                  Row(
+                    children: [
+                      if (distance.isNotEmpty) ...[
+                        CourseInfoPill(
+                          icon: Icons.straighten_outlined,
+                          label: distance,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      if (taketime.isNotEmpty)
+                        CourseInfoPill(
+                          icon: Icons.schedule_outlined,
+                          label: taketime,
+                        ),
                     ],
-                    if (taketime.isNotEmpty)
-                      CourseInfoPill(
-                          icon: Icons.schedule_outlined, label: taketime),
-                  ]),
+                  ),
                   const SizedBox(height: 12),
                 ],
                 if (places.isNotEmpty) ...[
@@ -165,7 +205,9 @@ class _CourseCardState extends State<CourseCard> {
                       child: Text(
                         '+ ${places.length - 4}곳 더 보기',
                         style: const TextStyle(
-                            fontSize: 12, color: Color(0xFF9CA3AF)),
+                          fontSize: 12,
+                          color: Color(0xFF9CA3AF),
+                        ),
                       ),
                     ),
                   const SizedBox(height: 12),
@@ -174,9 +216,10 @@ class _CourseCardState extends State<CourseCard> {
                   Text(
                     widget.course['overview'] as String,
                     style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF6B7280),
-                        height: 1.6),
+                      fontSize: 13,
+                      color: Color(0xFF6B7280),
+                      height: 1.6,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -199,11 +242,16 @@ class _CourseCardState extends State<CourseCard> {
                       side: BorderSide(color: colorScheme.primary),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    child: const Text('코스 상세 보기',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 13)),
+                    child: const Text(
+                      '코스 상세 보기',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -234,7 +282,7 @@ class CoursePlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title  = course['title']  as String? ?? '';
+    final title = course['title'] as String? ?? '';
     final region = course['region'] as String? ?? '';
     final idx = title.isEmpty ? 0 : title.codeUnitAt(0) % _colors.length;
     return Container(
@@ -253,21 +301,27 @@ class CoursePlaceholder extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           if (region.isNotEmpty)
-            Text(region,
-                style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500)),
+            Text(
+              region,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           if (title.isNotEmpty) ...[
             if (region.isNotEmpty) const SizedBox(height: 2),
-            Text(title,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ],
       ),
@@ -281,15 +335,16 @@ class CoursePlace extends StatelessWidget {
   final int index;
   final Map<String, dynamic> place;
   final bool isLast;
-  const CoursePlace(
-      {super.key,
-      required this.index,
-      required this.place,
-      required this.isLast});
+  const CoursePlace({
+    super.key,
+    required this.index,
+    required this.place,
+    required this.isLast,
+  });
 
   static const _slotColors = {
-    'meal':    Color(0xFFF97316),
-    'cafe':    Color(0xFF8D6E63),
+    'meal': Color(0xFFF97316),
+    'cafe': Color(0xFF8D6E63),
     'lodging': Color(0xFF8B5CF6),
   };
 
@@ -307,15 +362,18 @@ class CoursePlace extends StatelessWidget {
                 Container(
                   width: 22,
                   height: 22,
-                  decoration:
-                      BoxDecoration(color: slotColor, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: slotColor,
+                    shape: BoxShape.circle,
+                  ),
                   alignment: Alignment.center,
                   child: Text(
                     '${index + 1}',
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700),
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 if (!isLast)
@@ -339,16 +397,19 @@ class CoursePlace extends StatelessWidget {
                     child: Text(
                       place['subname'] as String? ?? '',
                       style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF1A1A1A)),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1A1A1A),
+                      ),
                     ),
                   ),
                   if ((place['dayLabel'] as String? ?? '').isNotEmpty)
                     Text(
                       place['dayLabel'] as String,
                       style: const TextStyle(
-                          fontSize: 10, color: Color(0xFF9CA3AF)),
+                        fontSize: 10,
+                        color: Color(0xFF9CA3AF),
+                      ),
                     ),
                 ],
               ),
@@ -380,11 +441,14 @@ class CourseInfoPill extends StatelessWidget {
         children: [
           Icon(icon, size: 13, color: const Color(0xFF6B7280)),
           const SizedBox(width: 3),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF374151),
-                  fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF374151),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
@@ -411,8 +475,7 @@ class _BookmarkButton extends StatelessWidget {
         backgroundColor: saved
             ? colorScheme.primary.withValues(alpha: 0.1)
             : const Color(0xFFF3F4F6),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       tooltip: saved ? '플래너에서 삭제' : '플래너에 담기',
     );

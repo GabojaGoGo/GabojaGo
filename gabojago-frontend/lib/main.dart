@@ -142,7 +142,9 @@ class _GabojaGoAppState extends State<GabojaGoApp> {
         '/logo-lab': (_) => const LogoAnimationLabScreen(),
         '/login': (_) => const LoginScreen(),
         '/onboarding': (_) => const OnboardingScreen(),
-        '/main': (_) => const MainShell(),
+        '/main': (context) => MainShell(
+          initialIndex: ModalRoute.of(context)?.settings.arguments as int? ?? 0,
+        ),
       },
     );
   }
@@ -150,14 +152,16 @@ class _GabojaGoAppState extends State<GabojaGoApp> {
 
 /// 메인 쉘 — BottomNavigationBar로 3개 탭 전환 관리
 class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+  const MainShell({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
-  int _currentIndex = 0;
+  late int _currentIndex = widget.initialIndex;
   // 저장된 취향/닉네임 복원 — ud_prefs(UserDataService) 우선, 없으면 auth_prefs 폴백
   late UserPrefs _userPrefs = _buildInitialPrefs();
 

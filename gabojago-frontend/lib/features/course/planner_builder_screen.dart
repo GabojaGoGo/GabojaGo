@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart' as latlong;
 import 'package:tripmate/core/models/route_preview.dart';
 import 'package:tripmate/core/services/auth_service.dart';
 import 'package:tripmate/features/course/course_detail_screen.dart';
+import 'package:tripmate/features/course/slot_place_picker_screen.dart';
 import 'package:tripmate/infrastructure/api_service.dart';
 
 class PlannerBuilderScreen extends StatefulWidget {
@@ -17,6 +18,9 @@ class PlannerBuilderScreen extends StatefulWidget {
 }
 
 class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
+  static const _dayStartMinutes = 10 * 60;
+  static const _betweenSlotMinutes = 30;
+  static const _latestSlotStartMinutes = 23 * 60 + 30;
   static const _types = <String, String>{
     'SIGHT': '관광·체험',
     'MEAL': '음식점',
@@ -28,6 +32,16 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
     'MEAL': 'RESTAURANT',
     'CAFE': 'CAFE',
     'LODGING': 'ACCOMMODATION',
+  };
+  static const _slotCategories = <String, _SlotCategory>{
+    'SIGHT': _SlotCategory(
+      '관광·체험',
+      '명소, 전시, 체험을 선택하세요',
+      Icons.attractions_outlined,
+    ),
+    'MEAL': _SlotCategory('음식점', '식사할 장소를 선택하세요', Icons.restaurant_outlined),
+    'CAFE': _SlotCategory('카페', '커피와 휴식 장소를 선택하세요', Icons.local_cafe_outlined),
+    'LODGING': _SlotCategory('숙소', '머무를 숙소를 선택하세요', Icons.hotel_outlined),
   };
   static const _concepts = <_Concept>[
     _Concept('맛집 중심', '음식점을 중심으로 여행해요', Icons.restaurant_rounded, 'MEAL'),
@@ -103,16 +117,16 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
         List.generate(_days, (index) {
           final day = index + 1;
           final slots = <_PlannerSlot>[
-            _newSlot(day: day, time: '10:00', type: 'SIGHT'),
-            _newSlot(day: day, time: '13:00', type: 'MEAL'),
+            _newSlot(day: day, time: '', type: 'SIGHT'),
+            _newSlot(day: day, time: '', type: 'MEAL'),
           ];
           if (day < _days) {
-            slots.add(_newSlot(day: day, time: '18:00', type: 'LODGING'));
+            slots.add(_newSlot(day: day, time: '', type: 'LODGING'));
           } else {
             slots.add(
               _newSlot(
                 day: day,
-                time: '16:00',
+                time: '',
                 type: wanted.contains('CAFE') ? 'CAFE' : 'SIGHT',
               ),
             );
@@ -152,17 +166,15 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
           (slot) => slot.day == previousLastDay && slot.type == 'LODGING',
         );
         if (!hasLodging) {
-          _slots.add(
-            _newSlot(day: previousLastDay, time: '18:00', type: 'LODGING'),
-          );
+          _slots.add(_newSlot(day: previousLastDay, time: '', type: 'LODGING'));
         }
         final newDay = previousLastDay + 1;
         _slots.addAll([
-          _newSlot(day: newDay, time: '10:00', type: 'SIGHT'),
-          _newSlot(day: newDay, time: '13:00', type: 'MEAL'),
+          _newSlot(day: newDay, time: '', type: 'SIGHT'),
+          _newSlot(day: newDay, time: '', type: 'MEAL'),
           _newSlot(
             day: newDay,
-            time: '16:00',
+            time: '',
             type: _selectedConcepts.contains('카페 산책') ? 'CAFE' : 'SIGHT',
           ),
         ]);
@@ -171,33 +183,32 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
     });
   }
 
-  void _addSlotForActiveDay() {
+  Future<void> _addSlotForActiveDay() async {
+    final type = await _showSlotCategoryPicker();
+    if (type == null || !mounted) return;
     final indexes = List.generate(
       _slots.length,
       (index) => index,
     ).where((index) => _slots[index].day == _activeDay).toList();
-    final lastSlot = indexes.isEmpty ? null : _slots[indexes.last];
     _updateSlots(() {
-      final newSlot = _newSlot(
-        day: _activeDay,
-        time: _nextSlotTime(lastSlot?.time),
-        type: 'SIGHT',
-      );
+      final lodgingIndex = indexes.isEmpty
+          ? -1
+          : indexes.firstWhere(
+              (index) => _slots[index].type == 'LODGING',
+              orElse: () => -1,
+            );
+      final insertIndex = indexes.isEmpty
+          ? _slots.length
+          : lodgingIndex >= 0
+          ? lodgingIndex
+          : indexes.last + 1;
+      final newSlot = _newSlot(day: _activeDay, time: '', type: type);
       if (indexes.isEmpty) {
         _slots.add(newSlot);
       } else {
-        _slots.insert(indexes.last + 1, newSlot);
+        _slots.insert(insertIndex, newSlot);
       }
     });
-  }
-
-  String _nextSlotTime(String? previous) {
-    if (previous == null) return '10:00';
-    final parts = previous.split(':');
-    final hour = int.tryParse(parts.first) ?? 10;
-    final minute = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
-    final next = (hour * 60 + minute + 120) % (24 * 60);
-    return '${(next ~/ 60).toString().padLeft(2, '0')}:${(next % 60).toString().padLeft(2, '0')}';
   }
 
   void _reorderDaySlots(
@@ -209,7 +220,8 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
     if (!adjustedIndex && newIndex > oldIndex) newIndex--;
     final daySlots = indexes.map((index) => _slots[index]).toList();
     final moved = daySlots.removeAt(oldIndex);
-    daySlots.insert(newIndex, moved);
+    // 순서가 달라지면 기존 시각은 더 이상 의미가 없으므로 자동 계산으로 되돌린다.
+    daySlots.insert(newIndex, moved.copyWith(time: ''));
     _updateSlots(() {
       final firstIndex = indexes.first;
       _slots.removeWhere((slot) => slot.day == _activeDay);
@@ -224,8 +236,10 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
     'travelMode': _mode,
     'departureAt': '${_startDate.toIso8601String().substring(0, 10)}T10:00:00',
     'debugUseImported': true,
-    'slots': _slots.map((slot) => slot.toJson()).toList(),
+    'slots': _resolvedSlots().map((slot) => slot.toJson()).toList(),
   };
+
+  String get _plannerTravelMode => _mode == 'PUBLIC_TRANSIT' ? 'WALK' : _mode;
 
   void _schedulePreview({bool immediate = false}) {
     _previewDebounce?.cancel();
@@ -274,6 +288,25 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
                   'day': path.day,
                   'points': path.points
                       .map((point) => {'lat': point.lat, 'lng': point.lng})
+                      .toList(),
+                  'transitSegments': path.transitSegments
+                      .map(
+                        (segment) => {
+                          'recommendedMode': segment.recommendedMode,
+                          'durationSeconds': segment.durationSeconds,
+                          'directWalkDurationSeconds':
+                              segment.directWalkDurationSeconds,
+                          'distanceMeters': segment.distanceMeters,
+                          'walkingMeters': segment.walkingMeters,
+                          'transferCount': segment.transferCount,
+                          'fromName': segment.fromName,
+                          'toName': segment.toName,
+                          'boardStationName': segment.boardStationName,
+                          'boardExitNumber': segment.boardExitNumber,
+                          'alightStationName': segment.alightStationName,
+                          'alightExitNumber': segment.alightExitNumber,
+                        },
+                      )
                       .toList(),
                 },
               )
@@ -346,6 +379,18 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
     return {'places': places, 'routePaths': const []};
   }
 
+  List<Map<String, dynamic>> _transitSegmentsForDay(int day) {
+    final path = (_previewCourse?['routePaths'] as List? ?? const [])
+        .whereType<Map>()
+        .cast<Map<String, dynamic>>()
+        .where((item) => (item['day'] as num?)?.toInt() == day)
+        .firstOrNull;
+    return (path?['transitSegments'] as List? ?? const [])
+        .whereType<Map>()
+        .map(Map<String, dynamic>.from)
+        .toList();
+  }
+
   _PlannerSlot? _selectedLodgingBeforeDay(int day) {
     final lodgings = _slots
         .where(
@@ -416,15 +461,116 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
     if (picked != null && mounted) setState(() => _startDate = picked);
   }
 
-  Future<void> _pickSubtypes(int index) async {
+  Future<void> _pickTime(int index) async {
     final slot = _slots[index];
-    try {
-      final options = await ApiService.getSubtypeOptions(
-        _placeTypes[slot.type]!,
-      );
-      if (!mounted) return;
-      final selected = Set<String>.from(slot.subtypeCodes);
-      final result = await showModalBottomSheet<Set<String>>(
+    final minimumStart = _minimumStartMinutes(index);
+    final currentStart =
+        _timeMinutes(slot.time) ?? _timeMinutes(_resolvedSlots()[index].time)!;
+    final initialStart = currentStart < minimumStart
+        ? minimumStart
+        : currentStart;
+    final selected = await showTimePicker(
+      context: context,
+      initialTime: _timeOfDay(initialStart),
+    );
+    if (selected != null && mounted) {
+      final selectedStart = selected.hour * 60 + selected.minute;
+      if (selectedStart < minimumStart) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '이전 일정의 예상 종료 시각(${_minutesToTime(minimumStart)}) 이후로 설정해 주세요.',
+            ),
+          ),
+        );
+        return;
+      }
+      _updateSlots(() {
+        _slots[index] = slot.copyWith(time: _timeText(selected));
+      });
+    }
+  }
+
+  String _timeText(TimeOfDay value) =>
+      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+
+  int _estimatedStayMinutes(String type) => switch (type) {
+    'SIGHT' => 90,
+    'MEAL' => 90,
+    'CAFE' => 60,
+    'LODGING' => 12 * 60,
+    _ => 60,
+  };
+
+  int? _timeMinutes(String value) {
+    final parts = value.split(':');
+    if (parts.length != 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null ||
+        minute == null ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59) {
+      return null;
+    }
+    return hour * 60 + minute;
+  }
+
+  TimeOfDay _timeOfDay(int minutes) =>
+      TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60);
+
+  String _minutesToTime(int minutes) =>
+      _timeText(_timeOfDay(minutes.clamp(0, _latestSlotStartMinutes).toInt()));
+
+  String _nextSlotTime(_PlannerSlot? previous) {
+    if (previous == null) return _minutesToTime(_dayStartMinutes);
+    final previousStart = _timeMinutes(previous.time) ?? _dayStartMinutes;
+    return _minutesToTime(
+      previousStart +
+          _estimatedStayMinutes(previous.type) +
+          _betweenSlotMinutes,
+    );
+  }
+
+  int _minimumStartMinutes(int index) {
+    final slots = _resolvedSlots();
+    final slot = slots[index];
+    for (var cursor = index - 1; cursor >= 0; cursor--) {
+      final previous = slots[cursor];
+      if (previous.day != slot.day) continue;
+      final previousStart = _timeMinutes(previous.time) ?? _dayStartMinutes;
+      return (previousStart +
+              _estimatedStayMinutes(previous.type) +
+              _betweenSlotMinutes)
+          .clamp(0, _latestSlotStartMinutes)
+          .toInt();
+    }
+    return 0;
+  }
+
+  List<_PlannerSlot> _resolvedSlots() {
+    final previousByDay = <int, _PlannerSlot>{};
+    return _slots.map((slot) {
+      final previous = previousByDay[slot.day];
+      final automaticStart = _timeMinutes(_nextSlotTime(previous))!;
+      final requestedStart = _timeMinutes(slot.time);
+      final resolvedStart = requestedStart == null
+          ? automaticStart
+          : previous == null
+          ? requestedStart
+          : requestedStart < automaticStart
+          ? automaticStart
+          : requestedStart;
+      final resolved = slot.copyWith(time: _minutesToTime(resolvedStart));
+      previousByDay[slot.day] = resolved;
+      return resolved;
+    }).toList();
+  }
+
+  Future<String?> _showSlotCategoryPicker({String? currentType}) =>
+      showModalBottomSheet<String>(
         context: context,
         isScrollControlled: true,
         showDragHandle: true,
@@ -433,148 +579,113 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.sizeOf(context).height * .72,
             ),
-            child: StatefulBuilder(
-              builder: (context, setSheetState) => Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 12, 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${_types[slot.type]} 세부 선택',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, selected),
-                          child: const Text('완료'),
-                        ),
-                      ],
-                    ),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+              shrinkWrap: true,
+              children: [
+                const Text(
+                  '어떤 일정인가요?',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 12),
+                ..._slotCategories.entries.map(
+                  (entry) => _SlotCategoryOption(
+                    category: entry.value,
+                    selected: entry.key == currentType,
+                    onTap: () => Navigator.pop(context, entry.key),
                   ),
-                  Expanded(
-                    child: options.isEmpty
-                        ? const Center(
-                            child: Text(
-                              '등록된 하위 카테고리가 없어요.\n전체 범위에서 찾아드릴게요.',
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: options.length,
-                            itemBuilder: (_, i) {
-                              final option = options[i];
-                              final code = option['code'] as String? ?? '';
-                              return CheckboxListTile(
-                                value: selected.contains(code),
-                                title: Text(option['name'] as String? ?? code),
-                                onChanged: (checked) => setSheetState(
-                                  () => checked == true
-                                      ? selected.add(code)
-                                      : selected.remove(code),
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
       );
-      if (result != null && mounted) {
-        _updateSlots(
-          () => _slots[index] = slot.copyWith(
-            subtypeCodes: result.toList(),
-            clearSelectedPlace: true,
-          ),
-          refreshPreview: false,
-        );
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('하위 카테고리를 불러오지 못했어요.')));
-      }
-    }
+
+  Future<void> _changeSlotCategory(int index) async {
+    final type = await _showSlotCategoryPicker(currentType: _slots[index].type);
+    if (type != null && mounted) _changeSlotType(index, type);
   }
 
-  Future<void> _pickTime(int index) async {
-    final slot = _slots[index];
-    final parts = slot.time.split(':');
-    final selected = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(
-        hour: int.tryParse(parts.first) ?? 10,
-        minute: parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0,
+  Future<void> _openSlotPlacePicker(int slotIndex) async {
+    final slot = _slots[slotIndex];
+    final result = await Navigator.push<SlotPlacePickerResult>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SlotPlacePickerScreen(
+          categoryTitle: _types[slot.type]!,
+          placeType: _placeTypes[slot.type]!,
+          initialSubtypeCodes: slot.subtypeCodes,
+          loadCandidates: (subtypeCodes, offset) =>
+              _loadSlotCandidates(slotIndex, subtypeCodes, offset: offset),
+        ),
       ),
     );
-    if (selected != null && mounted) {
-      _updateSlots(
-        () => _slots[index] = slot.copyWith(time: _timeText(selected)),
-      );
+    if (result == null || !mounted) return;
+    _updateSlots(
+      () => _slots[slotIndex] = slot.copyWith(
+        subtypeCodes: result.subtypeCodes,
+        selectedPlace: _PlannerCandidate(
+          placeId: result.candidate.placeId,
+          name: result.candidate.name,
+          address: result.candidate.address,
+          imageUrl: result.candidate.imageUrl,
+          lat: result.candidate.lat,
+          lng: result.candidate.lng,
+          fromPreviousMeters: null,
+          fromPreviousMinutes: null,
+        ),
+      ),
+      refreshPreview: false,
+    );
+    _schedulePreview(immediate: true);
+    if (slot.type == 'LODGING') {
+      await _offerNextLodgingChoice(slot.id, _slots[slotIndex].selectedPlace!);
     }
   }
 
-  String _timeText(TimeOfDay value) =>
-      '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+  Future<List<SlotPlaceCandidate>> _loadSlotCandidates(
+    int slotIndex,
+    List<String> subtypeCodes, {
+    int offset = 0,
+  }) async {
+    final hasPreviousSchedule = _hasPreviousSchedule(slotIndex);
+    final resolvedSlots = _resolvedSlots();
+    final plannerSlots = List.generate(_slots.length, (index) {
+      return resolvedSlots[index].toPlannerJson(order: index + 1);
+    });
+    plannerSlots[slotIndex]
+      ..remove('selectedPlaceId')
+      ..['subtypeCodes'] = subtypeCodes;
+    final response = await ApiService.getPlannerSlotOptions(
+      travelMode: _plannerTravelMode,
+      departureAt: '${_startDate.toIso8601String().substring(0, 10)}T10:00:00',
+      targetSlotOrder: slotIndex + 1,
+      slots: plannerSlots,
+      dayStartAnchors: _dayStartAnchors(),
+      offset: offset,
+      limit: 5,
+    );
+    return (response['options'] as List? ?? const [])
+        .whereType<Map>()
+        .map(_PlannerCandidate.fromJson)
+        .map(
+          (candidate) => SlotPlaceCandidate(
+            placeId: candidate.placeId,
+            name: candidate.name,
+            address: candidate.address,
+            imageUrl: candidate.imageUrl,
+            lat: candidate.lat,
+            lng: candidate.lng,
+            travelLabel: hasPreviousSchedule ? candidate.travelLabel : null,
+          ),
+        )
+        .toList();
+  }
 
-  Future<void> _recommendSlot(int slotIndex) async {
+  bool _hasPreviousSchedule(int slotIndex) {
     final slot = _slots[slotIndex];
-    try {
-      final plannerSlots = List.generate(
-        _slots.length,
-        (index) => _slots[index].toPlannerJson(order: index + 1),
-      );
-      plannerSlots[slotIndex].remove('selectedPlaceId');
-      final response = await ApiService.getPlannerSlotOptions(
-        travelMode: _mode,
-        departureAt:
-            '${_startDate.toIso8601String().substring(0, 10)}T10:00:00',
-        targetSlotOrder: slotIndex + 1,
-        slots: plannerSlots,
-        dayStartAnchors: _dayStartAnchors(),
-      );
-      if (!mounted) return;
-      final candidates = (response['options'] as List? ?? const [])
-          .whereType<Map>()
-          .map((option) => _PlannerCandidate.fromJson(option))
-          .toList();
-      if (candidates.isEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('조건에 맞는 후보가 없어요.')));
-        return;
-      }
-      final selected = await showModalBottomSheet<_PlannerCandidate>(
-        context: context,
-        isScrollControlled: true,
-        showDragHandle: true,
-        builder: (context) => _CandidatePickerSheet(candidates: candidates),
-      );
-      if (selected != null && mounted) {
-        _updateSlots(
-          () => _slots[slotIndex] = slot.copyWith(selectedPlace: selected),
-          refreshPreview: false,
-        );
-        _schedulePreview(immediate: true);
-        if (slot.type == 'LODGING') {
-          await _offerNextLodgingChoice(slot.id, selected);
-        }
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('후보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')),
-        );
-      }
-    }
+    return _slots.take(slotIndex).any((item) => item.selectedPlace != null) ||
+        _selectedLodgingBeforeDay(slot.day) != null;
   }
 
   Future<void> _offerNextLodgingChoice(
@@ -623,10 +734,35 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
       return;
     }
     setState(() => _activeDay = lodgingSlot.day + 1);
-    await _recommendSlot(nextLodgingIndex);
+    await _openSlotPlacePicker(nextLodgingIndex);
   }
 
   Future<void> _create() async {
+    final unselectedCount = _slots
+        .where((slot) => slot.selectedPlace == null)
+        .length;
+    if (unselectedCount > 0) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('비어 있는 슬롯을 채울까요?'),
+          content: Text(
+            '아직 장소를 고르지 않은 슬롯 $unselectedCount개는 선택한 조건과 동선을 기준으로 자동 추천해 채워요.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('직접 고르기'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('자동으로 채우기'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
     setState(() => _creating = true);
     try {
       final token = await AuthService.instance.getValidAccessToken();
@@ -639,12 +775,20 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
       );
       final routes = result['routes'] as List? ?? const [];
       if (routes.isEmpty) throw Exception();
+      final course = _toCourse(Map<String, dynamic>.from(routes.first as Map));
+      if (_mode == 'PUBLIC_TRANSIT') {
+        try {
+          await _attachGeneratedTransitPreview(course);
+        } catch (_) {
+          // 저장은 완료됐으므로 이동 안내 재계산 실패가 코스 생성을 막지는 않는다.
+        }
+      }
       if (!mounted) return;
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => CourseDetailScreen(
-            course: _toCourse(Map<String, dynamic>.from(routes.first as Map)),
+            course: course,
             travelConcept: _selectedConcepts.join(', '),
           ),
         ),
@@ -662,12 +806,90 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
     }
   }
 
+  Future<void> _attachGeneratedTransitPreview(
+    Map<String, dynamic> course,
+  ) async {
+    final places = (course['places'] as List? ?? const [])
+        .whereType<Map>()
+        .map(Map<String, dynamic>.from)
+        .toList();
+    final idsByDay = <int, List<int>>{};
+    for (final place in places) {
+      final day = (place['day'] as num?)?.toInt();
+      final placeId = (place['placeId'] as num?)?.toInt();
+      if (day != null && placeId != null) {
+        idsByDay.putIfAbsent(day, () => []).add(placeId);
+      }
+    }
+    final paths = await ApiService.getRoutePreview(
+      travelMode: 'PUBLIC_TRANSIT',
+      days: idsByDay.entries
+          .where((entry) => entry.value.length >= 2)
+          .map(
+            (entry) => RoutePreviewDay(day: entry.key, placeIds: entry.value),
+          )
+          .toList(),
+    );
+    final segmentsByDay = {
+      for (final path in paths) path.day: path.transitSegments,
+    };
+    final indexByDay = <int, int>{};
+    for (final place in places) {
+      final day = (place['day'] as num?)?.toInt();
+      if (day == null) continue;
+      final index = indexByDay.update(
+        day,
+        (value) => value + 1,
+        ifAbsent: () => 0,
+      );
+      final segments = segmentsByDay[day] ?? const [];
+      if (index < segments.length) {
+        final segment = segments[index];
+        place['transitToNext'] = {
+          'recommendedMode': segment.recommendedMode,
+          'durationSeconds': segment.durationSeconds,
+          'directWalkDurationSeconds': segment.directWalkDurationSeconds,
+          'distanceMeters': segment.distanceMeters,
+          'walkingMeters': segment.walkingMeters,
+          'transferCount': segment.transferCount,
+          'fromName': segment.fromName,
+          'toName': segment.toName,
+          'boardStationName': segment.boardStationName,
+          'boardExitNumber': segment.boardExitNumber,
+          'alightStationName': segment.alightStationName,
+          'alightExitNumber': segment.alightExitNumber,
+        };
+      }
+    }
+    course['places'] = places;
+    course['routePaths'] = paths
+        .map(
+          (path) => {
+            'day': path.day,
+            'dayLabel': _dateLabel(path.day),
+            'points': path.points
+                .map((point) => {'lat': point.lat, 'lng': point.lng})
+                .toList(),
+          },
+        )
+        .toList();
+  }
+
   Map<String, dynamic> _toCourse(Map<String, dynamic> route) {
     final places = <Map<String, dynamic>>[];
+    final previewRoutePaths = _previewCourse?['routePaths'] as List?;
     for (final rawDay in route['days'] as List? ?? const []) {
       final day = Map<String, dynamic>.from(rawDay as Map);
-      for (final rawStop in day['stops'] as List? ?? const []) {
-        final stop = Map<String, dynamic>.from(rawStop as Map);
+      final stops = (day['stops'] as List? ?? const [])
+          .whereType<Map>()
+          .map(Map<String, dynamic>.from)
+          .toList();
+      final transitSegments = _transitSegmentsForDay(
+        (day['day'] as num?)?.toInt() ?? 1,
+      );
+      final offset = transitSegments.length == stops.length ? 1 : 0;
+      for (var stopIndex = 0; stopIndex < stops.length; stopIndex++) {
+        final stop = stops[stopIndex];
         final travel = stop['travelToNext'] as Map?;
         places.add({
           'placeId': stop['placeId'],
@@ -687,6 +909,11 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
           'subtypeCodes': stop['subtypeCodes'] ?? const [],
           'overview': stop['reason'] ?? '',
           'travelMinutesToNext': travel?['durationMinutes'],
+          'transitToNext':
+              stopIndex < stops.length - 1 &&
+                  stopIndex + offset < transitSegments.length
+              ? transitSegments[stopIndex + offset]
+              : null,
         });
       }
     }
@@ -699,16 +926,17 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
       'areaCode': 'busan',
       'travelMode': _mode,
       'places': places,
-      'routePaths': (route['routePaths'] as List? ?? const [])
-          .whereType<Map>()
-          .map(
-            (path) => {
-              'day': path['day'],
-              'dayLabel': _dateLabel((path['day'] as num?)?.toInt() ?? 1),
-              'points': path['points'] ?? const [],
-            },
-          )
-          .toList(),
+      'routePaths':
+          (previewRoutePaths ?? route['routePaths'] as List? ?? const [])
+              .whereType<Map>()
+              .map(
+                (path) => {
+                  'day': path['day'],
+                  'dayLabel': _dateLabel((path['day'] as num?)?.toInt() ?? 1),
+                  'points': path['points'] ?? const [],
+                },
+              )
+              .toList(),
     };
   }
 
@@ -719,6 +947,8 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
 
   String _slotTimeRange(int slotIndex) {
     final slot = _slots[slotIndex];
+    final resolvedTime = _resolvedSlots()[slotIndex].time;
+    final prefix = slot.time.isEmpty ? '자동 ' : '';
     final orderInDay =
         _slots
             .take(slotIndex + 1)
@@ -729,13 +959,13 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
         .whereType<Map>()
         .where((place) => (place['day'] as num?)?.toInt() == slot.day)
         .toList();
-    if (orderInDay >= places.length) return '${slot.time} ~';
+    if (orderInDay >= places.length) return '$prefix$resolvedTime ~';
 
     final place = places[orderInDay];
     final arrival = _clockText(place['arrivalAt']);
     final departure = _clockText(place['departureAt']);
-    if (arrival == null || departure == null) return '${slot.time} ~';
-    return '$arrival ~ $departure';
+    if (arrival == null || departure == null) return '$prefix$resolvedTime ~';
+    return '$prefix$arrival ~ $departure';
   }
 
   String? _clockText(Object? value) {
@@ -850,8 +1080,8 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
   );
 
   Widget _basicPage() => _StepBody(
-    title: '이동 방식과 날짜를 정해주세요',
-    subtitle: '날짜별로 일정을 따로 구성할 수 있어요.',
+    title: '이동 방식과 출발일을 정해주세요',
+    subtitle: '기본 1박 2일로 시작하며, 일정 화면에서 DAY를 추가할 수 있어요.',
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -863,30 +1093,22 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
               icon: Icon(Icons.directions_car),
             ),
             ButtonSegment(
-              value: 'WALK',
-              label: Text('도보'),
-              icon: Icon(Icons.directions_walk),
+              value: 'PUBLIC_TRANSIT',
+              label: Text('도보·대중교통'),
+              icon: Icon(Icons.directions_transit),
             ),
           ],
           selected: {_mode},
           onSelectionChanged: (value) => setState(() => _mode = value.first),
         ),
-        const SizedBox(height: 20),
-        DropdownButtonFormField<String>(
-          initialValue: _duration,
-          decoration: const InputDecoration(
-            labelText: '여행 기간',
-            border: OutlineInputBorder(),
+        if (_mode == 'PUBLIC_TRANSIT') ...[
+          const SizedBox(height: 8),
+          const Text(
+            '도보와 부산 도시철도를 비교해, 더 빠른 이동수단을 자동으로 선택해요.',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
-          items: const [
-            DropdownMenuItem(value: 'day', child: Text('당일치기')),
-            DropdownMenuItem(value: '1n2d', child: Text('1박 2일')),
-            DropdownMenuItem(value: '2n3d', child: Text('2박 3일')),
-            DropdownMenuItem(value: '3nplus', child: Text('3박 4일 이상')),
-          ],
-          onChanged: (value) => setState(() => _duration = value!),
-        ),
-        const SizedBox(height: 16),
+        ],
+        const SizedBox(height: 20),
         OutlinedButton.icon(
           onPressed: _pickDate,
           icon: const Icon(Icons.calendar_today_outlined),
@@ -1045,6 +1267,11 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
                     scrollController: scrollController,
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                     buildDefaultDragHandles: false,
+                    header: _mode == 'PUBLIC_TRANSIT'
+                        ? _TransitPreviewSummary(
+                            segments: _transitSegmentsForDay(_activeDay),
+                          )
+                        : null,
                     footer: Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Align(
@@ -1089,6 +1316,7 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               ReorderableDragStartListener(
                 index: orderIndex,
@@ -1100,17 +1328,42 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
                   ),
                 ),
               ),
-              Text(
-                '슬롯 ${orderIndex + 1}',
-                style: const TextStyle(fontWeight: FontWeight.w800),
+              Tooltip(
+                message: '카테고리 변경',
+                child: InkWell(
+                  onTap: () => _changeSlotCategory(i),
+                  borderRadius: BorderRadius.circular(16),
+                  child: _SlotCategoryIcon(
+                    category: _slotCategories[_slots[i].type]!,
+                    size: 56,
+                  ),
+                ),
               ),
-              const SizedBox(width: 4),
-              TextButton.icon(
-                onPressed: () => _pickTime(i),
-                icon: const Icon(Icons.schedule_outlined, size: 18),
-                label: Text(_slotTimeRange(i)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => _pickTime(i),
+                      icon: const Icon(Icons.schedule_outlined, size: 20),
+                      label: Text(_slotTimeRange(i)),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 30),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                    Text(
+                      _slotCategories[_slots[i].type]!.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const Spacer(),
               IconButton(
                 onPressed: () => _updateSlots(() => _slots.removeAt(i)),
                 icon: const Icon(Icons.close),
@@ -1118,35 +1371,23 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
             ],
           ),
           const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: _types.entries
-                .map(
-                  (entry) => ChoiceChip(
-                    label: Text(entry.value),
-                    selected: _slots[i].type == entry.key,
-                    onSelected: (_) => _changeSlotType(i, entry.key),
+          InkWell(
+            onTap: () => _openSlotPlacePicker(i),
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.place_outlined, size: 18),
+                  const SizedBox(width: 7),
+                  Text(
+                    _slots[i].selectedPlace == null ? '장소 고르기' : '다른 장소 고르기',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
-                )
-                .toList(),
-          ),
-          const SizedBox(height: 4),
-          TextButton.icon(
-            onPressed: () => _pickSubtypes(i),
-            icon: const Icon(Icons.tune),
-            label: Text(
-              _slots[i].subtypeCodes.isEmpty
-                  ? '세부 카테고리 전체'
-                  : '세부 카테고리 ${_slots[i].subtypeCodes.length}개 선택',
-            ),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: FilledButton.tonalIcon(
-              onPressed: () => _recommendSlot(i),
-              icon: const Icon(Icons.auto_awesome_outlined, size: 18),
-              label: const Text('추천받기'),
+                  const Spacer(),
+                  const Icon(Icons.chevron_right_rounded),
+                ],
+              ),
             ),
           ),
           if (_slots[i].selectedPlace case final place?) ...[
@@ -1217,7 +1458,89 @@ class _Concept {
   const _Concept(this.title, this.description, this.icon, this.slotType);
 }
 
-class _LiveRoutePreview extends StatelessWidget {
+class _SlotCategory {
+  final String title;
+  final String description;
+  final IconData icon;
+  const _SlotCategory(this.title, this.description, this.icon);
+}
+
+class _SlotCategoryOption extends StatelessWidget {
+  const _SlotCategoryOption({
+    required this.category,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _SlotCategory category;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Material(
+      color: selected
+          ? Theme.of(context).colorScheme.secondaryContainer
+          : Theme.of(context).colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              _SlotCategoryIcon(category: category, size: 56),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      category.title,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      category.description,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              if (selected) const Icon(Icons.check_circle_rounded),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _SlotCategoryIcon extends StatelessWidget {
+  const _SlotCategoryIcon({required this.category, required this.size});
+
+  final _SlotCategory category;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.secondaryContainer,
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Icon(
+      category.icon,
+      color: Theme.of(context).colorScheme.onSecondaryContainer,
+      size: size * .52,
+    ),
+  );
+}
+
+class _LiveRoutePreview extends StatefulWidget {
   const _LiveRoutePreview({
     required this.course,
     required this.activeDay,
@@ -1233,10 +1556,54 @@ class _LiveRoutePreview extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
+  State<_LiveRoutePreview> createState() => _LiveRoutePreviewState();
+}
+
+class _LiveRoutePreviewState extends State<_LiveRoutePreview> {
+  Timer? _transitHintTimer;
+  String? _lastTransitSignature;
+  bool _showTransitHint = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshTransitHint());
+  }
+
+  @override
+  void didUpdateWidget(covariant _LiveRoutePreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _refreshTransitHint();
+  }
+
+  void _refreshTransitHint() {
+    final route = _PreviewRoute.fromCourse(
+      widget.course ?? const {},
+      widget.activeDay,
+    );
+    final signature = route.hasPublicTransit
+        ? '${route.day}:${route.transitSegmentCount}:${route.transitDurationSeconds}'
+        : null;
+    if (signature == null || signature == _lastTransitSignature) return;
+    _lastTransitSignature = signature;
+    _transitHintTimer?.cancel();
+    setState(() => _showTransitHint = true);
+    _transitHintTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) setState(() => _showTransitHint = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _transitHintTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final route = course == null
+    final route = widget.course == null
         ? const _PreviewRoute.empty()
-        : _PreviewRoute.fromCourse(course!, activeDay);
+        : _PreviewRoute.fromCourse(widget.course!, widget.activeDay);
     final colorScheme = Theme.of(context).colorScheme;
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
@@ -1266,7 +1633,9 @@ class _LiveRoutePreview extends StatelessWidget {
                         points: route.path.isNotEmpty
                             ? route.path
                             : route.points,
-                        color: colorScheme.primary,
+                        color: route.hasPublicTransit
+                            ? colorScheme.tertiary
+                            : colorScheme.primary,
                         strokeWidth: 4,
                         borderColor: Colors.white,
                         borderStrokeWidth: 2,
@@ -1287,7 +1656,10 @@ class _LiveRoutePreview extends StatelessWidget {
                 ],
               )
             else
-              _PreviewEmptyState(errorMessage: errorMessage, onRetry: onRetry),
+              _PreviewEmptyState(
+                errorMessage: widget.errorMessage,
+                onRetry: widget.onRetry,
+              ),
             Positioned(
               top: 10,
               left: 10,
@@ -1302,7 +1674,7 @@ class _LiveRoutePreview extends StatelessWidget {
                     vertical: 6,
                   ),
                   child: Text(
-                    'DAY $activeDay 동선 미리보기',
+                    'DAY ${widget.activeDay} 동선 미리보기',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
@@ -1311,7 +1683,56 @@ class _LiveRoutePreview extends StatelessWidget {
                 ),
               ),
             ),
-            if (loading)
+            if (route.transitSegmentCount > 0 && _showTransitHint)
+              Positioned(
+                top: 48,
+                left: 10,
+                right: 10,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: colorScheme.tertiaryContainer.withValues(alpha: .96),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          route.hasPublicTransit
+                              ? Icons.subway_rounded
+                              : Icons.directions_walk_rounded,
+                          size: 18,
+                          color: colorScheme.onTertiaryContainer,
+                        ),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Text(
+                            route.hasPublicTransit
+                                ? '도보 ${route.directWalkMinutes}분 → 지하철 포함 ${route.transitMinutes}분 · ${route.timeSavedMinutes}분 절약'
+                                : '이 동선은 도보 이동이 더 빨라요 · ${route.transitMinutes}분',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '${route.transitSegmentCount}개 구간',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onTertiaryContainer,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            if (widget.loading)
               ColoredBox(
                 color: Colors.black.withValues(alpha: .18),
                 child: const Center(child: CircularProgressIndicator()),
@@ -1328,13 +1749,34 @@ class _PreviewRoute {
     required this.day,
     required this.points,
     required this.path,
+    required this.transitSegmentCount,
+    required this.publicTransitSegmentCount,
+    required this.transitDurationSeconds,
+    required this.directWalkDurationSeconds,
   });
 
-  const _PreviewRoute.empty() : day = 1, points = const [], path = const [];
+  const _PreviewRoute.empty()
+    : day = 1,
+      points = const [],
+      path = const [],
+      transitSegmentCount = 0,
+      publicTransitSegmentCount = 0,
+      transitDurationSeconds = 0,
+      directWalkDurationSeconds = 0;
 
   final int day;
   final List<latlong.LatLng> points;
   final List<latlong.LatLng> path;
+  final int transitSegmentCount;
+  final int publicTransitSegmentCount;
+  final int transitDurationSeconds;
+  final int directWalkDurationSeconds;
+
+  bool get hasPublicTransit => publicTransitSegmentCount > 0;
+  int get transitMinutes => (transitDurationSeconds / 60).ceil();
+  int get directWalkMinutes => (directWalkDurationSeconds / 60).ceil();
+  int get timeSavedMinutes =>
+      ((directWalkDurationSeconds - transitDurationSeconds) / 60).ceil();
 
   latlong.LatLng get center {
     final lat =
@@ -1391,7 +1833,29 @@ class _PreviewRoute {
         })
         .whereType<latlong.LatLng>()
         .toList();
-    return _PreviewRoute(day: day, points: points, path: path);
+    final transitSegments = (route['transitSegments'] as List? ?? const [])
+        .whereType<Map>()
+        .toList();
+    return _PreviewRoute(
+      day: day,
+      points: points,
+      path: path,
+      transitSegmentCount: transitSegments.length,
+      publicTransitSegmentCount: transitSegments
+          .where((segment) => segment['recommendedMode'] == 'PUBLIC_TRANSIT')
+          .length,
+      transitDurationSeconds: transitSegments.fold<int>(
+        0,
+        (total, segment) =>
+            total + ((segment['durationSeconds'] as num?)?.toInt() ?? 0),
+      ),
+      directWalkDurationSeconds: transitSegments.fold<int>(
+        0,
+        (total, segment) =>
+            total +
+            ((segment['directWalkDurationSeconds'] as num?)?.toInt() ?? 0),
+      ),
+    );
   }
 
   static double? _asDouble(Object? value) => value is num
@@ -1569,96 +2033,124 @@ class _PlannerCandidate {
       : null;
 }
 
-class _CandidatePickerSheet extends StatelessWidget {
-  const _CandidatePickerSheet({required this.candidates});
+class _TransitPreviewSummary extends StatelessWidget {
+  const _TransitPreviewSummary({required this.segments});
 
-  final List<_PlannerCandidate> candidates;
+  final List<Map<String, dynamic>> segments;
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-    child: SizedBox(
-      height: MediaQuery.sizeOf(context).height * .72,
-      child: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 4, 20, 12),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                '추천 장소',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+  Widget build(BuildContext context) {
+    if (segments.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
+        child: Text(
+          '장소를 두 곳 이상 선택하면 도보·대중교통 이동 정보를 보여드려요.',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.secondaryContainer,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.directions_transit_rounded, size: 18),
+                  const SizedBox(width: 6),
+                  const Text(
+                    '이동 구간',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${segments.length}개 구간',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
               ),
+              const SizedBox(height: 8),
+              ...segments.map(_segmentRow),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _segmentRow(Map<String, dynamic> segment) {
+    final mode = segment['recommendedMode'] as String? ?? 'WALK';
+    final seconds = (segment['durationSeconds'] as num?)?.toInt() ?? 0;
+    final walkingMeters = (segment['walkingMeters'] as num?)?.toInt() ?? 0;
+    final transfers = (segment['transferCount'] as num?)?.toInt() ?? 0;
+    final boardStation = segment['boardStationName'] as String?;
+    final boardExit = segment['boardExitNumber'] as String?;
+    final alightStation = segment['alightStationName'] as String?;
+    final alightExit = segment['alightExitNumber'] as String?;
+    final summary = mode == 'PUBLIC_TRANSIT'
+        ? '도보 ${_distance(walkingMeters)} · 지하철 · ${transfers == 0 ? '환승 없음' : '환승 $transfers회'}'
+        : '도보 ${_distance(walkingMeters)}';
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        children: [
+          Icon(
+            mode == 'PUBLIC_TRANSIT'
+                ? Icons.subway_rounded
+                : Icons.directions_walk_rounded,
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${segment['fromName']} → ${segment['toName']}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  summary,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                if (mode == 'PUBLIC_TRANSIT' &&
+                    boardStation != null &&
+                    alightStation != null)
+                  Text(
+                    '${_stationLabel(boardStation, boardExit)} 탑승 → ${_stationLabel(alightStation, alightExit)} 하차',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+              ],
             ),
           ),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              itemCount: candidates.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final candidate = candidates[index];
-                return Card(
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => Navigator.pop(context, candidate),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: [
-                          _PlaceThumbnail(imageUrl: candidate.imageUrl),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  candidate.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                if (candidate.address.isNotEmpty) ...[
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    candidate.address,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                                if (candidate.travelLabel
-                                    case final label?) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    label,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.chevron_right_rounded),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+          Text(
+            '${(seconds / 60).ceil()}분',
+            style: const TextStyle(fontWeight: FontWeight.w800),
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
+
+  String _distance(int meters) =>
+      meters >= 1000 ? '${(meters / 1000).toStringAsFixed(1)}km' : '${meters}m';
+
+  String _stationLabel(String station, String? exit) =>
+      '$station역${exit == null || exit.isEmpty ? '' : ' $exit번 출구'}';
 }
 
 class _SelectedPlaceSummary extends StatelessWidget {
