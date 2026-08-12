@@ -38,6 +38,7 @@ class SlotPlacePickerScreen extends StatefulWidget {
     required this.categoryTitle,
     required this.placeType,
     required this.loadCandidates,
+    this.loadSubtypes = ApiService.getSubtypeOptions,
     this.initialSubtypeCodes = const [],
   });
 
@@ -48,6 +49,8 @@ class SlotPlacePickerScreen extends StatefulWidget {
     int offset,
   )
   loadCandidates;
+  final Future<List<Map<String, dynamic>>> Function(String placeType)
+  loadSubtypes;
   final List<String> initialSubtypeCodes;
 
   @override
@@ -64,6 +67,7 @@ class _SlotPlacePickerScreenState extends State<SlotPlacePickerScreen> {
   bool _loadingMore = false;
   bool _hasMore = true;
   String? _error;
+  int _requestSequence = 0;
 
   @override
   void initState() {
@@ -81,25 +85,32 @@ class _SlotPlacePickerScreenState extends State<SlotPlacePickerScreen> {
   }
 
   Future<void> _loadInitial() async {
+    final requestSequence = ++_requestSequence;
+    final selectedSubtypeCodes = _selectedSubtypeCodes.toList(growable: false);
     setState(() {
       _loading = true;
+      _loadingMore = false;
       _error = null;
     });
     try {
       final results = await Future.wait([
-        ApiService.getSubtypeOptions(widget.placeType),
-        widget.loadCandidates(_selectedSubtypeCodes.toList(), 0),
+        widget.loadSubtypes(widget.placeType),
+        widget.loadCandidates(selectedSubtypeCodes, 0),
       ]);
-      if (!mounted) return;
+      if (!mounted || requestSequence != _requestSequence) return;
       setState(() {
         _subtypes = List<Map<String, dynamic>>.from(results[0] as List);
         _candidates = List<SlotPlaceCandidate>.from(results[1] as List);
         _hasMore = _candidates.length == 5;
       });
     } catch (_) {
-      if (mounted) setState(() => _error = '장소 후보를 불러오지 못했어요.');
+      if (mounted && requestSequence == _requestSequence) {
+        setState(() => _error = '장소 후보를 불러오지 못했어요.');
+      }
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted && requestSequence == _requestSequence) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -113,13 +124,15 @@ class _SlotPlacePickerScreenState extends State<SlotPlacePickerScreen> {
 
   Future<void> _loadMore() async {
     if (_loading || _loadingMore || !_hasMore) return;
+    final requestSequence = _requestSequence;
+    final selectedSubtypeCodes = _selectedSubtypeCodes.toList(growable: false);
     setState(() => _loadingMore = true);
     try {
       final next = await widget.loadCandidates(
-        _selectedSubtypeCodes.toList(),
+        selectedSubtypeCodes,
         _candidates.length,
       );
-      if (!mounted) return;
+      if (!mounted || requestSequence != _requestSequence) return;
       final existingIds = _candidates
           .map((candidate) => candidate.placeId)
           .toSet();
@@ -133,7 +146,9 @@ class _SlotPlacePickerScreenState extends State<SlotPlacePickerScreen> {
     } catch (_) {
       // 이미 표시한 후보는 유지하고, 다음 스크롤에서 다시 시도한다.
     } finally {
-      if (mounted) setState(() => _loadingMore = false);
+      if (mounted && requestSequence == _requestSequence) {
+        setState(() => _loadingMore = false);
+      }
     }
   }
 
