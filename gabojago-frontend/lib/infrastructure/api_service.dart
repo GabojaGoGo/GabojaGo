@@ -343,6 +343,8 @@ class ApiService {
     required int targetSlotOrder,
     required List<Map<String, dynamic>> slots,
     List<Map<String, dynamic>> dayStartAnchors = const [],
+    int offset = 0,
+    int limit = 5,
   }) async {
     final response = await http
         .post(
@@ -356,6 +358,8 @@ class ApiService {
             'slots': slots,
             'dayStartAnchors': dayStartAnchors,
             'debugUseImported': true,
+            'offset': offset,
+            'limit': limit,
           }),
         )
         .timeout(const Duration(seconds: 20));

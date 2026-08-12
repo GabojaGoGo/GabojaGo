@@ -40,8 +40,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class InteractivePlannerService {
 
-    private static final int PREFILTER_LIMIT = 15;
-    private static final int RESULT_LIMIT = 5;
+    private static final int PREFILTER_LIMIT = 30;
+    private static final int DEFAULT_PAGE_SIZE = 5;
+    private static final int MAX_PAGE_SIZE = 5;
 
     private final RegionRepository regionRepository;
     private final PlaceRepository placeRepository;
@@ -109,7 +110,8 @@ public class InteractivePlannerService {
                 ))
                 .filter(option -> option.fromPrevious() == null || option.fromPrevious().distanceMeters() != null)
                 .sorted(Comparator.comparing(PlannerSlotOptionsResponse.CandidateOption::score).reversed())
-                .limit(RESULT_LIMIT)
+                .skip(request.offset())
+                .limit(request.limit())
                 .toList();
 
         return new PlannerSlotOptionsResponse(
@@ -285,7 +287,17 @@ public class InteractivePlannerService {
                 request.regionKey() == null || request.regionKey().isBlank() ? "busan" : request.regionKey(),
                 travelMode,
                 request.departureAt() == null ? LocalDateTime.now().withHour(10).withMinute(0).withSecond(0).withNano(0) : request.departureAt(),
-                target, slots, request.dayStartAnchors(), Boolean.TRUE.equals(request.debugUseImported()));
+                target, slots, request.dayStartAnchors(), Boolean.TRUE.equals(request.debugUseImported()),
+                normalizeOffset(request.offset()), normalizeLimit(request.limit()));
+    }
+
+    private int normalizeOffset(Integer offset) {
+        return offset == null ? 0 : Math.max(0, offset);
+    }
+
+    private int normalizeLimit(Integer limit) {
+        if (limit == null) return DEFAULT_PAGE_SIZE;
+        return Math.max(1, Math.min(limit, MAX_PAGE_SIZE));
     }
 
     private NormalizedSlot normalizeSlot(PlannerSlotRequest slot) {
@@ -335,7 +347,9 @@ public class InteractivePlannerService {
     private record NormalizedRequest(String regionKey, TravelMode travelMode, LocalDateTime departureAt, NormalizedSlot targetSlot,
                                      List<NormalizedSlot> slots,
                                      List<PlannerSlotOptionsRequest.DayStartAnchor> dayStartAnchors,
-                                     boolean debugUseImported) { }
+                                     boolean debugUseImported,
+                                     int offset,
+                                     int limit) { }
     private record NormalizedSlot(int order, RecommendationSlot slot, Long selectedPlaceId) { }
     private record PlanningWindow(List<NormalizedSlot> futureSlots, Place anchor) { }
 }

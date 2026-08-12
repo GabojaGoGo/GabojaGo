@@ -45,15 +45,16 @@ public class RecommendationController {
     }
 
     @Operation(
-            summary = "편집된 코스의 OSRM 경로 미리보기",
-            description = "장소 교체 후 일자별 장소 순서로 OSRM 도로 geometry를 다시 계산합니다. 자동차와 도보만 지원합니다.",
+            summary = "편집된 코스의 이동 경로 미리보기",
+            description = "장소 교체 후 일자별 장소 순서로 자동차·도보 OSRM geometry 또는 부산 도시철도 결합 경로를 계산합니다. "
+                    + "PUBLIC_TRANSIT은 각 구간의 실제 선택 수단과 시간·도보 거리·환승 횟수도 함께 반환합니다.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @io.swagger.v3.oas.annotations.media.Content(
                     schema = @Schema(implementation = RoutePreviewRequest.class),
                     examples = @ExampleObject(value = """
                             {"travelMode":"CAR","days":[{"day":1,"placeIds":[101,205,309]},{"day":2,"placeIds":[404,505]}]}
                             """))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "일자별 OSRM geometry 반환"),
+                    @ApiResponse(responseCode = "200", description = "일자별 geometry 및 대중교통 구간 요약 반환"),
                     @ApiResponse(responseCode = "422", description = "잘못된 장소·이동수단·좌표")
             }
     )

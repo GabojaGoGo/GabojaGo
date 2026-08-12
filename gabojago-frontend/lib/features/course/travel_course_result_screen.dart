@@ -286,6 +286,16 @@ class _CourseCardState extends State<_CourseCard> {
       await UserDataService.instance.saveCourse(widget.course);
       if (mounted) setState(() => _saved = true);
     }
+    if (_saved && mounted) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/main',
+        (_) => false,
+        arguments: 2,
+      );
+      return;
+    }
+    if (!mounted) return;
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(_saved ? '플래너에 저장됐어요!' : '플래너에서 삭제됐어요')),
@@ -497,14 +507,29 @@ class _TravelModeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isWalk = travelMode == 'WALK';
-    final color = isWalk ? const Color(0xFF0F766E) : const Color(0xFF1D4ED8);
+    final isPublicTransit = travelMode == 'PUBLIC_TRANSIT';
+    final color = isWalk
+        ? const Color(0xFF0F766E)
+        : isPublicTransit
+        ? const Color(0xFF7C3AED)
+        : const Color(0xFF1D4ED8);
     return Chip(
       avatar: Icon(
-        isWalk ? Icons.directions_walk : Icons.directions_car,
+        isWalk
+            ? Icons.directions_walk
+            : isPublicTransit
+            ? Icons.directions_transit
+            : Icons.directions_car,
         size: 16,
         color: color,
       ),
-      label: Text(isWalk ? '도보 기준' : '자동차 기준'),
+      label: Text(
+        isWalk
+            ? '도보 기준'
+            : isPublicTransit
+            ? '도보·대중교통 기준'
+            : '자동차 기준',
+      ),
       labelStyle: TextStyle(
         fontSize: 11,
         color: color,

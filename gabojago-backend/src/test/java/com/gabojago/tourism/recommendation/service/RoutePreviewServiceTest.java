@@ -5,6 +5,7 @@ import com.gabojago.place.domain.enums.TravelMode;
 import com.gabojago.place.repository.PlaceRepository;
 import com.gabojago.tourism.recommendation.dto.request.RoutePreviewRequest;
 import com.gabojago.tourism.recommendation.dto.response.RoutePreviewResponse;
+import com.gabojago.tourism.transit.service.BusanMetroRoutingService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -19,7 +20,9 @@ class RoutePreviewServiceTest {
 
     private final PlaceRepository placeRepository = mock(PlaceRepository.class);
     private final RoutingRouteClient routingRouteClient = mock(RoutingRouteClient.class);
-    private final RoutePreviewService service = new RoutePreviewService(placeRepository, routingRouteClient);
+    private final BusanMetroRoutingService busanMetroRoutingService = mock(BusanMetroRoutingService.class);
+    private final RoutePreviewService service = new RoutePreviewService(
+            placeRepository, routingRouteClient, busanMetroRoutingService);
 
     @Test
     void 일자별_장소_순서로_OSRM_도로_경로를_반환한다() {

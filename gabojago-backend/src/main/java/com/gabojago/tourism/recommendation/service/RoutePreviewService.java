@@ -5,6 +5,9 @@ import com.gabojago.place.domain.enums.TravelMode;
 import com.gabojago.place.repository.PlaceRepository;
 import com.gabojago.tourism.recommendation.dto.request.RoutePreviewRequest;
 import com.gabojago.tourism.recommendation.dto.response.RoutePreviewResponse;
+import com.gabojago.tourism.transit.dto.request.TransitRouteRequest;
+import com.gabojago.tourism.transit.dto.response.TransitRouteResponse;
+import com.gabojago.tourism.transit.service.BusanMetroRoutingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,16 +27,13 @@ public class RoutePreviewService {
 
     private final PlaceRepository placeRepository;
     private final RoutingRouteClient routingRouteClient;
+    private final BusanMetroRoutingService busanMetroRoutingService;
 
     @Transactional(readOnly = true)
     public RoutePreviewResponse preview(RoutePreviewRequest request) {
         if (request == null || request.travelMode() == null || request.days() == null || request.days().isEmpty()) {
             throw invalid("travelMode과 days는 필수입니다.");
         }
-        if (request.travelMode() == TravelMode.PUBLIC_TRANSIT) {
-            throw invalid("대중교통 경로 미리보기는 아직 지원하지 않습니다.");
-        }
-
         List<Long> ids = request.days().stream()
                 .flatMap(day -> day.placeIds() == null ? java.util.stream.Stream.<Long>empty() : day.placeIds().stream())
                 .toList();
@@ -74,9 +74,33 @@ public class RoutePreviewService {
         if (orderedPlaces.size() < 2) {
             return new RoutePreviewResponse.RoutePath(day.day(), List.of());
         }
+        if (travelMode == TravelMode.PUBLIC_TRANSIT) {
+            return transitRoutePath(day.day(), orderedPlaces);
+        }
         return new RoutePreviewResponse.RoutePath(day.day(), routingRouteClient.getRoute(orderedPlaces, travelMode).stream()
                 .map(point -> new RoutePreviewResponse.RoutePoint(point.latitude(), point.longitude()))
                 .toList());
+    }
+
+    private RoutePreviewResponse.RoutePath transitRoutePath(Integer day, List<Place> places) {
+        List<RoutePreviewResponse.RoutePoint> points = new ArrayList<>();
+        List<RoutePreviewResponse.TransitSegment> segments = new ArrayList<>();
+        for (int index = 0; index < places.size() - 1; index++) {
+            Place from = places.get(index);
+            Place to = places.get(index + 1);
+            TransitRouteResponse route = busanMetroRoutingService.route(new TransitRouteRequest(
+                    from.getLatitude(), from.getLongitude(), to.getLatitude(), to.getLongitude()));
+            route.legs().forEach(leg -> leg.geometry().forEach(point -> points.add(
+                    new RoutePreviewResponse.RoutePoint(point.latitude(), point.longitude()))));
+            TransitRouteResponse.Leg firstWalk = route.legs().isEmpty() ? null : route.legs().getFirst();
+            TransitRouteResponse.Leg lastWalk = route.legs().isEmpty() ? null : route.legs().getLast();
+            segments.add(new RoutePreviewResponse.TransitSegment(
+                    route.recommendedMode(), route.durationSeconds(), route.directWalkDurationSeconds(), route.distanceMeters(), route.walkingMeters(),
+                    route.transferCount(), from.getName(), to.getName(),
+                    firstWalk == null ? null : firstWalk.toStationName(), firstWalk == null ? null : firstWalk.toExitNumber(),
+                    lastWalk == null ? null : lastWalk.fromStationName(), lastWalk == null ? null : lastWalk.fromExitNumber()));
+        }
+        return new RoutePreviewResponse.RoutePath(day, List.copyOf(points), List.copyOf(segments));
     }
 
     private ResponseStatusException invalid(String reason) {

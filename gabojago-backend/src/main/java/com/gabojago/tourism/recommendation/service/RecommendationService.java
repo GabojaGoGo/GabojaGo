@@ -35,6 +35,8 @@ public class RecommendationService {
 
     // 1박 2일(9 슬롯) 기준으로 OSRM 기본 table 상한 100 좌표 안에 유지한다.
     private static final int SLOT_CANDIDATE_LIMIT = 10;
+    /** 대중교통은 탐색 중 실제 경로를 계산하므로 요청 지연을 제한한다. */
+    private static final int PUBLIC_TRANSIT_SLOT_CANDIDATE_LIMIT = 5;
 
     private final RegionRepository regionRepository;
     private final PlaceRepository placeRepository;
@@ -125,7 +127,8 @@ public class RecommendationService {
                         request.travelMode()
                 ))
                 .sorted(Comparator.comparingDouble(ScoredPlace::score).reversed())
-                .limit(SLOT_CANDIDATE_LIMIT)
+                .limit(request.travelMode() == TravelMode.PUBLIC_TRANSIT
+                        ? PUBLIC_TRANSIT_SLOT_CANDIDATE_LIMIT : SLOT_CANDIDATE_LIMIT)
                 .toList();
     }
 

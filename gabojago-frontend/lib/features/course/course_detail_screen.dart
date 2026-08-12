@@ -3,10 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latlong;
-import 'package:tripmate/core/models/route_preview.dart';
-import 'package:tripmate/infrastructure/api_service.dart';
 import 'package:tripmate/core/services/user_data_service.dart';
-import 'package:tripmate/features/course/widgets/slot_suggestion_sheet.dart';
+import 'package:tripmate/infrastructure/api_service.dart';
 
 class CourseDetailScreen extends StatefulWidget {
   final Map<String, dynamic> course;
@@ -83,119 +81,20 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     }
     if (mounted) {
       setState(() => _saved = !_saved);
+      if (_saved) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/main',
+          (_) => false,
+          arguments: 2,
+        );
+        return;
+      }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(_saved ? '플래너에 저장됐어요!' : '플래너에서 삭제됐어요')),
       );
     }
-  }
-
-  Future<void> _showSlotSuggestions(
-    int placeIndex,
-    List<Map<String, dynamic>> places,
-  ) async {
-    final currentPlaceIds = places
-        .map((place) => place['placeId'])
-        .whereType<num>()
-        .map((id) => id.toInt())
-        .toList();
-    if (currentPlaceIds.length != places.length) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이 코스는 아직 장소 교체를 지원하지 않아요.')),
-      );
-      return;
-    }
-
-    try {
-      final response = await ApiService.getSlotSuggestions(
-        regionKey: widget.course['areaCode'] as String? ?? 'busan',
-        duration: widget.course['duration'] as String? ?? '1n2d',
-        travelConcept: widget.travelConcept,
-        travelMode: widget.course['travelMode'] as String? ?? 'CAR',
-        slotOrder: placeIndex + 1,
-        day: placeIndex < places.length
-            ? places[placeIndex]['day'] as int?
-            : null,
-        timeLabel: places[placeIndex]['timeLabel'] as String?,
-        slotType: (places[placeIndex]['slotType'] as String?)?.toUpperCase(),
-        subtypeCodes: List<String>.from(
-          places[placeIndex]['subtypeCodes'] as List? ?? const [],
-        ),
-        currentPlaceIds: currentPlaceIds,
-      );
-      if (!mounted) return;
-      final selected = await showModalBottomSheet<Map<String, dynamic>>(
-        context: context,
-        showDragHandle: true,
-        isScrollControlled: true,
-        builder: (_) => SlotSuggestionSheet(
-          suggestions: List<Map<String, dynamic>>.from(
-            (response['suggestions'] as List? ?? const []).whereType<Map>().map(
-              (value) => Map<String, dynamic>.from(value),
-            ),
-          ),
-        ),
-      );
-      if (selected == null || !mounted) return;
-
-      final updated = List<Map<String, dynamic>>.from(places);
-      final original = Map<String, dynamic>.from(updated[placeIndex]);
-      updated[placeIndex] = {
-        ...original,
-        'placeId': selected['placeId'],
-        'subname': selected['placeName'],
-        'address': selected['address'] ?? '',
-        'imageUrl': selected['imageUrl'] ?? '',
-        'mapx': selected['lng'],
-        'mapy': selected['lat'],
-        'overview':
-            '동선 우회 ${selected['detourMeters'] ?? 0}m · ${selected['score'] ?? 0}점',
-      };
-      if (placeIndex > 0) {
-        updated[placeIndex - 1] = {
-          ...updated[placeIndex - 1],
-          'travelMinutesToNext': null,
-        };
-      }
-      if (placeIndex < updated.length - 1) {
-        updated[placeIndex]['travelMinutesToNext'] = null;
-      }
-
-      List<dynamic> routePaths = const [];
-      try {
-        routePaths = await _reloadRoutePaths(updated);
-      } catch (_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('도로 경로를 다시 불러오지 못해 직선으로 표시합니다.')),
-          );
-        }
-      }
-      if (!mounted) return;
-      setState(() {
-        _detail = {...?_detail, 'places': updated, 'routePaths': routePaths};
-        widget.course['places'] = updated;
-        widget.course['routePaths'] = routePaths;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${selected['placeName']}(으)로 바꿨어요.')),
-      );
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('교체할 장소를 찾지 못했어요.')));
-      }
-    }
-  }
-
-  Future<List<dynamic>> _reloadRoutePaths(
-    List<Map<String, dynamic>> places,
-  ) async {
-    final routePaths = await ApiService.getRoutePreview(
-      travelMode: widget.course['travelMode'] as String? ?? 'CAR',
-      days: RoutePreviewDay.fromCoursePlaces(places),
-    );
-    return routePaths.map((path) => path.toLegacyMap()).toList();
   }
 
   @override
@@ -404,6 +303,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       ...List.generate(places.length, (i) {
                         final place = places[i];
                         final travelMin = place['travelMinutesToNext'] as int?;
+                        final transit = place['transitToNext'] as Map?;
                         final dayLabel = place['dayLabel'] as String?;
                         final prevDayLabel = i > 0
                             ? places[i - 1]['dayLabel'] as String?
@@ -431,11 +331,18 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                   i == places.length - 1 && travelMin == null,
                               slotType: place['slotType'] as String?,
                               timeLabel: place['timeLabel'] as String?,
-                              onReplace: () => _showSlotSuggestions(i, places),
                             ),
                             // 이동 시간 divider
                             if (i < places.length - 1)
-                              _TravelTimeDivider(minutes: travelMin),
+                              _TravelTimeDivider(
+                                minutes: travelMin,
+                                travelMode:
+                                    widget.course['travelMode'] as String? ??
+                                    'CAR',
+                                transit: transit == null
+                                    ? null
+                                    : Map<String, dynamic>.from(transit),
+                              ),
                           ],
                         );
                       }),
@@ -1066,33 +973,86 @@ class _RoutePainter extends CustomPainter {
 // ─── 이동 시간 divider ────────────────────────────────────
 class _TravelTimeDivider extends StatelessWidget {
   final int? minutes;
-  const _TravelTimeDivider({this.minutes});
+  final String travelMode;
+  final Map<String, dynamic>? transit;
+  const _TravelTimeDivider({
+    this.minutes,
+    required this.travelMode,
+    this.transit,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 10),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 2,
-            height: 24,
+            height: transit?['recommendedMode'] == 'PUBLIC_TRANSIT' ? 42 : 24,
             color: const Color(0xFF2E7D6B).withValues(alpha: 0.15),
           ),
           const SizedBox(width: 14),
-          const Icon(
-            Icons.directions_car_outlined,
-            size: 14,
-            color: Colors.grey,
-          ),
+          Icon(_icon, size: 14, color: Colors.grey),
           const SizedBox(width: 4),
-          Text(
-            minutes != null ? '자동차 약 $minutes분' : '이동',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          Expanded(
+            child: Text(
+              _label,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  IconData get _icon {
+    final recommendedMode = transit?['recommendedMode'] as String?;
+    if (recommendedMode == 'PUBLIC_TRANSIT') {
+      return Icons.subway_outlined;
+    }
+    if (recommendedMode == 'WALK' || travelMode == 'WALK') {
+      return Icons.directions_walk_outlined;
+    }
+    if (travelMode == 'PUBLIC_TRANSIT') {
+      return Icons.directions_transit_outlined;
+    }
+    return Icons.directions_car_outlined;
+  }
+
+  String get _label {
+    if (transit?['recommendedMode'] == 'PUBLIC_TRANSIT') {
+      final board = _station(
+        transit?['boardStationName'],
+        transit?['boardExitNumber'],
+      );
+      final alight = _station(
+        transit?['alightStationName'],
+        transit?['alightExitNumber'],
+      );
+      final duration =
+          ((transit?['durationSeconds'] as num?)?.toInt() ?? 0) / 60;
+      return '$board 탑승 → $alight 하차 · 약 ${duration.ceil()}분';
+    }
+    if (transit?['recommendedMode'] == 'WALK') {
+      final duration =
+          ((transit?['durationSeconds'] as num?)?.toInt() ?? 0) / 60;
+      return '도보 약 ${duration.ceil()}분';
+    }
+    if (travelMode == 'WALK') {
+      return minutes == null ? '도보 이동' : '도보 약 $minutes분';
+    }
+    if (travelMode == 'PUBLIC_TRANSIT') {
+      return minutes == null ? '도보·대중교통 이동' : '도보·대중교통 약 $minutes분';
+    }
+    return minutes == null ? '자동차 이동' : '자동차 약 $minutes분';
+  }
+
+  String _station(Object? station, Object? exit) {
+    final name = station as String? ?? '가까운 역';
+    final exitNumber = exit as String?;
+    return '$name역${exitNumber == null || exitNumber.isEmpty ? '' : ' $exitNumber번 출구'}';
   }
 }
 
@@ -1150,7 +1110,6 @@ class _PlaceDetailItem extends StatelessWidget {
   final bool isLast;
   final String? slotType;
   final String? timeLabel;
-  final VoidCallback? onReplace;
 
   const _PlaceDetailItem({
     required this.index,
@@ -1164,7 +1123,6 @@ class _PlaceDetailItem extends StatelessWidget {
     required this.isLast,
     this.slotType,
     this.timeLabel,
-    this.onReplace,
   });
 
   IconData _slotIcon() {
@@ -1289,18 +1247,6 @@ class _PlaceDetailItem extends StatelessWidget {
                       ),
                     ),
                   ],
-                ),
-              ],
-              if (onReplace != null) ...[
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: onReplace,
-                  icon: const Icon(Icons.refresh, size: 16),
-                  label: const Text('다른 장소 보기'),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    minimumSize: const Size(0, 32),
-                  ),
                 ),
               ],
 

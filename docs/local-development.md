@@ -10,6 +10,23 @@
 - Python 3.11 이상(data-import 실행 시)
 - OSRM 그래프 파일: `gabojago-backend/infra/osrm/yeongnam/{car,foot}`
 
+### Orca worktree 준비 점검
+
+새 worktree에서는 루트의 아래 스크립트를 실행한다. 기본 실행은 도구·환경 파일의
+존재만 확인하며, `.env` 값을 읽거나 복사하지 않고 Docker·빌드를 자동 실행하지 않는다.
+
+```bash
+./scripts/setup-worktree.sh
+```
+
+Flutter 의존성이 없는 새 worktree에서만 아래 옵션을 추가한다.
+
+```bash
+./scripts/setup-worktree.sh --install-frontend
+```
+
+Orca Repository Hook에는 기본 명령인 `./scripts/setup-worktree.sh`만 등록한다.
+
 ## 2. 환경 파일
 
 환경 파일은 모두 Git에서 제외한다. 예시 파일만 커밋한다.

@@ -40,4 +40,53 @@ void main() {
       ],
     });
   });
+
+  test('자동 채움 뒤 최종 장소 목록으로 유효한 일자별 지도 경로를 만든다', () {
+    final days = GeneratedCourseRoutePreview.requestDays([
+      {'placeId': 1, 'day': 1},
+      {'placeId': 2, 'day': 1},
+      {'placeId': 3, 'day': 2},
+      {'placeId': 4, 'day': 2},
+      {'placeId': 5, 'day': 2},
+    ]);
+    final paths = GeneratedCourseRoutePreview.detailPaths([
+      const RoutePreviewPath(
+        day: 1,
+        points: [
+          RoutePreviewPoint(lat: 35.1, lng: 129.1),
+          RoutePreviewPoint(lat: 35.2, lng: 129.2),
+        ],
+      ),
+      const RoutePreviewPath(
+        day: 2,
+        points: [
+          RoutePreviewPoint(lat: 35.3, lng: 129.3),
+          RoutePreviewPoint(lat: 35.4, lng: 129.4),
+        ],
+      ),
+    ], dayLabel: (day) => 'DAY $day');
+
+    expect(days.map((day) => day.placeIds), [
+      [1, 2],
+      [3, 4, 5],
+    ]);
+    expect(paths, [
+      {
+        'day': 1,
+        'dayLabel': 'DAY 1',
+        'points': [
+          {'lat': 35.1, 'lng': 129.1},
+          {'lat': 35.2, 'lng': 129.2},
+        ],
+      },
+      {
+        'day': 2,
+        'dayLabel': 'DAY 2',
+        'points': [
+          {'lat': 35.3, 'lng': 129.3},
+          {'lat': 35.4, 'lng': 129.4},
+        ],
+      },
+    ]);
+  });
 }
