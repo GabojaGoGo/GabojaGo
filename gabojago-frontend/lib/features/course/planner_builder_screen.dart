@@ -776,12 +776,10 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
       final routes = result['routes'] as List? ?? const [];
       if (routes.isEmpty) throw Exception();
       final course = _toCourse(Map<String, dynamic>.from(routes.first as Map));
-      if (_mode == 'PUBLIC_TRANSIT') {
-        try {
-          await _attachGeneratedTransitPreview(course);
-        } catch (_) {
-          // 저장은 완료됐으므로 이동 안내 재계산 실패가 코스 생성을 막지는 않는다.
-        }
+      try {
+        await _attachGeneratedRoutePreview(course);
+      } catch (_) {
+        // 저장은 완료됐으므로 이동 안내 재계산 실패가 코스 생성을 막지는 않는다.
       }
       if (!mounted) return;
       await Navigator.push(
@@ -806,29 +804,14 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
     }
   }
 
-  Future<void> _attachGeneratedTransitPreview(
-    Map<String, dynamic> course,
-  ) async {
+  Future<void> _attachGeneratedRoutePreview(Map<String, dynamic> course) async {
     final places = (course['places'] as List? ?? const [])
         .whereType<Map>()
         .map(Map<String, dynamic>.from)
         .toList();
-    final idsByDay = <int, List<int>>{};
-    for (final place in places) {
-      final day = (place['day'] as num?)?.toInt();
-      final placeId = (place['placeId'] as num?)?.toInt();
-      if (day != null && placeId != null) {
-        idsByDay.putIfAbsent(day, () => []).add(placeId);
-      }
-    }
     final paths = await ApiService.getRoutePreview(
-      travelMode: 'PUBLIC_TRANSIT',
-      days: idsByDay.entries
-          .where((entry) => entry.value.length >= 2)
-          .map(
-            (entry) => RoutePreviewDay(day: entry.key, placeIds: entry.value),
-          )
-          .toList(),
+      travelMode: _mode,
+      days: GeneratedCourseRoutePreview.requestDays(places),
     );
     final segmentsByDay = {
       for (final path in paths) path.day: path.transitSegments,
@@ -862,22 +845,14 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
       }
     }
     course['places'] = places;
-    course['routePaths'] = paths
-        .map(
-          (path) => {
-            'day': path.day,
-            'dayLabel': _dateLabel(path.day),
-            'points': path.points
-                .map((point) => {'lat': point.lat, 'lng': point.lng})
-                .toList(),
-          },
-        )
-        .toList();
+    course['routePaths'] = GeneratedCourseRoutePreview.detailPaths(
+      paths,
+      dayLabel: _dateLabel,
+    );
   }
 
   Map<String, dynamic> _toCourse(Map<String, dynamic> route) {
     final places = <Map<String, dynamic>>[];
-    final previewRoutePaths = _previewCourse?['routePaths'] as List?;
     for (final rawDay in route['days'] as List? ?? const []) {
       final day = Map<String, dynamic>.from(rawDay as Map);
       final stops = (day['stops'] as List? ?? const [])
@@ -926,17 +901,16 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
       'areaCode': 'busan',
       'travelMode': _mode,
       'places': places,
-      'routePaths':
-          (previewRoutePaths ?? route['routePaths'] as List? ?? const [])
-              .whereType<Map>()
-              .map(
-                (path) => {
-                  'day': path['day'],
-                  'dayLabel': _dateLabel((path['day'] as num?)?.toInt() ?? 1),
-                  'points': path['points'] ?? const [],
-                },
-              )
-              .toList(),
+      'routePaths': (route['routePaths'] as List? ?? const [])
+          .whereType<Map>()
+          .map(
+            (path) => {
+              'day': path['day'],
+              'dayLabel': _dateLabel((path['day'] as num?)?.toInt() ?? 1),
+              'points': path['points'] ?? const [],
+            },
+          )
+          .toList(),
     };
   }
 

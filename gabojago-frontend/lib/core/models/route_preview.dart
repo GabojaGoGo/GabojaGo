@@ -57,6 +57,34 @@ class RoutePreviewStartAnchor {
   Map<String, Object> toJson() => {'name': name, 'lat': lat, 'lng': lng};
 }
 
+/// 저장 직전의 최종 장소 목록으로 경로 미리보기 요청·지도 경로를 만든다.
+///
+/// 편집 중 미리보기는 아직 선택되지 않은 슬롯을 포함하지 않을 수 있으므로,
+/// 자동 채움 뒤에는 이 변환만 사용해 최종 코스 지도 경로를 교체한다.
+class GeneratedCourseRoutePreview {
+  const GeneratedCourseRoutePreview._();
+
+  static List<RoutePreviewDay> requestDays(
+    Iterable<Map<String, dynamic>> places,
+  ) => RoutePreviewDay.fromCoursePlaces(
+    places.map((place) => Map<String, Object?>.from(place)),
+  ).where((day) => day.placeIds.length >= 2).toList();
+
+  static List<Map<String, dynamic>> detailPaths(
+    Iterable<RoutePreviewPath> paths, {
+    required String Function(int day) dayLabel,
+  }) => paths
+      .where((path) => path.points.length >= 2)
+      .map(
+        (path) => {
+          'day': path.day,
+          'dayLabel': dayLabel(path.day),
+          'points': path.points.map((point) => point.toJson()).toList(),
+        },
+      )
+      .toList();
+}
+
 class RoutePreviewPath {
   const RoutePreviewPath({
     required this.day,
