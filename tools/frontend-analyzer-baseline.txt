@@ -1,13 +1,1 @@
-1|INFO|UNNECESSARY_BRACE_IN_STRING_INTERPS|gabojago-frontend/lib/features/benefit/widgets/apply_button.dart
-1|INFO|UNNECESSARY_UNDERSCORES|gabojago-frontend/lib/features/auth/onboarding_screen.dart
-2|INFO|UNNECESSARY_UNDERSCORES|gabojago-frontend/lib/features/course/widgets/course_card.dart
-2|INFO|UNNECESSARY_UNDERSCORES|gabojago-frontend/lib/features/course/widgets/saved_course_card.dart
-2|INFO|UNNECESSARY_UNDERSCORES|gabojago-frontend/lib/features/spot/spot_detail_screen.dart
-2|INFO|UNNECESSARY_UNDERSCORES|gabojago-frontend/lib/features/spot/widgets/spot_card_carousel.dart
-2|INFO|UNNECESSARY_UNDERSCORES|gabojago-frontend/lib/features/spot/widgets/spot_list_tile.dart
-1|INFO|USE_BUILD_CONTEXT_SYNCHRONOUSLY|gabojago-frontend/lib/features/auth/login_screen.dart
-4|INFO|USE_NULL_AWARE_ELEMENTS|gabojago-frontend/lib/core/services/user_data_service.dart
-1|INFO|USE_NULL_AWARE_ELEMENTS|gabojago-frontend/lib/features/my_trip/my_trip_screen.dart
-3|WARNING|ASSET_DOES_NOT_EXIST|gabojago-frontend/pubspec.yaml
-7|WARNING|INVALID_RETURN_TYPE_FOR_CATCH_ERROR|gabojago-frontend/lib/core/services/user_data_service.dart
-1|WARNING|UNUSED_ELEMENT|gabojago-frontend/lib/features/my_trip/my_trip_screen.dart
+1|WARNING|ASSET_DOES_NOT_EXIST|gabojago-frontend/pubspec.yaml
