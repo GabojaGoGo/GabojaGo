@@ -22,17 +22,27 @@ class SpotListTile extends StatelessWidget {
 
   Color get _congestionColor {
     switch (spot.congestion) {
-      case '낮음':   return const Color(0xFF1B8C6E);
-      case '보통':   return const Color(0xFFF57C00);
-      case '높음':   return const Color(0xFFD84315);
-      case '예측중': return const Color(0xFF607D8B);
-      default:      return const Color(0xFF616161);
+      case '낮음':
+        return const Color(0xFF1B8C6E);
+      case '보통':
+        return const Color(0xFFF57C00);
+      case '높음':
+        return const Color(0xFFD84315);
+      case '예측중':
+        return const Color(0xFF607D8B);
+      default:
+        return const Color(0xFF616161);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final distM = Geolocator.distanceBetween(lat, lng, spot.latitude, spot.longitude);
+    final distM = Geolocator.distanceBetween(
+      lat,
+      lng,
+      spot.latitude,
+      spot.longitude,
+    );
     final distLabel = distM < 1000
         ? '${distM.round()}m'
         : '${(distM / 1000).toStringAsFixed(distM >= 10000 ? 0 : 1)}km';
@@ -56,9 +66,11 @@ class SpotListTile extends StatelessWidget {
                     height: 72,
                     color: spot.placeholderColor.withValues(alpha: 0.1),
                     child: (spot.imageUrl != null && spot.imageUrl!.isNotEmpty)
-                        ? Image.network(spot.imageUrl!,
+                        ? Image.network(
+                            spot.imageUrl!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _placeholder())
+                            errorBuilder: (_, _, _) => _placeholder(),
+                          )
                         : _placeholder(),
                   ),
                 ),
@@ -72,7 +84,11 @@ class SpotListTile extends StatelessWidget {
                         color: Color(0xFF1B8C6E),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.check, color: Colors.white, size: 10),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 10,
+                      ),
                     ),
                   ),
               ],
@@ -97,18 +113,29 @@ class SpotListTile extends StatelessWidget {
                   const SizedBox(height: 3),
                   Row(
                     children: [
-                      Icon(Icons.place_outlined, size: 12, color: Colors.grey.shade500),
+                      Icon(
+                        Icons.place_outlined,
+                        size: 12,
+                        color: Colors.grey.shade500,
+                      ),
                       const SizedBox(width: 2),
                       Expanded(
                         child: Text(
                           spot.areaName,
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Icon(Icons.directions_walk, size: 12, color: Colors.grey.shade600),
+                      Icon(
+                        Icons.directions_walk,
+                        size: 12,
+                        color: Colors.grey.shade600,
+                      ),
                       const SizedBox(width: 2),
                       Text(
                         distLabel,
@@ -133,7 +160,9 @@ class SpotListTile extends StatelessWidget {
             const SizedBox(width: 8),
             Icon(
               Icons.chevron_right_rounded,
-              color: isSelected ? const Color(0xFF1B8C6E) : Colors.grey.shade400,
+              color: isSelected
+                  ? const Color(0xFF1B8C6E)
+                  : Colors.grey.shade400,
               size: 20,
             ),
           ],
@@ -144,8 +173,11 @@ class SpotListTile extends StatelessWidget {
 
   Widget _placeholder() {
     return Center(
-      child: Icon(Icons.image_not_supported_outlined,
-          color: spot.placeholderColor, size: 22),
+      child: Icon(
+        Icons.image_not_supported_outlined,
+        color: spot.placeholderColor,
+        size: 22,
+      ),
     );
   }
 }

@@ -2,6 +2,8 @@
 // 첫 로그인 직후 닉네임 입력 + 여행 취향 선택 온보딩
 // 완료 → AuthService에 저장 → MainShell로 이동
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:tripmate/core/models/user_prefs.dart';
@@ -88,11 +90,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     UserPrefsScope.maybeOf(context)?.onUpdate(newPrefs);
 
     // 위치 권한 요청 멘트 다이얼로그 띄우기
-    await showDialog(
+    await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        contentPadding: const EdgeInsets.only(top: 32, left: 24, right: 24, bottom: 12),
+        contentPadding: const EdgeInsets.only(
+          top: 32,
+          left: 24,
+          right: 24,
+          bottom: 12,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -104,20 +111,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               builder: (context, val, child) {
                 return Transform.scale(
                   scale: val,
-                  child: const Icon(Icons.location_on_rounded, size: 64, color: Color(0xFF2E7D6B)),
+                  child: const Icon(
+                    Icons.location_on_rounded,
+                    size: 64,
+                    color: Color(0xFF2E7D6B),
+                  ),
                 );
               },
             ),
             const SizedBox(height: 20),
             const Text(
               '위치 권한이 필요해요! 📍',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20, color: Color(0xFF1A1A1A)),
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 20,
+                color: Color(0xFF1A1A1A),
+              ),
             ),
             const SizedBox(height: 12),
             const Text(
               '트립메이트가 내 취향에 딱 맞는\n주변 관광지와 축제를 추천해드릴 수 있도록\n위치 권한을 허용해 주실래요?',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, height: 1.5, color: Colors.black87),
+              style: TextStyle(
+                fontSize: 15,
+                height: 1.5,
+                color: Colors.black87,
+              ),
             ),
             const SizedBox(height: 12),
           ],
@@ -129,7 +148,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            child: const Text('나중에요', style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w600)),
+            child: const Text(
+              '나중에요',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -140,17 +166,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               backgroundColor: const Color(0xFF2E7D6B),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               elevation: 0,
             ),
-            child: const Text('좋아요! 🚀', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            child: const Text(
+              '좋아요! 🚀',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
     );
 
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed('/main');
+    unawaited(Navigator.of(context).pushReplacementNamed('/main'));
   }
 
   @override
@@ -162,93 +193,97 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         height: double.infinity,
         decoration: kAppGradient,
         child: SafeArea(
-        child: Column(
-          children: [
-            // ── 진행바 ─────────────────────────────────────
-            _ProgressBar(current: _page, total: _totalPages),
+          child: Column(
+            children: [
+              // ── 진행바 ─────────────────────────────────────
+              _ProgressBar(current: _page, total: _totalPages),
 
-            // ── 페이지 콘텐츠 ──────────────────────────────
-            Expanded(
-              child: PageView(
-                controller: _pageCtrl,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _NicknamePage(
-                    controller: _nickCtrl,
-                    focusNode: _nickFocus,
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  _PurposePage(
-                    selected: _selectedPurposes,
-                    onToggle: (key) => setState(() {
-                      if (_selectedPurposes.contains(key)) {
-                        _selectedPurposes.remove(key);
-                      } else if (_selectedPurposes.length < 3) {
-                        _selectedPurposes.add(key);
-                      }
-                    }),
-                  ),
-                  _DurationPage(
-                    selected: _selectedDuration,
-                    onSelect: (key) => setState(() => _selectedDuration = key),
-                  ),
-                ],
+              // ── 페이지 콘텐츠 ──────────────────────────────
+              Expanded(
+                child: PageView(
+                  controller: _pageCtrl,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    _NicknamePage(
+                      controller: _nickCtrl,
+                      focusNode: _nickFocus,
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    _PurposePage(
+                      selected: _selectedPurposes,
+                      onToggle: (key) => setState(() {
+                        if (_selectedPurposes.contains(key)) {
+                          _selectedPurposes.remove(key);
+                        } else if (_selectedPurposes.length < 3) {
+                          _selectedPurposes.add(key);
+                        }
+                      }),
+                    ),
+                    _DurationPage(
+                      selected: _selectedDuration,
+                      onSelect: (key) =>
+                          setState(() => _selectedDuration = key),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // ── 하단 버튼 ──────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: ElevatedButton(
-                      onPressed: _canProceed && !_saving ? _next : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primary,
-                        disabledBackgroundColor: const Color(0xFFCCE5DE),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+              // ── 하단 버튼 ──────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: _canProceed && !_saving ? _next : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _primary,
+                          disabledBackgroundColor: const Color(0xFFCCE5DE),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
                         ),
-                        elevation: 0,
-                      ),
-                      child: _saving
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
+                        child: _saving
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : Text(
+                                _page == _totalPages - 1
+                                    ? '취향 저장하고 시작하기 🎉'
+                                    : '다음',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                            )
-                          : Text(
-                              _page == _totalPages - 1
-                                  ? '취향 저장하고 시작하기 🎉'
-                                  : '다음',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                    ),
-                  ),
-                  // 건너뛰기 (취향·기간 페이지에서만)
-                  if (_page > 0)
-                    TextButton(
-                      onPressed: _saving ? null : _finish,
-                      child: Text(
-                        '나중에 설정할게요',
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                       ),
                     ),
-                ],
+                    // 건너뛰기 (취향·기간 페이지에서만)
+                    if (_page > 0)
+                      TextButton(
+                        onPressed: _saving ? null : _finish,
+                        child: Text(
+                          '나중에 설정할게요',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ), // SafeArea
       ), // Container (gradient)
     );
@@ -603,7 +638,7 @@ class _DurationPage extends StatelessWidget {
             child: ListView.separated(
               physics: const NeverScrollableScrollPhysics(),
               itemCount: _durations.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
               itemBuilder: (_, i) {
                 final d = _durations[i];
                 final isSel = selected == d['key'];

@@ -2,6 +2,8 @@
 // 영수증 스캔 화면 — 카메라 뷰파인더 영역, 갤러리/촬영 버튼
 // 버튼 클릭 시 1.5초 로딩 후 더미 OCR 결과를 애니메이션과 함께 표시
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:tripmate/core/widgets/benefit_chip.dart';
 
@@ -11,13 +13,13 @@ import 'package:tripmate/core/widgets/benefit_chip.dart';
 
 /// OCR 인식 결과 더미 데이터 (실제 OCR API 응답 구조 흉내)
 const Map<String, dynamic> _dummyOcrResult = {
-  'merchantName': '홍천 자연펜션',      // 가맹점명
-  'amount': 85000,                     // 결제 금액 (원)
-  'category': '숙박업',               // 업종
-  'isEligible': true,                  // 환급 인정 여부
-  'refundRate': 0.5,                   // 환급률 (50%)
-  'receiptDate': '2026.03.30',         // 영수증 날짜
-  'businessRegNo': '123-45-67890',     // 사업자등록번호
+  'merchantName': '홍천 자연펜션', // 가맹점명
+  'amount': 85000, // 결제 금액 (원)
+  'category': '숙박업', // 업종
+  'isEligible': true, // 환급 인정 여부
+  'refundRate': 0.5, // 환급률 (50%)
+  'receiptDate': '2026.03.30', // 영수증 날짜
+  'businessRegNo': '123-45-67890', // 사업자등록번호
 };
 
 /// 누적 영수증 더미 데이터
@@ -67,8 +69,10 @@ class _ReceiptScreenState extends State<ReceiptScreen>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _fadeAnimation =
-        CurvedAnimation(parent: _fadeController, curve: Curves.easeIn);
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    );
 
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 400),
@@ -96,15 +100,15 @@ class _ReceiptScreenState extends State<ReceiptScreen>
     _fadeController.reset();
     _slideController.reset();
 
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
 
     if (!mounted) return;
     setState(() {
       _isLoading = false;
       _showResult = true;
     });
-    _fadeController.forward();
-    _slideController.forward();
+    unawaited(_fadeController.forward());
+    unawaited(_slideController.forward());
   }
 
   // 예상 환급액 계산
@@ -300,37 +304,25 @@ class _CornerGuides extends StatelessWidget {
           Positioned(
             top: 0,
             left: 0,
-            child: _Corner(corners: {
-              'top': true,
-              'left': true,
-            }),
+            child: _Corner(corners: {'top': true, 'left': true}),
           ),
           // 우상단
           Positioned(
             top: 0,
             right: 0,
-            child: _Corner(corners: {
-              'top': true,
-              'right': true,
-            }),
+            child: _Corner(corners: {'top': true, 'right': true}),
           ),
           // 좌하단
           Positioned(
             bottom: 0,
             left: 0,
-            child: _Corner(corners: {
-              'bottom': true,
-              'left': true,
-            }),
+            child: _Corner(corners: {'bottom': true, 'left': true}),
           ),
           // 우하단
           Positioned(
             bottom: 0,
             right: 0,
-            child: _Corner(corners: {
-              'bottom': true,
-              'right': true,
-            }),
+            child: _Corner(corners: {'bottom': true, 'right': true}),
           ),
         ],
       ),
@@ -352,7 +344,11 @@ class _Corner extends StatelessWidget {
       width: size,
       height: size,
       child: CustomPaint(
-        painter: _CornerPainter(corners: corners, thickness: thickness, color: color),
+        painter: _CornerPainter(
+          corners: corners,
+          thickness: thickness,
+          color: color,
+        ),
       ),
     );
   }
@@ -363,7 +359,11 @@ class _CornerPainter extends CustomPainter {
   final double thickness;
   final Color color;
 
-  _CornerPainter({required this.corners, required this.thickness, required this.color});
+  _CornerPainter({
+    required this.corners,
+    required this.thickness,
+    required this.color,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -384,15 +384,31 @@ class _CornerPainter extends CustomPainter {
     }
     if (top && right) {
       canvas.drawLine(Offset(0, 0), Offset(size.width, 0), paint);
-      canvas.drawLine(Offset(size.width, 0), Offset(size.width, size.height), paint);
+      canvas.drawLine(
+        Offset(size.width, 0),
+        Offset(size.width, size.height),
+        paint,
+      );
     }
     if (bottom && left) {
-      canvas.drawLine(Offset(0, size.height), Offset(size.width, size.height), paint);
+      canvas.drawLine(
+        Offset(0, size.height),
+        Offset(size.width, size.height),
+        paint,
+      );
       canvas.drawLine(Offset(0, 0), Offset(0, size.height), paint);
     }
     if (bottom && right) {
-      canvas.drawLine(Offset(0, size.height), Offset(size.width, size.height), paint);
-      canvas.drawLine(Offset(size.width, 0), Offset(size.width, size.height), paint);
+      canvas.drawLine(
+        Offset(0, size.height),
+        Offset(size.width, size.height),
+        paint,
+      );
+      canvas.drawLine(
+        Offset(size.width, 0),
+        Offset(size.width, size.height),
+        paint,
+      );
     }
   }
 
@@ -429,8 +445,11 @@ class _OcrResultCard extends StatelessWidget {
           // 헤더
           Row(
             children: [
-              const Icon(Icons.document_scanner_outlined,
-                  color: Color(0xFF2E7D6B), size: 20),
+              const Icon(
+                Icons.document_scanner_outlined,
+                color: Color(0xFF2E7D6B),
+                size: 20,
+              ),
               const SizedBox(width: 8),
               const Text(
                 'OCR 인식 결과',
@@ -446,8 +465,7 @@ class _OcrResultCard extends StatelessWidget {
                 backgroundColor: isEligible
                     ? const Color(0xFF1B8C6E).withValues(alpha: 0.1)
                     : Colors.grey.shade100,
-                textColor:
-                    isEligible ? const Color(0xFF1B8C6E) : Colors.grey,
+                textColor: isEligible ? const Color(0xFF1B8C6E) : Colors.grey,
               ),
             ],
           ),
@@ -471,10 +489,7 @@ class _OcrResultCard extends StatelessWidget {
             value: '${_formatAmount(result['amount'] as int)}원',
           ),
           const SizedBox(height: 10),
-          _ResultRow(
-            label: '영수증 날짜',
-            value: result['receiptDate'] as String,
-          ),
+          _ResultRow(label: '영수증 날짜', value: result['receiptDate'] as String),
           const SizedBox(height: 10),
           _ResultRow(
             label: '인정 여부',
@@ -525,9 +540,9 @@ class _OcrResultCard extends StatelessWidget {
 
   String _formatAmount(int amount) {
     return amount.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
-        );
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]},',
+    );
   }
 }
 
@@ -537,11 +552,7 @@ class _ResultRow extends StatelessWidget {
   final String value;
   final TextStyle? valueStyle;
 
-  const _ResultRow({
-    required this.label,
-    required this.value,
-    this.valueStyle,
-  });
+  const _ResultRow({required this.label, required this.value, this.valueStyle});
 
   @override
   Widget build(BuildContext context) {
@@ -550,14 +561,12 @@ class _ResultRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
         ),
         Text(
           value,
-          style: valueStyle ??
+          style:
+              valueStyle ??
               const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
@@ -576,9 +585,9 @@ class _TotalSavingsBanner extends StatelessWidget {
 
   String _formatAmount(int amount) {
     return amount.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
-        );
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]},',
+    );
   }
 
   @override
@@ -604,10 +613,7 @@ class _TotalSavingsBanner extends StatelessWidget {
               children: [
                 const Text(
                   '이번 여행 예상 환급 합계',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
                 Text(
                   '${_formatAmount(totalRefund)}원',
@@ -690,7 +696,7 @@ class _PreviousReceiptItem extends StatelessWidget {
   }
 
   String _fmt(int v) => v.toString().replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-        (m) => '${m[1]},',
-      );
+    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+    (m) => '${m[1]},',
+  );
 }

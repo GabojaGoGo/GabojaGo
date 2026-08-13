@@ -34,13 +34,17 @@ class SpotData {
     final congestionValue = (json['congestion'] as String?)?.trim();
     return SpotData(
       id: (json['id'] as num?)?.toInt() ?? 0,
-      areaName: (json['address'] as String?)?.split(' ').take(2).join(' ') ?? '지역 정보 없음',
-      spotName: json['name'] ?? '이름 없음',
+      areaName:
+          (json['address'] as String?)?.split(' ').take(2).join(' ') ??
+          '지역 정보 없음',
+      spotName: json['name'] as String? ?? '이름 없음',
       category: '관광지',
-      congestion: (congestionValue == null || congestionValue.isEmpty) ? '예측중' : congestionValue,
+      congestion: (congestionValue == null || congestionValue.isEmpty)
+          ? '예측중'
+          : congestionValue,
       congestionSource: (json['congestionSource'] as String?) ?? 'pending',
       congestionBaseYmd: json['congestionBaseYmd'] as String?,
-      imageUrl: json['imageUrl'],
+      imageUrl: json['imageUrl'] as String?,
       placeholderColor: const Color(0xFF2E7D6B),
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
@@ -75,12 +79,18 @@ class SpotCard extends StatelessWidget {
 
   Color get _congestionColor {
     switch (spot.congestion) {
-      case '예측중': return const Color(0xFF607D8B);
-      case '낮음': return const Color(0xFF1B8C6E);
-      case '보통': return const Color(0xFFF57C00);
-      case '높음': return const Color(0xFFD84315);
-      case '정보 없음': return const Color(0xFF616161);
-      default: return const Color(0xFFD84315);
+      case '예측중':
+        return const Color(0xFF607D8B);
+      case '낮음':
+        return const Color(0xFF1B8C6E);
+      case '보통':
+        return const Color(0xFFF57C00);
+      case '높음':
+        return const Color(0xFFD84315);
+      case '정보 없음':
+        return const Color(0xFF616161);
+      default:
+        return const Color(0xFFD84315);
     }
   }
 
@@ -94,8 +104,16 @@ class SpotCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
-          BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
-          BoxShadow(color: Color(0x14000000), blurRadius: 16, offset: Offset(0, 4)),
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -115,7 +133,8 @@ class SpotCard extends StatelessWidget {
                         if (loadingProgress == null) return child;
                         return const ShimmerBox(height: 120, radius: 0);
                       },
-                      errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+                      errorBuilder: (context, error, stackTrace) =>
+                          _buildPlaceholder(),
                     )
                   : _buildPlaceholder(),
             ),
@@ -140,7 +159,10 @@ class SpotCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   spot.areaName,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280)),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF6B7280),
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

@@ -97,18 +97,18 @@ class RoutePreviewPath {
   final List<RoutePreviewTransitSegment> transitSegments;
 
   static List<RoutePreviewPath> listFromResponse(Object? response) {
-    if (response is! Map) {
+    if (response is! Map<String, dynamic>) {
       throw const FormatException('경로 미리보기 응답 형식이 올바르지 않습니다.');
     }
     final values = response['routePaths'];
     if (values is! List) return const [];
     return values
-        .whereType<Map>()
+        .whereType<Map<String, dynamic>>()
         .map((value) => RoutePreviewPath.fromJson(value))
         .toList();
   }
 
-  factory RoutePreviewPath.fromJson(Map value) {
+  factory RoutePreviewPath.fromJson(Map<String, dynamic> value) {
     final day = value['day'];
     if (day is! num) {
       throw const FormatException('경로 일자 값이 올바르지 않습니다.');
@@ -117,10 +117,13 @@ class RoutePreviewPath {
     return RoutePreviewPath(
       day: day.toInt(),
       points: rawPoints is List
-          ? rawPoints.whereType<Map>().map(RoutePreviewPoint.fromJson).toList()
-          : const [],
-      transitSegments: (value['transitSegments'] as List? ?? const [])
-          .whereType<Map>()
+          ? rawPoints
+                .whereType<Map<String, dynamic>>()
+                .map(RoutePreviewPoint.fromJson)
+                .toList()
+          : const <RoutePreviewPoint>[],
+      transitSegments: (value['transitSegments'] as List? ?? const <dynamic>[])
+          .whereType<Map<String, dynamic>>()
           .map(RoutePreviewTransitSegment.fromJson)
           .toList(),
     );
@@ -163,7 +166,7 @@ class RoutePreviewTransitSegment {
   final String? alightStationName;
   final String? alightExitNumber;
 
-  factory RoutePreviewTransitSegment.fromJson(Map value) =>
+  factory RoutePreviewTransitSegment.fromJson(Map<String, dynamic> value) =>
       RoutePreviewTransitSegment(
         recommendedMode: value['recommendedMode'] as String? ?? 'WALK',
         durationSeconds: (value['durationSeconds'] as num?)?.toInt() ?? 0,
@@ -187,7 +190,7 @@ class RoutePreviewPoint {
   final double lat;
   final double lng;
 
-  factory RoutePreviewPoint.fromJson(Map value) {
+  factory RoutePreviewPoint.fromJson(Map<String, dynamic> value) {
     final lat = value['lat'];
     final lng = value['lng'];
     if (lat is! num || lng is! num) {

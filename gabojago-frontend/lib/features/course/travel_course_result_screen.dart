@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:tripmate/core/models/user_prefs.dart';
 import 'package:tripmate/infrastructure/api_service.dart';
@@ -287,11 +289,13 @@ class _CourseCardState extends State<_CourseCard> {
       if (mounted) setState(() => _saved = true);
     }
     if (_saved && mounted) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/main',
-        (_) => false,
-        arguments: 2,
+      unawaited(
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/main',
+          (_) => false,
+          arguments: 2,
+        ),
       );
       return;
     }
@@ -314,7 +318,7 @@ class _CourseCardState extends State<_CourseCard> {
       onTap: () =>
           Navigator.push(
             context,
-            MaterialPageRoute(
+            MaterialPageRoute<void>(
               builder: (_) => CourseDetailScreen(
                 course: widget.course,
                 purposes: widget.purposes,

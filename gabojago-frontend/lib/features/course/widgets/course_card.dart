@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:tripmate/core/services/user_data_service.dart';
@@ -41,11 +43,13 @@ class _CourseCardState extends State<CourseCard> {
     if (mounted) setState(() => _saved = !_saved);
     widget.onSaveChanged();
     if (_saved && mounted) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/main',
-        (_) => false,
-        arguments: 2,
+      unawaited(
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/main',
+          (_) => false,
+          arguments: 2,
+        ),
       );
       return;
     }
@@ -69,7 +73,7 @@ class _CourseCardState extends State<CourseCard> {
   void _goToDetail() {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => CourseDetailScreen(
           course: widget.course,
           purposes: widget.purposes,
@@ -130,7 +134,7 @@ class _CourseCardState extends State<CourseCard> {
               fit: BoxFit.cover,
               loadingBuilder: (_, child, p) =>
                   p == null ? child : const ShimmerBox(height: 140, radius: 0),
-              errorBuilder: (_, __, ___) =>
+              errorBuilder: (_, _, _) =>
                   CoursePlaceholder(course: widget.course),
             )
           else

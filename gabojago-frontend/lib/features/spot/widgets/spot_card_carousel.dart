@@ -24,11 +24,16 @@ class SpotCardCarousel extends StatelessWidget {
 
   Color _congestionColor(String? congestion) {
     switch (congestion) {
-      case '낮음':   return const Color(0xFF1B8C6E);
-      case '보통':   return const Color(0xFFF57C00);
-      case '높음':   return const Color(0xFFD84315);
-      case '예측중': return const Color(0xFF607D8B);
-      default:      return const Color(0xFF616161);
+      case '낮음':
+        return const Color(0xFF1B8C6E);
+      case '보통':
+        return const Color(0xFFF57C00);
+      case '높음':
+        return const Color(0xFFD84315);
+      case '예측중':
+        return const Color(0xFF607D8B);
+      default:
+        return const Color(0xFF616161);
     }
   }
 
@@ -66,7 +71,12 @@ class _SpotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final distM = Geolocator.distanceBetween(lat, lng, spot.latitude, spot.longitude);
+    final distM = Geolocator.distanceBetween(
+      lat,
+      lng,
+      spot.latitude,
+      spot.longitude,
+    );
     final distLabel = distM < 1000
         ? '${distM.round()}m'
         : '${(distM / 1000).toStringAsFixed(distM >= 10000 ? 0 : 1)}km';
@@ -74,13 +84,14 @@ class _SpotCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => SpotDetailScreen(spot: spot)),
+        MaterialPageRoute<void>(builder: (_) => SpotDetailScreen(spot: spot)),
       ),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOut,
         margin: EdgeInsets.only(
-          left: 8, right: 8,
+          left: 8,
+          right: 8,
           top: isActive ? 8 : 20,
           bottom: isActive ? 8 : 4,
         ),
@@ -92,7 +103,10 @@ class _SpotCard extends StatelessWidget {
               : null,
           boxShadow: [
             const BoxShadow(
-                color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
+              color: Color(0x05000000),
+              blurRadius: 0,
+              spreadRadius: 1,
+            ),
             BoxShadow(
               color: Color(isActive ? 0x24000000 : 0x0A000000),
               blurRadius: isActive ? 12 : 8,
@@ -111,13 +125,16 @@ class _SpotCard extends StatelessWidget {
                         spot.imageUrl!,
                         fit: BoxFit.cover,
                         height: double.infinity,
-                        errorBuilder: (_, __, ___) => _placeholder(),
+                        errorBuilder: (_, _, _) => _placeholder(),
                       )
                     : _placeholder(),
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -137,14 +154,19 @@ class _SpotCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.place_outlined,
-                              size: 11, color: Colors.grey.shade500),
+                          Icon(
+                            Icons.place_outlined,
+                            size: 11,
+                            color: Colors.grey.shade500,
+                          ),
                           const SizedBox(width: 2),
                           Expanded(
                             child: Text(
                               spot.areaName,
                               style: TextStyle(
-                                  fontSize: 11, color: Colors.grey.shade500),
+                                fontSize: 11,
+                                color: Colors.grey.shade500,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -154,8 +176,11 @@ class _SpotCard extends StatelessWidget {
                       const SizedBox(height: 3),
                       Row(
                         children: [
-                          Icon(Icons.directions_walk,
-                              size: 11, color: Colors.grey.shade600),
+                          Icon(
+                            Icons.directions_walk,
+                            size: 11,
+                            color: Colors.grey.shade600,
+                          ),
                           const SizedBox(width: 2),
                           Text(
                             distLabel,
@@ -170,7 +195,9 @@ class _SpotCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: congestionColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
@@ -178,8 +205,11 @@ class _SpotCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.people_outline,
-                                size: 11, color: congestionColor),
+                            Icon(
+                              Icons.people_outline,
+                              size: 11,
+                              color: congestionColor,
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               '혼잡도 ${spot.congestion}',
@@ -207,8 +237,11 @@ class _SpotCard extends StatelessWidget {
     return Container(
       color: spot.placeholderColor.withValues(alpha: 0.1),
       child: Center(
-        child: Icon(Icons.image_not_supported_outlined,
-            color: spot.placeholderColor, size: 24),
+        child: Icon(
+          Icons.image_not_supported_outlined,
+          color: spot.placeholderColor,
+          size: 24,
+        ),
       ),
     );
   }

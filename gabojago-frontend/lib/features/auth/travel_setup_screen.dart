@@ -83,7 +83,9 @@ class _TravelSetupScreenState extends State<TravelSetupScreen> {
     if (widget.showCourseResult) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => CourseLoadingScreen(prefs: prefs)),
+        MaterialPageRoute<void>(
+          builder: (_) => CourseLoadingScreen(prefs: prefs),
+        ),
       );
     } else {
       Navigator.pop(context);

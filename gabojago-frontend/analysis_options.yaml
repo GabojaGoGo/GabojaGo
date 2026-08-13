@@ -9,6 +9,14 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  language:
+    # 외부 JSON·플러그인 경계에서만 dynamic을 허용하고, 앱 내부로의 암묵적
+    # 다운캐스트·raw collection 전파는 새 코드부터 막는다.
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`
@@ -23,6 +31,10 @@ linter:
   rules:
     # 콘솔 출력이 사용자 앱에 남는 실수를 막고, 진단은 debugPrint로 통일한다.
     avoid_print: true
+    # 의도적인 fire-and-forget 호출과 Stream 자원 생명주기를 명시한다.
+    unawaited_futures: true
+    cancel_subscriptions: true
+    close_sinks: true
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 
 # Additional information about this file can be found at

@@ -85,14 +85,14 @@ class _PlannerScreenState extends State<PlannerScreen>
       ).showSnackBar(const SnackBar(content: Text('내 코스를 만들려면 로그인이 필요해요.')));
       await Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
       );
       return;
     }
     if (!mounted) return;
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const PlannerBuilderScreen()),
+      MaterialPageRoute<void>(builder: (_) => const PlannerBuilderScreen()),
     );
   }
 
@@ -117,7 +117,7 @@ class _PlannerScreenState extends State<PlannerScreen>
             icon: const Icon(Icons.receipt_long_outlined),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const ReceiptScreen()),
+              MaterialPageRoute<void>(builder: (_) => const ReceiptScreen()),
             ),
             tooltip: '영수증 스캔',
           ),
