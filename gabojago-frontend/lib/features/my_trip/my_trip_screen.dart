@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:tripmate/core/models/user_prefs.dart';
 import 'package:tripmate/core/services/auth_service.dart';
@@ -13,7 +15,6 @@ import 'package:tripmate/features/my_trip/widgets/user_profile_header.dart';
 const _kPrimary = Color(0xFF2E7D6B);
 const _kText1 = Color(0xFF1A1A1A);
 const _kText2 = Color(0xFF707070);
-const _kBorder = Color(0xFFE8EAED);
 
 class MyTripScreen extends StatefulWidget {
   const MyTripScreen({super.key});
@@ -59,7 +60,9 @@ class _MyTripScreenState extends State<MyTripScreen> {
       await AuthService.instance.logout();
       if (!mounted) return;
       UserPrefsScope.maybeOf(context)?.onUpdate(const UserPrefs());
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+      unawaited(
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false),
+      );
     }
   }
 
@@ -94,7 +97,9 @@ class _MyTripScreenState extends State<MyTripScreen> {
       await AuthService.instance.unlink();
       if (!mounted) return;
       UserPrefsScope.maybeOf(context)?.onUpdate(const UserPrefs());
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+      unawaited(
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false),
+      );
     }
   }
 
@@ -102,7 +107,7 @@ class _MyTripScreenState extends State<MyTripScreen> {
     final prefs = UserPrefsScope.maybeOf(context)?.prefs ?? const UserPrefs();
     await Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => TravelSetupScreen(
           showCourseResult: false,
           initialPurposes: prefs.purposes,
@@ -183,7 +188,7 @@ class _MyTripScreenState extends State<MyTripScreen> {
   }
 
   void _showSettings() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -345,7 +350,7 @@ class _SectionTitle extends StatelessWidget {
             color: _kText1,
           ),
         ),
-        if (trailing != null) trailing!,
+        ?trailing,
       ],
     ),
   );

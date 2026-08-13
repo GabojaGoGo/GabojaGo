@@ -51,7 +51,7 @@ Future<void> _initializeApp() async {
     debugPrint('[Startup] KAKAO_NATIVE_APP_KEY is missing in $envFile');
     return;
   }
-  KakaoSdk.init(nativeAppKey: kakaoNativeAppKey);
+  await KakaoSdk.init(nativeAppKey: kakaoNativeAppKey);
   unawaited(_initializeDeferredServices(kakaoNativeAppKey));
 }
 
@@ -189,7 +189,7 @@ class _MainShellState extends State<MainShell> {
         userPrefs: _userPrefs,
         onShowAllBenefits: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const SubsidyScreen()),
+          MaterialPageRoute<void>(builder: (_) => const SubsidyScreen()),
         ),
       ),
       const NearbySpotsScreen(),

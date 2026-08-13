@@ -2,6 +2,7 @@ package com.gabojago.member.activity.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -10,41 +11,50 @@ import java.util.List;
 @Table(name = "user_preferences")
 public class UserPreference {
 
-    @Id
-    @Column(name = "user_id")
-    private Long userId;
+  @Id
+  @Column(name = "user_id")
+  private Long userId;
 
-    @Column(name = "purposes", length = 256)
-    private String purposes;   // comma-separated
+  @Column(name = "purposes", length = 256)
+  private String purposes; // comma-separated
 
-    @Column(name = "duration", length = 16)
-    private String duration;
+  @Column(name = "duration", length = 16)
+  private String duration;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+  @Column(name = "updated_at")
+  private LocalDateTime updatedAt;
 
-    protected UserPreference() {}
+  protected UserPreference() {}
 
-    public static UserPreference of(Long userId, List<String> purposes, String duration) {
-        UserPreference p = new UserPreference();
-        p.userId   = userId;
-        p.purposes = purposes.isEmpty() ? null : String.join(",", purposes);
-        p.duration = duration;
-        p.updatedAt = LocalDateTime.now();
-        return p;
-    }
+  public static UserPreference of(Long userId, List<String> purposes, String duration) {
+    UserPreference p = new UserPreference();
+    p.userId = userId;
+    p.purposes = purposes.isEmpty() ? null : String.join(",", purposes);
+    p.duration = duration;
+    p.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+    return p;
+  }
 
-    public void update(List<String> purposes, String duration) {
-        this.purposes   = purposes.isEmpty() ? null : String.join(",", purposes);
-        this.duration   = duration;
-        this.updatedAt  = LocalDateTime.now();
-    }
+  public void update(List<String> purposes, String duration) {
+    this.purposes = purposes.isEmpty() ? null : String.join(",", purposes);
+    this.duration = duration;
+    this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+  }
 
-    public Long getUserId()            { return userId; }
-    public List<String> getPurposes()  {
-        if (purposes == null || purposes.isBlank()) return Collections.emptyList();
-        return Arrays.asList(purposes.split(","));
-    }
-    public String getDuration()        { return duration; }
-    public LocalDateTime getUpdatedAt(){ return updatedAt; }
+  public Long getUserId() {
+    return userId;
+  }
+
+  public List<String> getPurposes() {
+    if (purposes == null || purposes.isBlank()) return Collections.emptyList();
+    return Arrays.asList(purposes.split(","));
+  }
+
+  public String getDuration() {
+    return duration;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
 }

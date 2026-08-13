@@ -17,6 +17,7 @@ class NearbySpotsScreen extends StatefulWidget {
   final double currentLat;
   final double currentLng;
   final String locationName;
+
   /// 홈화면에서 특정 관광지를 탭해서 진입할 때 설정 — 해당 마커로 자동 이동
   final int? initialSpotId;
 
@@ -36,8 +37,10 @@ class NearbySpotsScreen extends StatefulWidget {
 class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
   static const String _markerLayerId = 'tripmate_marker_layer';
   static const String _spotMarkerStyleId = 'tripmate_spot_marker';
-  static const String _spotHighlightedMarkerStyleId = 'tripmate_spot_marker_highlighted';
-  static const String _currentMarkerStyleId = 'tripmate_current_location_marker';
+  static const String _spotHighlightedMarkerStyleId =
+      'tripmate_spot_marker_highlighted';
+  static const String _currentMarkerStyleId =
+      'tripmate_current_location_marker';
   static const String _currentMarkerId = 'tripmate_current_location';
 
   static const double _kCardPanelH = 156.0;
@@ -81,12 +84,24 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     } else {
       _sortedSpots = [...widget.spots]
         ..sort((a, b) {
-          final dA = Geolocator.distanceBetween(_lat, _lng, a.latitude, a.longitude);
-          final dB = Geolocator.distanceBetween(_lat, _lng, b.latitude, b.longitude);
+          final dA = Geolocator.distanceBetween(
+            _lat,
+            _lng,
+            a.latitude,
+            a.longitude,
+          );
+          final dB = Geolocator.distanceBetween(
+            _lat,
+            _lng,
+            b.latitude,
+            b.longitude,
+          );
           return dA.compareTo(dB);
         });
       _lastFetchCenter = LatLng(latitude: _lat, longitude: _lng);
-      WidgetsBinding.instance.addPostFrameCallback((_) => _fetchSpotsFull(_lat, _lng));
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _fetchSpotsFull(_lat, _lng),
+      );
     }
   }
 
@@ -101,7 +116,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
   @override
   Widget build(BuildContext context) {
     final spots = _sortedSpots;
-    final lowCount = spots.where((s) => s.congestion == '낮음' || s.congestion == '예측중').length;
+    final lowCount = spots
+        .where((s) => s.congestion == '낮음' || s.congestion == '예측중')
+        .length;
     final highCount = spots.where((s) => s.congestion == '높음').length;
     final isRelaxed = spots.isEmpty || lowCount >= highCount;
 
@@ -124,7 +141,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
             onMapCreated: _handleMapCreated,
           ),
           Positioned(
-            top: 12, left: 16, right: 16,
+            top: 12,
+            left: 16,
+            right: 16,
             child: CongestionBanner(isRelaxed: isRelaxed),
           ),
           if (!_isMarkersReady)
@@ -134,7 +153,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                   color: Colors.white.withValues(alpha: 0.45),
                   child: const Center(
                     child: CircularProgressIndicator(
-                        color: Color(0xFF1B8C6E), strokeWidth: 3),
+                      color: Color(0xFF1B8C6E),
+                      strokeWidth: 3,
+                    ),
                   ),
                 ),
               ),
@@ -143,7 +164,8 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOut,
             top: _showSearchHereBtn ? _kBannerH + 10 : _kBannerH - 50,
-            left: 0, right: 0,
+            left: 0,
+            right: 0,
             child: AnimatedOpacity(
               opacity: _showSearchHereBtn ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 200),
@@ -153,13 +175,18 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                   child: GestureDetector(
                     onTap: _onSearchHere,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1B8C6E),
                         borderRadius: BorderRadius.circular(22),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1B8C6E).withValues(alpha: 0.35),
+                            color: const Color(
+                              0xFF1B8C6E,
+                            ).withValues(alpha: 0.35),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -168,7 +195,11 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.search_rounded, size: 16, color: Colors.white),
+                          Icon(
+                            Icons.search_rounded,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                           SizedBox(width: 6),
                           Text(
                             '이 지역 관광지 검색',
@@ -188,32 +219,45 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
           ),
           if (_isRefreshing)
             Positioned(
-              top: _kBannerH + 12, left: 0, right: 0,
+              top: _kBannerH + 12,
+              left: 0,
+              right: 0,
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.92),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1), blurRadius: 8),
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                      ),
                     ],
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       SizedBox(
-                        width: 14, height: 14,
+                        width: 14,
+                        height: 14,
                         child: CircularProgressIndicator(
-                            color: Color(0xFF1B8C6E), strokeWidth: 2),
+                          color: Color(0xFF1B8C6E),
+                          strokeWidth: 2,
+                        ),
                       ),
                       SizedBox(width: 8),
-                      Text('주변 관광지 불러오는 중...',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1A1A1A))),
+                      Text(
+                        '주변 관광지 불러오는 중...',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -231,8 +275,11 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                 onTap: _moveCameraToCurrentLocation,
                 child: const Padding(
                   padding: EdgeInsets.all(13),
-                  child: Icon(Icons.my_location_rounded,
-                      color: Color(0xFF1565C0), size: 22),
+                  child: Icon(
+                    Icons.my_location_rounded,
+                    color: Color(0xFF1565C0),
+                    size: 22,
+                  ),
                 ),
               ),
             ),
@@ -243,7 +290,10 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
             child: GestureDetector(
               onTap: _showListSheet,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(22),
@@ -258,15 +308,19 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.format_list_bulleted_rounded,
-                        size: 16, color: Color(0xFF1A1A1A)),
+                    const Icon(
+                      Icons.format_list_bulleted_rounded,
+                      size: 16,
+                      color: Color(0xFF1A1A1A),
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       '목록 ${_sortedSpots.length}',
                       style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1A1A1A)),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A1A),
+                      ),
                     ),
                   ],
                 ),
@@ -274,7 +328,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
             ),
           ),
           Positioned(
-            left: 0, right: 0, bottom: 30,
+            left: 0,
+            right: 0,
+            bottom: 30,
             height: _kCardPanelH,
             child: _sortedSpots.isEmpty
                 ? _buildEmptyCard()
@@ -302,7 +358,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08), blurRadius: 8),
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 8,
+            ),
           ],
         ),
         child: const Row(
@@ -310,11 +368,14 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
           children: [
             Icon(Icons.search_off_rounded, color: Color(0xFF607D8B), size: 20),
             SizedBox(width: 10),
-            Text('이 지역 주변에 관광지 정보가 없어요',
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF607D8B))),
+            Text(
+              '이 지역 주변에 관광지 정보가 없어요',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF607D8B),
+              ),
+            ),
           ],
         ),
       ),
@@ -335,7 +396,7 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
   // ── 목록 바텀시트 ─────────────────────────────────────────────
 
   void _showListSheet() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -355,7 +416,8 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                 child: Column(
                   children: [
                     Container(
-                      width: 36, height: 4,
+                      width: 36,
+                      height: 4,
                       decoration: BoxDecoration(
                         color: Colors.grey.shade300,
                         borderRadius: BorderRadius.circular(2),
@@ -367,9 +429,10 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                         Text(
                           '주변 관광지 ${_sortedSpots.length}곳',
                           style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF1A1A1A)),
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1A1A1A),
+                          ),
                         ),
                         const Spacer(),
                         TextButton.icon(
@@ -377,7 +440,8 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
                           icon: const Icon(Icons.close, size: 18),
                           label: const Text('닫기'),
                           style: TextButton.styleFrom(
-                              foregroundColor: Colors.grey.shade600),
+                            foregroundColor: Colors.grey.shade600,
+                          ),
                         ),
                       ],
                     ),
@@ -426,7 +490,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
       }
       final position = await ApiService.getCurrentLocation();
       final address = await ApiService.getAddressFromLatLng(
-          position.latitude, position.longitude);
+        position.latitude,
+        position.longitude,
+      );
       if (!mounted) return;
       setState(() {
         _lat = position.latitude;
@@ -482,8 +548,13 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
       });
 
       if (_cardController.hasClients && newSpots.isNotEmpty) {
-        _cardController.animateToPage(0,
-            duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+        unawaited(
+          _cardController.animateToPage(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          ),
+        );
       }
       await _updateMapMarkers();
     } catch (e) {
@@ -515,8 +586,18 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
         })
         .toList()
       ..sort((a, b) {
-        final dA = Geolocator.distanceBetween(lat, lng, a.latitude, a.longitude);
-        final dB = Geolocator.distanceBetween(lat, lng, b.latitude, b.longitude);
+        final dA = Geolocator.distanceBetween(
+          lat,
+          lng,
+          a.latitude,
+          a.longitude,
+        );
+        final dB = Geolocator.distanceBetween(
+          lat,
+          lng,
+          b.latitude,
+          b.longitude,
+        );
         return dA.compareTo(dB);
       });
   }
@@ -536,7 +617,8 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
   }) async {
     try {
       final markerBytes = await SpotMarkerBuilder.buildSpotMarker();
-      final highlightedBytes = await SpotMarkerBuilder.buildSpotMarkerHighlighted();
+      final highlightedBytes =
+          await SpotMarkerBuilder.buildSpotMarkerHighlighted();
       final currentBytes = await SpotMarkerBuilder.buildCurrentLocationMarker();
 
       await controller.registerMarkerStyles(
@@ -590,7 +672,10 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
       );
 
       await controller.addMarkerLayer(
-          layerId: _markerLayerId, zOrder: 1000, clickable: true);
+        layerId: _markerLayerId,
+        zOrder: 1000,
+        clickable: true,
+      );
       await controller.addMarkers(
         layerId: _markerLayerId,
         markerOptions: [
@@ -605,8 +690,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
             (entry) => MarkerOption(
               id: entry.value.id.toString(),
               latLng: LatLng(
-                  latitude: entry.value.latitude,
-                  longitude: entry.value.longitude),
+                latitude: entry.value.latitude,
+                longitude: entry.value.longitude,
+              ),
               styleId: entry.key == _currentCardIndex
                   ? _spotHighlightedMarkerStyleId
                   : _spotMarkerStyleId,
@@ -655,7 +741,10 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
         type: 0,
       ),
       animation: const CameraAnimation(
-          duration: 400, autoElevation: true, isConsecutive: false),
+        duration: 400,
+        autoElevation: true,
+        isConsecutive: false,
+      ),
     );
   }
 
@@ -666,12 +755,17 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     await controller.moveCamera(
       cameraUpdate: CameraUpdate(
         position: LatLng(
-            latitude: spot.latitude - _latOffset(), longitude: spot.longitude),
+          latitude: spot.latitude - _latOffset(),
+          longitude: spot.longitude,
+        ),
         zoomLevel: 15,
         type: 0,
       ),
       animation: const CameraAnimation(
-          duration: 350, autoElevation: true, isConsecutive: false),
+        duration: 350,
+        autoElevation: true,
+        isConsecutive: false,
+      ),
     );
   }
 
@@ -693,8 +787,11 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     final idx = _sortedSpots.indexWhere((s) => s.id == spot.id);
     if (idx >= 0) {
       setState(() => _currentCardIndex = idx);
-      _cardController.animateToPage(idx,
-          duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+      _cardController.animateToPage(
+        idx,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
     _moveCameraToSpot(spot);
   }
@@ -702,8 +799,10 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
   // ── 이벤트 핸들러 ─────────────────────────────────────────────
 
   void _onCameraMoveEnd(CameraMoveEndEvent event) {
-    _cameraCenterLatLng =
-        LatLng(latitude: event.latitude, longitude: event.longitude);
+    _cameraCenterLatLng = LatLng(
+      latitude: event.latitude,
+      longitude: event.longitude,
+    );
 
     if (_programmaticMove) {
       _programmaticMove = false;
@@ -713,7 +812,11 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     final prev = _lastFetchCenter;
     if (prev != null) {
       final dist = Geolocator.distanceBetween(
-          event.latitude, event.longitude, prev.latitude, prev.longitude);
+        event.latitude,
+        event.longitude,
+        prev.latitude,
+        prev.longitude,
+      );
       final shouldShow = dist >= _kSearchBtnThreshold;
       if (shouldShow != _showSearchHereBtn) {
         setState(() => _showSearchHereBtn = shouldShow);
@@ -733,8 +836,11 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
     setState(() => _currentCardIndex = idx);
     _updateHighlightedMarker(prevIdx, idx);
     if (_cardController.hasClients) {
-      _cardController.animateToPage(idx,
-          duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+      _cardController.animateToPage(
+        idx,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
     _moveCameraToSpot(_sortedSpots[idx]);
   }
@@ -763,17 +869,20 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
             rank: 10000,
             text: '내 위치',
           ),
-          ..._sortedSpots.asMap().entries.map((entry) => MarkerOption(
-                id: entry.value.id.toString(),
-                latLng: LatLng(
-                    latitude: entry.value.latitude,
-                    longitude: entry.value.longitude),
-                styleId: entry.key == _currentCardIndex
-                    ? _spotHighlightedMarkerStyleId
-                    : _spotMarkerStyleId,
-                rank: entry.key == _currentCardIndex ? 10001 : 9999,
-                text: entry.value.spotName,
-              )),
+          ..._sortedSpots.asMap().entries.map(
+            (entry) => MarkerOption(
+              id: entry.value.id.toString(),
+              latLng: LatLng(
+                latitude: entry.value.latitude,
+                longitude: entry.value.longitude,
+              ),
+              styleId: entry.key == _currentCardIndex
+                  ? _spotHighlightedMarkerStyleId
+                  : _spotMarkerStyleId,
+              rank: entry.key == _currentCardIndex ? 10001 : 9999,
+              text: entry.value.spotName,
+            ),
+          ),
         ],
       );
     } on PlatformException catch (e) {
@@ -788,7 +897,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
       if (prevIdx >= 0 && prevIdx != newIdx && prevIdx < _sortedSpots.length) {
         final prev = _sortedSpots[prevIdx];
         await controller.removeMarker(
-            id: prev.id.toString(), layerId: _markerLayerId);
+          id: prev.id.toString(),
+          layerId: _markerLayerId,
+        );
         await controller.addMarker(
           markerOption: MarkerOption(
             id: prev.id.toString(),
@@ -803,7 +914,9 @@ class _NearbySpotsScreenState extends State<NearbySpotsScreen> {
       if (newIdx >= 0 && newIdx < _sortedSpots.length) {
         final next = _sortedSpots[newIdx];
         await controller.removeMarker(
-            id: next.id.toString(), layerId: _markerLayerId);
+          id: next.id.toString(),
+          layerId: _markerLayerId,
+        );
         await controller.addMarker(
           markerOption: MarkerOption(
             id: next.id.toString(),

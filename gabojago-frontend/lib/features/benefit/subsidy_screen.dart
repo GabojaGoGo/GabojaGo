@@ -66,10 +66,14 @@ class BenefitItem {
 
   static StatusType _parseStatusType(String s) {
     switch (s) {
-      case 'deadline':  return StatusType.deadline;
-      case 'upcoming':  return StatusType.upcoming;
-      case 'monthly':   return StatusType.monthly;
-      default:          return StatusType.ongoing;
+      case 'deadline':
+        return StatusType.deadline;
+      case 'upcoming':
+        return StatusType.upcoming;
+      case 'monthly':
+        return StatusType.monthly;
+      default:
+        return StatusType.ongoing;
     }
   }
 
@@ -84,18 +88,30 @@ class BenefitItem {
 
   static IconData _parseIcon(String name) {
     switch (name) {
-      case 'location_on':          return Icons.location_on_outlined;
-      case 'hotel':                return Icons.hotel_outlined;
-      case 'savings':              return Icons.savings_outlined;
-      case 'confirmation_number':  return Icons.confirmation_number_outlined;
-      case 'percent':              return Icons.percent_outlined;
-      case 'store':                return Icons.store_outlined;
-      case 'qr_code':              return Icons.qr_code_outlined;
-      case 'map':                  return Icons.map_outlined;
-      case 'business_center':      return Icons.business_center_outlined;
-      case 'credit_card':          return Icons.credit_card_outlined;
-      case 'train':                return Icons.train_outlined;
-      default:                     return Icons.star_outline;
+      case 'location_on':
+        return Icons.location_on_outlined;
+      case 'hotel':
+        return Icons.hotel_outlined;
+      case 'savings':
+        return Icons.savings_outlined;
+      case 'confirmation_number':
+        return Icons.confirmation_number_outlined;
+      case 'percent':
+        return Icons.percent_outlined;
+      case 'store':
+        return Icons.store_outlined;
+      case 'qr_code':
+        return Icons.qr_code_outlined;
+      case 'map':
+        return Icons.map_outlined;
+      case 'business_center':
+        return Icons.business_center_outlined;
+      case 'credit_card':
+        return Icons.credit_card_outlined;
+      case 'train':
+        return Icons.train_outlined;
+      default:
+        return Icons.star_outline;
     }
   }
 }
@@ -135,9 +151,11 @@ class _SubsidyScreenState extends State<SubsidyScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return _ErrorView(onRetry: () => setState(() {
-              _benefitsFuture = _loadBenefits();
-            }));
+            return _ErrorView(
+              onRetry: () => setState(() {
+                _benefitsFuture = _loadBenefits();
+              }),
+            );
           }
           final benefits = snapshot.data!;
           return ListView(
@@ -193,8 +211,7 @@ class _ErrorView extends StatelessWidget {
         children: [
           const Icon(Icons.wifi_off_outlined, size: 48, color: Colors.grey),
           const SizedBox(height: 12),
-          const Text('혜택 정보를 불러오지 못했습니다',
-              style: TextStyle(color: Colors.grey)),
+          const Text('혜택 정보를 불러오지 못했습니다', style: TextStyle(color: Colors.grey)),
           const SizedBox(height: 16),
           TextButton(onPressed: onRetry, child: const Text('다시 시도')),
         ],
@@ -212,10 +229,14 @@ class _BenefitBannerCard extends StatelessWidget {
 
   Color get _statusColor {
     switch (benefit.statusType) {
-      case StatusType.deadline:  return const Color(0xFFD84315);
-      case StatusType.upcoming:  return const Color(0xFFE65100);
-      case StatusType.ongoing:   return const Color(0xFF1B8C6E);
-      case StatusType.monthly:   return const Color(0xFF283593);
+      case StatusType.deadline:
+        return const Color(0xFFD84315);
+      case StatusType.upcoming:
+        return const Color(0xFFE65100);
+      case StatusType.ongoing:
+        return const Color(0xFF1B8C6E);
+      case StatusType.monthly:
+        return const Color(0xFF283593);
     }
   }
 
@@ -224,7 +245,7 @@ class _BenefitBannerCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => BenefitDetailScreen(benefit: benefit),
         ),
       ),
@@ -234,97 +255,117 @@ class _BenefitBannerCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
-            const BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
-            const BoxShadow(color: Color(0x14000000), blurRadius: 16, offset: Offset(0, 4)),
+            const BoxShadow(
+              color: Color(0x05000000),
+              blurRadius: 0,
+              spreadRadius: 1,
+            ),
+            const BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+            const BoxShadow(
+              color: Color(0x14000000),
+              blurRadius: 16,
+              offset: Offset(0, 4),
+            ),
           ],
         ),
         child: IntrinsicHeight(
           child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // 좌측 아이콘 영역
-            Container(
-              width: 88,
-              constraints: const BoxConstraints(minHeight: 100),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [benefit.gradientStart, benefit.gradientEnd],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(16)),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(benefit.icon, color: Colors.white, size: 30),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      benefit.category,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 좌측 아이콘 영역
+              Container(
+                width: 88,
+                constraints: const BoxConstraints(minHeight: 100),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [benefit.gradientStart, benefit.gradientEnd],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ],
-              ),
-            ),
-            // 우측 텍스트 영역
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 14),
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(16),
+                  ),
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    BenefitChip(
-                      label: benefit.statusLabel,
-                      backgroundColor:
-                          _statusColor.withValues(alpha: 0.1),
-                      textColor: _statusColor,
-                    ),
+                    Icon(benefit.icon, color: Colors.white, size: 30),
                     const SizedBox(height: 6),
-                    Text(
-                      benefit.title,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1A1A),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
                       ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      benefit.subtitle,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF6B7280),
-                        height: 1.4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      child: Text(
+                        benefit.category,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Icon(Icons.chevron_right,
-                  color: Colors.grey.shade400, size: 20),
-            ),
-          ],
-        )),
+              // 우측 텍스트 영역
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      BenefitChip(
+                        label: benefit.statusLabel,
+                        backgroundColor: _statusColor.withValues(alpha: 0.1),
+                        textColor: _statusColor,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        benefit.title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        benefit.subtitle,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF6B7280),
+                          height: 1.4,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey.shade400,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

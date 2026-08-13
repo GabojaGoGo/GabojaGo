@@ -10,6 +10,7 @@ import com.gabojago.tourism.transit.repository.MetroEdgeRepository;
 import com.gabojago.tourism.transit.repository.MetroStationAccessPointRepository;
 import com.gabojago.tourism.transit.repository.MetroStationRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -55,7 +56,8 @@ class BusanMetroRoutingServiceTest {
     }
 
     @Test
-    void 지하철이_더_빠르면_출입구를_포함한_대중교통_안내를_반환한다() {
+    @DisplayName("지하철이 더 빠르면 출입구를 포함한 대중교통 안내를 반환한다")
+    void returnsTransitGuidanceWithExitsWhenMetroIsFaster() {
         when(walkRoutingClient.route(any(), any())).thenReturn(walkRoute(1_000, 2_000));
 
         TransitRouteResponse response = service.route(request());
@@ -72,7 +74,8 @@ class BusanMetroRoutingServiceTest {
     }
 
     @Test
-    void 직접_도보가_더_빠르면_도보로_대체한다() {
+    @DisplayName("직접 도보가 더 빠르면 도보로 대체한다")
+    void fallsBackToWalkingWhenDirectWalkIsFaster() {
         when(walkRoutingClient.route(any(), any())).thenReturn(walkRoute(20, 100));
 
         TransitRouteResponse response = service.route(request());
@@ -82,7 +85,8 @@ class BusanMetroRoutingServiceTest {
     }
 
     @Test
-    void OSRM_장애는_503_응답으로_전파한다() {
+    @DisplayName("OSRM 장애는 503 응답으로 전파한다")
+    void propagatesOsrmFailureAsServiceUnavailable() {
         when(walkRoutingClient.costsFrom(any(), anyList()))
                 .thenThrow(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "OSRM을 사용할 수 없습니다."));
 

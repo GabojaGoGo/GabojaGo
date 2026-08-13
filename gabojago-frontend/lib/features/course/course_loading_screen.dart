@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:tripmate/core/models/user_prefs.dart';
 import 'package:tripmate/infrastructure/api_service.dart';
@@ -71,7 +73,7 @@ class _CourseLoadingScreenState extends State<CourseLoadingScreen>
     );
     if (!mounted) return;
     _travelConcept = concept ?? '여유롭게 둘러보기';
-    _fetchCourses();
+    unawaited(_fetchCourses());
   }
 
   Future<void> _fetchCourses() async {
@@ -117,7 +119,7 @@ class _CourseLoadingScreenState extends State<CourseLoadingScreen>
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => TravelCourseResultScreen(
             prefs: widget.prefs,
             preloadedCourses: _courses,

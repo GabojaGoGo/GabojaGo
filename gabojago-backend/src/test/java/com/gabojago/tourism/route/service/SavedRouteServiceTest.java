@@ -15,6 +15,7 @@ import com.gabojago.tourism.route.domain.TravelRoute;
 import com.gabojago.tourism.route.repository.RouteSegmentRepository;
 import com.gabojago.tourism.route.repository.RouteStopRepository;
 import com.gabojago.tourism.route.repository.TravelRouteRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -42,7 +43,8 @@ class SavedRouteServiceTest {
     @Mock PlaceRepository placeRepository;
 
     @Test
-    void 확정한_장소를_포함한_추천_결과를_사용자_코스로_저장한다() {
+    @DisplayName("확정한 장소를 포함한 추천 결과를 사용자 코스로 저장한다")
+    void savesRecommendationWithFixedPlacesAsUserRoute() {
         LocalDateTime departure = LocalDateTime.of(2026, 8, 8, 10, 0);
         RouteRecommendationRequest request = new RouteRecommendationRequest(
                 "busan", "day", "맛집 중심", List.of(new PlannerSlotRequest(

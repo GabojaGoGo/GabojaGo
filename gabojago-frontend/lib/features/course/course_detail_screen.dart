@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -41,9 +42,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         'distance': widget.course['distance'] ?? '',
         'taketime': widget.course['taketime'] ?? '',
         'theme': widget.course['theme'] ?? '',
-        'routePaths': widget.course['routePaths'] ?? [],
-        'nearbyRestaurants': widget.course['nearbyRestaurants'] ?? [],
-        'nearbyAccommodations': widget.course['nearbyAccommodations'] ?? [],
+        'routePaths': widget.course['routePaths'] ?? <dynamic>[],
+        'nearbyRestaurants': widget.course['nearbyRestaurants'] ?? <dynamic>[],
+        'nearbyAccommodations':
+            widget.course['nearbyAccommodations'] ?? <dynamic>[],
       };
       _loading = false;
     } else {
@@ -82,11 +84,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     if (mounted) {
       setState(() => _saved = !_saved);
       if (_saved) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/main',
-          (_) => false,
-          arguments: 2,
+        unawaited(
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/main',
+            (_) => false,
+            arguments: 2,
+          ),
         );
         return;
       }

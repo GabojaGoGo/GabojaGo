@@ -1,6 +1,7 @@
 package com.gabojago.tourism.transit.service;
 
 import com.gabojago.tourism.transit.domain.MetroEdgeType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
@@ -12,7 +13,8 @@ class BusanMetroStaticNetworkParserTest {
     private final BusanMetroStaticNetworkParser parser = new BusanMetroStaticNetworkParser();
 
     @Test
-    void 인접역은_양방향_탑승_간선으로_생성한다() throws Exception {
+    @DisplayName("인접역은 양방향 탑승 간선으로 생성한다")
+    void createsBidirectionalRideEdgesForAdjacentStations() throws Exception {
         BusanMetroStaticNetworkParser.StaticNetwork network = parser.parse(new StringReader("""
                 연번,호선,역번호,역명,소요시간(분),역간거리(km),호선별누계(km)
                 1,1,101,신평,00:00,0,0
@@ -26,7 +28,8 @@ class BusanMetroStaticNetworkParserTest {
     }
 
     @Test
-    void 같은_이름의_서로_다른_호선은_환승_간선으로_연결한다() throws Exception {
+    @DisplayName("같은 이름의 서로 다른 호선은 환승 간선으로 연결한다")
+    void connectsDifferentLinesWithSameNameUsingTransferEdges() throws Exception {
         BusanMetroStaticNetworkParser.StaticNetwork network = parser.parse(new StringReader("""
                 연번,호선,역번호,역명,소요시간(분),역간거리(km),호선별누계(km)
                 1,1,119,서면,00:00,0,0

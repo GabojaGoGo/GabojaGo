@@ -2,6 +2,7 @@
 // 로그인 화면 — 그라디언트 배경 + 글래스 카드 로고, SSO 풀폭 버튼
 // (카카오·네이버·구글, iOS는 애플 추가) + 비회원 둘러보기
 
+import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -86,7 +87,9 @@ class _LoginScreenState extends State<LoginScreen>
           ? '/onboarding'
           : '/main';
       debugPrint('[LoginScreen] navigate to $route');
-      Navigator.of(context).pushNamedAndRemoveUntil(route, (_) => false);
+      unawaited(
+        Navigator.of(context).pushNamedAndRemoveUntil(route, (_) => false),
+      );
     } on SocialLoginCancelledException {
       debugPrint('[LoginScreen] ${provider.apiValue} login cancelled by user');
       if (!mounted) return;

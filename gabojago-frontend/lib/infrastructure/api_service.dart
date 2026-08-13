@@ -107,7 +107,9 @@ class ApiService {
           .timeout(const Duration(seconds: 20));
       debugPrint('Response Code: ${response.statusCode}');
       if (response.statusCode == 200) {
-        return json.decode(utf8.decode(response.bodyBytes));
+        return List<dynamic>.from(
+          json.decode(utf8.decode(response.bodyBytes)) as List,
+        );
       } else {
         throw Exception('Server error: ${response.statusCode}');
       }
@@ -130,7 +132,9 @@ class ApiService {
           .timeout(const Duration(seconds: 20));
       debugPrint('Response Code: ${response.statusCode}');
       if (response.statusCode == 200) {
-        return json.decode(utf8.decode(response.bodyBytes));
+        return List<dynamic>.from(
+          json.decode(utf8.decode(response.bodyBytes)) as List,
+        );
       } else {
         throw Exception('Server error: ${response.statusCode}');
       }
@@ -420,7 +424,9 @@ class ApiService {
           .timeout(const Duration(seconds: 20));
       debugPrint('Response Code: ${response.statusCode}');
       if (response.statusCode == 200) {
-        return json.decode(utf8.decode(response.bodyBytes));
+        return List<dynamic>.from(
+          json.decode(utf8.decode(response.bodyBytes)) as List,
+        );
       } else {
         throw Exception('Server error: ${response.statusCode}');
       }

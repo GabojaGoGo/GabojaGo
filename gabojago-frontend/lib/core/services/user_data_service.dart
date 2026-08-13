@@ -4,6 +4,7 @@
 // - 쓰기: 로컬 갱신 후 비동기 백엔드 sync (실패해도 로컬은 유지)
 // - 앱 시작(로그인 후): 백엔드에서 fetch → 로컬 덮어쓰기
 
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,11 +18,11 @@ class UserDataService {
 
   SharedPreferences? _prefs;
 
-  static const _kPrefs         = 'ud_prefs';          // {purposes:[],duration:''}
-  static const _kFootprints    = 'ud_footprints';     // List<FootprintItem JSON>
-  static const _kBucketList    = 'ud_bucket_list';    // List<BucketItem JSON>
-  static const _kBenefits      = 'ud_benefits';       // {totalSaved:0, items:[]}
-  static const _kSavedCourses  = 'ud_saved_courses';  // List<CourseItem JSON>
+  static const _kPrefs = 'ud_prefs'; // {purposes:[],duration:''}
+  static const _kFootprints = 'ud_footprints'; // List<FootprintItem JSON>
+  static const _kBucketList = 'ud_bucket_list'; // List<BucketItem JSON>
+  static const _kBenefits = 'ud_benefits'; // {totalSaved:0, items:[]}
+  static const _kSavedCourses = 'ud_saved_courses'; // List<CourseItem JSON>
 
   // ── 초기화 ────────────────────────────────────────────
 
@@ -60,7 +61,7 @@ class UserDataService {
   Future<void> savePrefs(List<String> purposes, String duration) async {
     final data = {'purposes': purposes, 'duration': duration};
     await _prefs?.setString(_kPrefs, json.encode(data));
-    _syncPrefs(purposes, duration);   // 비동기 sync
+    _syncPrefs(purposes, duration); // 비동기 sync
   }
 
   Future<void> _fetchPrefs() async {
@@ -75,8 +76,13 @@ class UserDataService {
   }
 
   void _syncPrefs(List<String> purposes, String duration) {
-    _authPut('/me/prefs', {'purposes': purposes, 'duration': duration})
-        .catchError((e) => debugPrint('[UserDataService] prefs sync error: $e'));
+    unawaited(
+      _authPut('/me/prefs', {'purposes': purposes, 'duration': duration})
+          .then<void>((_) {})
+          .catchError(
+            (Object e) => debugPrint('[UserDataService] prefs sync error: $e'),
+          ),
+    );
   }
 
   // ══════════════════════════════════════════════════════
@@ -87,7 +93,10 @@ class UserDataService {
     final raw = _prefs?.getString(_kFootprints);
     if (raw == null) return [];
     return List<Map<String, dynamic>>.from(
-        (json.decode(raw) as List).map((e) => Map<String, dynamic>.from(e as Map)));
+      (json.decode(raw) as List).map(
+        (e) => Map<String, dynamic>.from(e as Map),
+      ),
+    );
   }
 
   Future<Map<String, dynamic>> addFootprint({
@@ -97,29 +106,35 @@ class UserDataService {
     List<String> tags = const [],
   }) async {
     final item = {
-      'id':         DateTime.now().millisecondsSinceEpoch,   // 임시 로컬 ID
-      'spotId':     spotId ?? '',
-      'spotName':   spotName,
+      'id': DateTime.now().millisecondsSinceEpoch, // 임시 로컬 ID
+      'spotId': spotId ?? '',
+      'spotName': spotName,
       'regionName': regionName,
-      'visitedAt':  DateTime.now().toIso8601String(),
-      'tags':       tags,
+      'visitedAt': DateTime.now().toIso8601String(),
+      'tags': tags,
     };
     final list = getFootprints();
     list.insert(0, item);
     await _prefs?.setString(_kFootprints, json.encode(list));
 
     // 비동기 sync → 서버 ID로 교체
-    _authPost('/me/footprints', {
-      'spotId':     spotId ?? '',
-      'spotName':   spotName,
-      'regionName': regionName,
-      'tags':       tags,
-    }).then((res) {
-      if (res.statusCode == 200) {
-        final serverId = json.decode(res.body)['id'] as int;
-        _replaceLocalId(_kFootprints, item['id'] as int, serverId);
-      }
-    }).catchError((e) => debugPrint('[UserDataService] footprint sync: $e'));
+    unawaited(
+      _authPost('/me/footprints', {
+            'spotId': spotId ?? '',
+            'spotName': spotName,
+            'regionName': regionName,
+            'tags': tags,
+          })
+          .then<void>((res) {
+            if (res.statusCode == 200) {
+              final serverId = json.decode(res.body)['id'] as int;
+              _replaceLocalId(_kFootprints, item['id'] as int, serverId);
+            }
+          })
+          .catchError(
+            (Object e) => debugPrint('[UserDataService] footprint sync: $e'),
+          ),
+    );
 
     return item;
   }
@@ -127,8 +142,13 @@ class UserDataService {
   Future<void> deleteFootprint(dynamic id) async {
     final list = getFootprints()..removeWhere((e) => e['id'] == id);
     await _prefs?.setString(_kFootprints, json.encode(list));
-    _authDelete('/me/footprints/$id')
-        .catchError((e) => debugPrint('[UserDataService] footprint delete: $e'));
+    unawaited(
+      _authDelete('/me/footprints/$id')
+          .then<void>((_) {})
+          .catchError(
+            (Object e) => debugPrint('[UserDataService] footprint delete: $e'),
+          ),
+    );
   }
 
   Future<void> _fetchFootprints() async {
@@ -146,7 +166,10 @@ class UserDataService {
     final raw = _prefs?.getString(_kBucketList);
     if (raw == null) return [];
     return List<Map<String, dynamic>>.from(
-        (json.decode(raw) as List).map((e) => Map<String, dynamic>.from(e as Map)));
+      (json.decode(raw) as List).map(
+        (e) => Map<String, dynamic>.from(e as Map),
+      ),
+    );
   }
 
   Future<Map<String, dynamic>> addBucketItem({
@@ -155,10 +178,10 @@ class UserDataService {
     String note = '',
   }) async {
     final item = {
-      'id':        DateTime.now().millisecondsSinceEpoch,
-      'title':     title,
-      'area':      area,
-      'note':      note,
+      'id': DateTime.now().millisecondsSinceEpoch,
+      'title': title,
+      'area': area,
+      'note': note,
       'completed': false,
       'createdAt': DateTime.now().toIso8601String(),
     };
@@ -166,41 +189,62 @@ class UserDataService {
     list.insert(0, item);
     await _prefs?.setString(_kBucketList, json.encode(list));
 
-    _authPost('/me/bucket-list', {'title': title, 'area': area, 'note': note})
-        .then((res) {
-      if (res.statusCode == 200) {
-        final serverId = json.decode(res.body)['id'] as int;
-        _replaceLocalId(_kBucketList, item['id'] as int, serverId);
-      }
-    }).catchError((e) => debugPrint('[UserDataService] bucket sync: $e'));
+    unawaited(
+      _authPost('/me/bucket-list', {'title': title, 'area': area, 'note': note})
+          .then<void>((res) {
+            if (res.statusCode == 200) {
+              final serverId = json.decode(res.body)['id'] as int;
+              _replaceLocalId(_kBucketList, item['id'] as int, serverId);
+            }
+          })
+          .catchError(
+            (Object e) => debugPrint('[UserDataService] bucket sync: $e'),
+          ),
+    );
 
     return item;
   }
 
-  Future<void> updateBucketItem(dynamic id,
-      {String? title, String? area, String? note, bool? completed}) async {
+  Future<void> updateBucketItem(
+    dynamic id, {
+    String? title,
+    String? area,
+    String? note,
+    bool? completed,
+  }) async {
     final list = getBucketList();
     final idx = list.indexWhere((e) => e['id'] == id);
     if (idx == -1) return;
-    if (title != null)     list[idx]['title']     = title;
-    if (area != null)      list[idx]['area']       = area;
-    if (note != null)      list[idx]['note']       = note;
-    if (completed != null) list[idx]['completed']  = completed;
+    if (title != null) list[idx]['title'] = title;
+    if (area != null) list[idx]['area'] = area;
+    if (note != null) list[idx]['note'] = note;
+    if (completed != null) list[idx]['completed'] = completed;
     await _prefs?.setString(_kBucketList, json.encode(list));
 
-    _authPatch('/me/bucket-list/$id', {
-      if (title != null) 'title': title,
-      if (area != null)  'area': area,
-      if (note != null)  'note': note,
-      if (completed != null) 'completed': completed,
-    }).catchError((e) => debugPrint('[UserDataService] bucket update: $e'));
+    unawaited(
+      _authPatch('/me/bucket-list/$id', {
+            'title': ?title,
+            'area': ?area,
+            'note': ?note,
+            'completed': ?completed,
+          })
+          .then<void>((_) {})
+          .catchError(
+            (Object e) => debugPrint('[UserDataService] bucket update: $e'),
+          ),
+    );
   }
 
   Future<void> deleteBucketItem(dynamic id) async {
     final list = getBucketList()..removeWhere((e) => e['id'] == id);
     await _prefs?.setString(_kBucketList, json.encode(list));
-    _authDelete('/me/bucket-list/$id')
-        .catchError((e) => debugPrint('[UserDataService] bucket delete: $e'));
+    unawaited(
+      _authDelete('/me/bucket-list/$id')
+          .then<void>((_) {})
+          .catchError(
+            (Object e) => debugPrint('[UserDataService] bucket delete: $e'),
+          ),
+    );
   }
 
   Future<void> _fetchBucketList() async {
@@ -244,25 +288,36 @@ class UserDataService {
   }) async {
     final current = getBenefitReports();
     final items = List<Map<String, dynamic>>.from(
-        (current['items'] as List).map((e) => Map<String, dynamic>.from(e as Map)));
+      (current['items'] as List).map(
+        (e) => Map<String, dynamic>.from(e as Map),
+      ),
+    );
     final item = {
-      'id':           DateTime.now().millisecondsSinceEpoch,
-      'benefitId':    benefitId ?? '',
-      'benefitType':  benefitType,
+      'id': DateTime.now().millisecondsSinceEpoch,
+      'benefitId': benefitId ?? '',
+      'benefitType': benefitType,
       'benefitLabel': benefitLabel,
-      'amount':       amount,
-      'appliedAt':    DateTime.now().toIso8601String(),
+      'amount': amount,
+      'appliedAt': DateTime.now().toIso8601String(),
     };
     items.insert(0, item);
     final newTotal = (current['totalSaved'] as int? ?? 0) + amount;
-    await _prefs?.setString(_kBenefits,
-        json.encode({'totalSaved': newTotal, 'items': items}));
+    await _prefs?.setString(
+      _kBenefits,
+      json.encode({'totalSaved': newTotal, 'items': items}),
+    );
 
-    _authPost('/me/benefit-reports', {
-      'benefitType':  benefitType,
-      'benefitLabel': benefitLabel,
-      'amount':       amount,
-    }).catchError((e) => debugPrint('[UserDataService] benefit sync: $e'));
+    unawaited(
+      _authPost('/me/benefit-reports', {
+            'benefitType': benefitType,
+            'benefitLabel': benefitLabel,
+            'amount': amount,
+          })
+          .then<void>((_) {})
+          .catchError(
+            (Object e) => debugPrint('[UserDataService] benefit sync: $e'),
+          ),
+    );
   }
 
   Future<void> _fetchBenefits() async {
@@ -284,7 +339,10 @@ class UserDataService {
     final raw = _prefs?.getString(_kSavedCourses);
     if (raw == null) return [];
     return List<Map<String, dynamic>>.from(
-        (json.decode(raw) as List).map((e) => Map<String, dynamic>.from(e as Map)));
+      (json.decode(raw) as List).map(
+        (e) => Map<String, dynamic>.from(e as Map),
+      ),
+    );
   }
 
   bool isCourseSaved(String contentId) =>
@@ -323,45 +381,70 @@ class UserDataService {
 
   Future<http.Response> _authGet(String path) async {
     final token = await AuthService.instance.getValidAccessToken();
-    return http.get(
-      Uri.parse('$_base$path'),
-      headers: {'Authorization': 'Bearer $token'},
-    ).timeout(const Duration(seconds: 10));
+    return http
+        .get(
+          Uri.parse('$_base$path'),
+          headers: {'Authorization': 'Bearer $token'},
+        )
+        .timeout(const Duration(seconds: 10));
   }
 
-  Future<http.Response> _authPost(String path, Map<String, dynamic> body) async {
+  Future<http.Response> _authPost(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     final token = await AuthService.instance.getValidAccessToken();
-    return http.post(
-      Uri.parse('$_base$path'),
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
-      body: json.encode(body),
-    ).timeout(const Duration(seconds: 10));
+    return http
+        .post(
+          Uri.parse('$_base$path'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: json.encode(body),
+        )
+        .timeout(const Duration(seconds: 10));
   }
 
   Future<http.Response> _authPut(String path, Map<String, dynamic> body) async {
     final token = await AuthService.instance.getValidAccessToken();
-    return http.put(
-      Uri.parse('$_base$path'),
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
-      body: json.encode(body),
-    ).timeout(const Duration(seconds: 10));
+    return http
+        .put(
+          Uri.parse('$_base$path'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: json.encode(body),
+        )
+        .timeout(const Duration(seconds: 10));
   }
 
-  Future<http.Response> _authPatch(String path, Map<String, dynamic> body) async {
+  Future<http.Response> _authPatch(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     final token = await AuthService.instance.getValidAccessToken();
-    return http.patch(
-      Uri.parse('$_base$path'),
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
-      body: json.encode(body),
-    ).timeout(const Duration(seconds: 10));
+    return http
+        .patch(
+          Uri.parse('$_base$path'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: json.encode(body),
+        )
+        .timeout(const Duration(seconds: 10));
   }
 
   Future<http.Response> _authDelete(String path) async {
     final token = await AuthService.instance.getValidAccessToken();
-    return http.delete(
-      Uri.parse('$_base$path'),
-      headers: {'Authorization': 'Bearer $token'},
-    ).timeout(const Duration(seconds: 10));
+    return http
+        .delete(
+          Uri.parse('$_base$path'),
+          headers: {'Authorization': 'Bearer $token'},
+        )
+        .timeout(const Duration(seconds: 10));
   }
 
   /// 로컬 임시 ID → 서버 발급 ID로 교체

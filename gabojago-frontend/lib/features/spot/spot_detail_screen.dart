@@ -32,7 +32,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
   List<String> _imageUrls = [];
 
   bool _isLoading = true;
-  bool _isCollapsed = false;      // 스크롤 → AppBar 투명↔불투명 전환용
+  bool _isCollapsed = false; // 스크롤 → AppBar 투명↔불투명 전환용
   bool _overviewExpanded = false;
   int _currentImageIndex = 0;
 
@@ -99,8 +99,12 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
 
     addImg(widget.spot.imageUrl);
     if (common != null) addImg(common['firstimage'] as String?);
-    for (final u in detailImgs) { addImg(u); }
-    for (final u in galleryImgs) { addImg(u); }
+    for (final u in detailImgs) {
+      addImg(u);
+    }
+    for (final u in galleryImgs) {
+      addImg(u);
+    }
 
     if (mounted) {
       setState(() {
@@ -122,8 +126,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
     // 카카오맵 앱 딥링크: 현재 위치 → 목적지 경로 안내
     final appUri = Uri.parse('kakaomap://route?ep=$lat,$lng&by=CAR');
     // 앱 미설치 시 웹 폴백
-    final webUri =
-        Uri.parse('https://map.kakao.com/link/to/$name,$lat,$lng');
+    final webUri = Uri.parse('https://map.kakao.com/link/to/$name,$lat,$lng');
 
     if (await canLaunchUrl(appUri)) {
       await launchUrl(appUri);
@@ -163,8 +166,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
       // 확장 시 투명 / 접혔을 때 흰색
       backgroundColor: collapsed ? Colors.white : Colors.transparent,
       // 아이콘·뒤로가기 색: 투명일 땐 흰색(사진 위), 불투명일 땐 다크
-      foregroundColor:
-          collapsed ? const Color(0xFF1A1A1A) : Colors.white,
+      foregroundColor: collapsed ? const Color(0xFF1A1A1A) : Colors.white,
       elevation: 0,
       scrolledUnderElevation: collapsed ? 1 : 0,
       // 제목은 접혔을 때만 표시 — 이미지 위 겹침 방지
@@ -204,21 +206,28 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
                 color: const Color(0xFF2E7D6B).withValues(alpha: 0.07),
                 child: const Center(
                   child: CircularProgressIndicator(
-                      color: Color(0xFF1B8C6E), strokeWidth: 2),
+                    color: Color(0xFF1B8C6E),
+                    strokeWidth: 2,
+                  ),
                 ),
               );
             },
-            errorBuilder: (_, __, ___) => Container(
+            errorBuilder: (_, _, _) => Container(
               color: const Color(0xFF2E7D6B).withValues(alpha: 0.08),
-              child: const Icon(Icons.image_not_supported_outlined,
-                  size: 44, color: Color(0xFF2E7D6B)),
+              child: const Icon(
+                Icons.image_not_supported_outlined,
+                size: 44,
+                color: Color(0xFF2E7D6B),
+              ),
             ),
           ),
         ),
 
         // 상단 그라디언트 — 투명 AppBar 상태에서 뒤로가기 아이콘 가독성 확보
         Positioned(
-          left: 0, right: 0, top: 0,
+          left: 0,
+          right: 0,
+          top: 0,
           height: 90,
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -236,7 +245,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
 
         // 하단 그라디언트 — 인디케이터·배지 가독성 확보
         Positioned(
-          left: 0, right: 0, bottom: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
           height: 60,
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -255,10 +266,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
         // 사진 수 배지
         if (_imageUrls.length > 1)
           Positioned(
-            top: 12, right: 12,
+            top: 12,
+            right: 12,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.black54,
                 borderRadius: BorderRadius.circular(12),
@@ -266,9 +277,10 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
               child: Text(
                 '${_currentImageIndex + 1} / ${_imageUrls.length}',
                 style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600),
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -276,7 +288,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
         // 점 인디케이터
         if (_imageUrls.length > 1)
           Positioned(
-            bottom: 12, left: 0, right: 0,
+            bottom: 12,
+            left: 0,
+            right: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(_imageUrls.length, (i) {
@@ -304,9 +318,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
   Widget _buildLoading() {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 80),
-      child: Center(
-        child: CircularProgressIndicator(color: Color(0xFF1B8C6E)),
-      ),
+      child: Center(child: CircularProgressIndicator(color: Color(0xFF1B8C6E))),
     );
   }
 
@@ -318,10 +330,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildBasicInfo(),
-          if (_hasOverview()) ...[
-            const SizedBox(height: 12),
-            _buildOverview(),
-          ],
+          if (_hasOverview()) ...[const SizedBox(height: 12), _buildOverview()],
           if (_hasIntroInfo()) ...[
             const SizedBox(height: 12),
             _buildIntroSection(),
@@ -342,8 +351,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
       _common?['addr1'] as String?,
       _common?['addr2'] as String?,
     ].where((s) => s != null && s.isNotEmpty).toList();
-    final addr =
-        addrParts.isNotEmpty ? addrParts.join(' ') : widget.spot.areaName;
+    final addr = addrParts.isNotEmpty
+        ? addrParts.join(' ')
+        : widget.spot.areaName;
 
     final tel = _common?['tel'] as String?;
     final homepageHtml = _common?['homepage'] as String?;
@@ -369,8 +379,7 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
               ),
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1B8C6E).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -395,23 +404,28 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
           if (tel != null && tel.isNotEmpty)
             GestureDetector(
               onTap: () => launchUrl(
-                  Uri.parse('tel:${tel.replaceAll(RegExp(r'\s'), '')}')),
+                Uri.parse('tel:${tel.replaceAll(RegExp(r'\s'), '')}'),
+              ),
               child: _InfoRow(
-                  icon: Icons.phone_outlined,
-                  label: '전화',
-                  value: tel,
-                  isLink: true),
+                icon: Icons.phone_outlined,
+                label: '전화',
+                value: tel,
+                isLink: true,
+              ),
             ),
           // 홈페이지
           if (homepageUrl != null && homepageUrl.isNotEmpty)
             GestureDetector(
-              onTap: () => launchUrl(Uri.parse(homepageUrl),
-                  mode: LaunchMode.externalApplication),
+              onTap: () => launchUrl(
+                Uri.parse(homepageUrl),
+                mode: LaunchMode.externalApplication,
+              ),
               child: _InfoRow(
-                  icon: Icons.language_outlined,
-                  label: '홈페이지',
-                  value: homepageUrl,
-                  isLink: true),
+                icon: Icons.language_outlined,
+                label: '홈페이지',
+                value: homepageUrl,
+                isLink: true,
+              ),
             ),
           // 혼잡도
           const SizedBox(height: 4),
@@ -431,8 +445,9 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
     final full = _stripHtml(_common?['overview'] as String?);
     const threshold = 130;
     final isLong = full.length > threshold;
-    final display =
-        isLong && !_overviewExpanded ? '${full.substring(0, threshold)}…' : full;
+    final display = isLong && !_overviewExpanded
+        ? '${full.substring(0, threshold)}…'
+        : full;
 
     return _Card(
       label: '장소 소개',
@@ -474,7 +489,11 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
     _FieldDef('infocenter', '문의·안내', Icons.info_outline),
     _FieldDef('parking', '주차', Icons.local_parking_outlined),
     _FieldDef('chkpet', '반려동물', Icons.pets_outlined),
-    _FieldDef('chkbabycarriage', '유모차 대여', Icons.baby_changing_station_outlined),
+    _FieldDef(
+      'chkbabycarriage',
+      '유모차 대여',
+      Icons.baby_changing_station_outlined,
+    ),
     _FieldDef('chkcreditcard', '신용카드', Icons.credit_card_outlined),
     _FieldDef('expguide', '체험 안내', Icons.explore_outlined),
     _FieldDef('useseason', '이용 시기', Icons.calendar_month_outlined),
@@ -495,17 +514,20 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
   bool _hasIntroInfo() {
     if (_intro == null) return false;
     return _introFieldDefs.any(
-        (f) => _stripHtml(_intro![f.key] as String?).isNotEmpty);
+      (f) => _stripHtml(_intro![f.key] as String?).isNotEmpty,
+    );
   }
 
   Widget _buildIntroSection() {
     final rows = _introFieldDefs
         .where((f) => _stripHtml(_intro![f.key] as String?).isNotEmpty)
-        .map((f) => _InfoRow(
-              icon: f.icon,
-              label: f.label,
-              value: _stripHtml(_intro![f.key] as String?),
-            ))
+        .map(
+          (f) => _InfoRow(
+            icon: f.icon,
+            label: f.label,
+            value: _stripHtml(_intro![f.key] as String?),
+          ),
+        )
         .toList();
 
     return _Card(
@@ -516,19 +538,22 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
 
   // ── ④ 시설 정보 (detailInfo2) ─────────────────────────────────────
   Widget _buildInfoSection() {
-    final rows = _infoItems.where((item) {
-      final name = _stripHtml(item['infoname'] as String?);
-      final text = _stripHtml(item['infotext'] as String?);
-      return name.isNotEmpty || text.isNotEmpty;
-    }).map((item) {
-      final name = _stripHtml(item['infoname'] as String?);
-      final text = _stripHtml(item['infotext'] as String?);
-      return _InfoRow(
-        icon: Icons.check_circle_outline,
-        label: name.isEmpty ? '정보' : name,
-        value: text,
-      );
-    }).toList();
+    final rows = _infoItems
+        .where((item) {
+          final name = _stripHtml(item['infoname'] as String?);
+          final text = _stripHtml(item['infotext'] as String?);
+          return name.isNotEmpty || text.isNotEmpty;
+        })
+        .map((item) {
+          final name = _stripHtml(item['infoname'] as String?);
+          final text = _stripHtml(item['infotext'] as String?);
+          return _InfoRow(
+            icon: Icons.check_circle_outline,
+            label: name.isEmpty ? '정보' : name,
+            value: text,
+          );
+        })
+        .toList();
 
     return _Card(
       label: '시설 정보',
@@ -553,7 +578,8 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
             foregroundColor: const Color(0xFF1A1A1A),
             minimumSize: const Size(double.infinity, 52),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14)),
+              borderRadius: BorderRadius.circular(14),
+            ),
             elevation: 0,
           ),
         ),
@@ -673,8 +699,9 @@ class _InfoRow extends StatelessWidget {
                 color: isLink
                     ? const Color(0xFF1B8C6E)
                     : const Color(0xFF1A1A1A),
-                decoration:
-                    isLink ? TextDecoration.underline : TextDecoration.none,
+                decoration: isLink
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
                 height: 1.5,
               ),
             ),

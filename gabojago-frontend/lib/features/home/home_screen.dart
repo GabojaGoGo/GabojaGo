@@ -12,7 +12,8 @@ import 'package:tripmate/infrastructure/api_service.dart';
 import 'package:tripmate/features/auth/travel_setup_screen.dart';
 import 'package:tripmate/features/course/course_loading_screen.dart';
 import 'package:tripmate/features/benefit/benefit_detail_screen.dart';
-import 'package:tripmate/features/benefit/subsidy_screen.dart' show BenefitItem, StatusType;
+import 'package:tripmate/features/benefit/subsidy_screen.dart'
+    show BenefitItem, StatusType;
 
 // ─────────────────────────────────────────────
 // 홈 화면 위젯
@@ -22,34 +23,34 @@ import 'package:tripmate/features/benefit/subsidy_screen.dart' show BenefitItem,
 /// 앵커명은 CourseService.ANCHORS의 name()과 일치해야 함
 const _kGreetingVariants = <String, List<(String, String, String)>>{
   'resort': [
-    ('편안한 숙소 여행, 강원도 어떠세요? 🏨',  '강원도 숙박 여행 코스,\n어떠세요?',    '강릉'),
-    ('한적한 호텔 패키지, 제주도로! 🌊',       '제주 프리미엄 숙박 코스,\n어떠세요?',  '서귀포'),
-    ('감성 풀빌라 여행, 경주 어떠세요? 🏯',    '경북 힐링 숙박 여행 코스,\n어떠세요?', '경주'),
+    ('편안한 숙소 여행, 강원도 어떠세요? 🏨', '강원도 숙박 여행 코스,\n어떠세요?', '강릉'),
+    ('한적한 호텔 패키지, 제주도로! 🌊', '제주 프리미엄 숙박 코스,\n어떠세요?', '서귀포'),
+    ('감성 풀빌라 여행, 경주 어떠세요? 🏯', '경북 힐링 숙박 여행 코스,\n어떠세요?', '경주'),
   ],
   'food': [
-    ('맛집 탐방 코스, 안동 찜닭 어떠세요! 🍜', '안동 미식 여행 코스,\n어떠세요?',      '안동'),
-    ('전주 비빔밥부터 막걸리까지! 🍶',         '전주 맛집 탐방 코스,\n어떠세요?',      '전주'),
-    ('통영 해산물 투어, 떠나볼까요? 🦞',       '통영 해산물 미식 코스,\n어떠세요?',    '통영'),
+    ('맛집 탐방 코스, 안동 찜닭 어떠세요! 🍜', '안동 미식 여행 코스,\n어떠세요?', '안동'),
+    ('전주 비빔밥부터 막걸리까지! 🍶', '전주 맛집 탐방 코스,\n어떠세요?', '전주'),
+    ('통영 해산물 투어, 떠나볼까요? 🦞', '통영 해산물 미식 코스,\n어떠세요?', '통영'),
   ],
   'budget': [
-    ('가성비 여행지, 춘천이 딱이에요 💰',       '춘천 가성비 코스,\n어떠세요?',         '춘천'),
-    ('알뜰 국내 여행, 대전 어떠세요? 🏕️',      '대전 알뜰 여행 코스,\n어떠세요?',      '대전'),
-    ('예산 아껴도 즐거운 강화도 여행! 🌅',      '인천 강화도 가성비 코스,\n어떠세요?',  '인천 강화도'),
+    ('가성비 여행지, 춘천이 딱이에요 💰', '춘천 가성비 코스,\n어떠세요?', '춘천'),
+    ('알뜰 국내 여행, 대전 어떠세요? 🏕️', '대전 알뜰 여행 코스,\n어떠세요?', '대전'),
+    ('예산 아껴도 즐거운 강화도 여행! 🌅', '인천 강화도 가성비 코스,\n어떠세요?', '인천 강화도'),
   ],
   'nature': [
-    ('자연 속 힐링, 이번 주말 속초로! 🌿',      '속초·양양 자연 힐링 코스,\n어떠세요?', '속초·양양'),
-    ('비자림·오름 트레킹, 제주로! 🌋',          '제주 자연 탐방 코스,\n어떠세요?',      '제주시'),
-    ('지리산 둘레길, 순천에서 시작해요 🍃',     '순천 자연 트레킹 코스,\n어떠세요?',    '순천'),
+    ('자연 속 힐링, 이번 주말 속초로! 🌿', '속초·양양 자연 힐링 코스,\n어떠세요?', '속초·양양'),
+    ('비자림·오름 트레킹, 제주로! 🌋', '제주 자연 탐방 코스,\n어떠세요?', '제주시'),
+    ('지리산 둘레길, 순천에서 시작해요 🍃', '순천 자연 트레킹 코스,\n어떠세요?', '순천'),
   ],
   'history': [
-    ('천년 역사의 경주, 떠나보세요 🏛️',         '경주 역사 탐방 코스,\n어떠세요?',      '경주'),
-    ('조선 왕조의 흔적, 수원 화성! 🏰',         '수원 화성 역사 투어,\n어떠세요?',      '수원 화성'),
-    ('백제 문화의 중심, 부여/공주로! 🗺️',       '공주·부여 백제 코스,\n어떠세요?',      '공주·부여'),
+    ('천년 역사의 경주, 떠나보세요 🏛️', '경주 역사 탐방 코스,\n어떠세요?', '경주'),
+    ('조선 왕조의 흔적, 수원 화성! 🏰', '수원 화성 역사 투어,\n어떠세요?', '수원 화성'),
+    ('백제 문화의 중심, 부여/공주로! 🗺️', '공주·부여 백제 코스,\n어떠세요?', '공주·부여'),
   ],
   'activity': [
-    ('액티비티 가득한 제주도로 가볼까요? 🧗',   '제주 액티비티 코스,\n어떠세요?',       '제주시'),
-    ('래프팅·번지점프, 양양으로! 🏄',           '속초·양양 익스트림 코스,\n어떠세요?',  '속초·양양'),
-    ('서핑·스노클링, 거제로! 🏊',               '거제 해양 스포츠 코스,\n어떠세요?',    '거제'),
+    ('액티비티 가득한 제주도로 가볼까요? 🧗', '제주 액티비티 코스,\n어떠세요?', '제주시'),
+    ('래프팅·번지점프, 양양으로! 🏄', '속초·양양 익스트림 코스,\n어떠세요?', '속초·양양'),
+    ('서핑·스노클링, 거제로! 🏊', '거제 해양 스포츠 코스,\n어떠세요?', '거제'),
   ],
 };
 
@@ -73,7 +74,11 @@ class HomeScreen extends StatefulWidget {
   final UserPrefs userPrefs;
   final VoidCallback? onShowAllBenefits;
 
-  const HomeScreen({super.key, required this.userPrefs, this.onShowAllBenefits});
+  const HomeScreen({
+    super.key,
+    required this.userPrefs,
+    this.onShowAllBenefits,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -193,7 +198,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Text(
-                      _personalizedGreeting(widget.userPrefs, _greetingVariantIdx),
+                      _personalizedGreeting(
+                        widget.userPrefs,
+                        _greetingVariantIdx,
+                      ),
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
@@ -219,7 +227,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           _PrefsChip(
                             kDurationOptions.firstWhere(
                               (o) => o['key'] == widget.userPrefs.duration,
-                              orElse: () => {'label': widget.userPrefs.duration},
+                              orElse: () => {
+                                'label': widget.userPrefs.duration,
+                              },
                             )['label']!,
                           ),
                         ],
@@ -293,17 +303,17 @@ class _HomeScreenState extends State<HomeScreen> {
               if (_isLoading)
                 ...List.generate(2, (_) => const BenefitCardShimmer())
               else
-              ..._filteredBenefits.map(
-                (benefit) => _HomeBenefitCard(
-                  benefit: benefit,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BenefitDetailScreen(benefit: benefit),
+                ..._filteredBenefits.map(
+                  (benefit) => _HomeBenefitCard(
+                    benefit: benefit,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => BenefitDetailScreen(benefit: benefit),
+                      ),
                     ),
                   ),
                 ),
-              ),
 
               const SizedBox(height: 24),
 
@@ -372,7 +382,7 @@ class _TravelStartCard extends StatelessWidget {
         if (hasPrefs) {
           Navigator.push(
             context,
-            MaterialPageRoute(
+            MaterialPageRoute<void>(
               builder: (_) => CourseLoadingScreen(
                 prefs: userPrefs,
                 preferredAnchor: _anchorHint,
@@ -382,9 +392,7 @@ class _TravelStartCard extends StatelessWidget {
         } else {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const TravelSetupScreen(),
-            ),
+            MaterialPageRoute<void>(builder: (_) => const TravelSetupScreen()),
           );
         }
       },
@@ -582,8 +590,16 @@ class _HomeBenefitCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
-            const BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
+            const BoxShadow(
+              color: Color(0x05000000),
+              blurRadius: 0,
+              spreadRadius: 1,
+            ),
+            const BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
           ],
         ),
         child: Row(
@@ -720,8 +736,16 @@ class _FestivalListItem extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          const BoxShadow(color: Color(0x05000000), blurRadius: 0, spreadRadius: 1),
-          const BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
+          const BoxShadow(
+            color: Color(0x05000000),
+            blurRadius: 0,
+            spreadRadius: 1,
+          ),
+          const BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: Row(

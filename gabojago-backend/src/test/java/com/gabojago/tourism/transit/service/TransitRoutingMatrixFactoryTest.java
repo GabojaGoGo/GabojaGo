@@ -4,6 +4,7 @@ import com.gabojago.place.domain.Place;
 import com.gabojago.tourism.recommendation.service.RoutingMatrixClient;
 import com.gabojago.tourism.transit.dto.request.TransitRouteRequest;
 import com.gabojago.tourism.transit.dto.response.TransitRouteResponse;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -19,7 +20,8 @@ import static org.mockito.Mockito.when;
 class TransitRoutingMatrixFactoryTest {
 
     @Test
-    void 실제로_필요한_장소쌍만_계산하고_같은_쌍은_요청_내에서_캐시한다() {
+    @DisplayName("실제로 필요한 장소쌍만 계산하고 같은 쌍은 요청 내에서 캐시한다")
+    void calculatesOnlyRequiredPlacePairsAndCachesDuplicates() {
         BusanMetroRoutingService routingService = mock(BusanMetroRoutingService.class);
         when(routingService.route(any(TransitRouteRequest.class))).thenReturn(new TransitRouteResponse(
                 "PUBLIC_TRANSIT", 1200, 2400, 9000, 300, 0, List.of()

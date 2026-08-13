@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.4'
     id 'io.spring.dependency-management' version '1.1.4'
+    id 'com.diffplug.spotless' version '8.8.0'
+    id 'net.ltgt.errorprone' version '5.1.0'
 }
 
 version = '0.0.1-SNAPSHOT'
@@ -40,8 +42,28 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
+
+    errorprone 'com.google.errorprone:error_prone_core:2.50.0'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+spotless {
+    // 기존 파일 일괄 포맷 없이 PR에서 변경한 Java 파일만 검사한다.
+    ratchetFrom 'origin/develop'
+    java {
+        target 'src/main/java/**/*.java'
+        googleJavaFormat('1.36.1')
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // 기존 권고 수준 경고는 별도 정리 대상으로 두고, CI에서는 Error Prone 오류만 막는다.
+    options.errorprone.disableAllWarnings = true
+}
+
+tasks.named('check') {
+    dependsOn 'spotlessCheck'
 }

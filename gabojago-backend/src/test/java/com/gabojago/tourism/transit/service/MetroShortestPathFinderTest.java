@@ -2,6 +2,7 @@ package com.gabojago.tourism.transit.service;
 
 import com.gabojago.tourism.transit.domain.MetroEdge;
 import com.gabojago.tourism.transit.domain.MetroEdgeType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -13,7 +14,8 @@ class MetroShortestPathFinderTest {
     private final MetroShortestPathFinder finder = new MetroShortestPathFinder();
 
     @Test
-    void 시간은_짧고_환승은_적은_경로를_선택한다() {
+    @DisplayName("시간은 짧고 환승은 적은 경로를 선택한다")
+    void selectsFasterRouteWithFewerTransfers() {
         List<MetroEdge> edges = List.of(
                 MetroEdge.of("A", "B", MetroEdgeType.RIDE, 120, 1_000),
                 MetroEdge.of("B", "D", MetroEdgeType.RIDE, 120, 1_000),
@@ -29,7 +31,8 @@ class MetroShortestPathFinderTest {
     }
 
     @Test
-    void 같은_역이면_이동_간선이_없다() {
+    @DisplayName("같은 역이면 이동 간선이 없다")
+    void returnsNoEdgesForSameStation() {
         MetroShortestPathFinder.Path result = finder.find("A", "A", List.of());
 
         assertThat(result.durationSeconds()).isZero();

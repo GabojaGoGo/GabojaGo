@@ -376,17 +376,17 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
         });
       }
     }
-    return {'places': places, 'routePaths': const []};
+    return {'places': places, 'routePaths': const <dynamic>[]};
   }
 
   List<Map<String, dynamic>> _transitSegmentsForDay(int day) {
-    final path = (_previewCourse?['routePaths'] as List? ?? const [])
-        .whereType<Map>()
+    final path = (_previewCourse?['routePaths'] as List? ?? const <dynamic>[])
+        .whereType<Map<String, dynamic>>()
         .cast<Map<String, dynamic>>()
         .where((item) => (item['day'] as num?)?.toInt() == day)
         .firstOrNull;
-    return (path?['transitSegments'] as List? ?? const [])
-        .whereType<Map>()
+    return (path?['transitSegments'] as List? ?? const <dynamic>[])
+        .whereType<Map<String, dynamic>>()
         .map(Map<String, dynamic>.from)
         .toList();
   }
@@ -665,8 +665,8 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
       offset: offset,
       limit: 5,
     );
-    return (response['options'] as List? ?? const [])
-        .whereType<Map>()
+    return (response['options'] as List? ?? const <dynamic>[])
+        .whereType<Map<String, dynamic>>()
         .map(_PlannerCandidate.fromJson)
         .map(
           (candidate) => SlotPlaceCandidate(
@@ -775,7 +775,9 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
       );
       final routes = result['routes'] as List? ?? const [];
       if (routes.isEmpty) throw Exception();
-      final course = _toCourse(Map<String, dynamic>.from(routes.first as Map));
+      final course = _toCourse(
+        Map<String, dynamic>.from(routes.first as Map<String, dynamic>),
+      );
       try {
         await _attachGeneratedRoutePreview(course);
       } catch (_) {
@@ -784,7 +786,7 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
       if (!mounted) return;
       await Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => CourseDetailScreen(
             course: course,
             travelConcept: _selectedConcepts.join(', '),
@@ -805,8 +807,8 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
   }
 
   Future<void> _attachGeneratedRoutePreview(Map<String, dynamic> course) async {
-    final places = (course['places'] as List? ?? const [])
-        .whereType<Map>()
+    final places = (course['places'] as List? ?? const <dynamic>[])
+        .whereType<Map<String, dynamic>>()
         .map(Map<String, dynamic>.from)
         .toList();
     final paths = await ApiService.getRoutePreview(
@@ -854,9 +856,9 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
   Map<String, dynamic> _toCourse(Map<String, dynamic> route) {
     final places = <Map<String, dynamic>>[];
     for (final rawDay in route['days'] as List? ?? const []) {
-      final day = Map<String, dynamic>.from(rawDay as Map);
-      final stops = (day['stops'] as List? ?? const [])
-          .whereType<Map>()
+      final day = Map<String, dynamic>.from(rawDay as Map<String, dynamic>);
+      final stops = (day['stops'] as List? ?? const <dynamic>[])
+          .whereType<Map<String, dynamic>>()
           .map(Map<String, dynamic>.from)
           .toList();
       final transitSegments = _transitSegmentsForDay(
@@ -865,7 +867,7 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
       final offset = transitSegments.length == stops.length ? 1 : 0;
       for (var stopIndex = 0; stopIndex < stops.length; stopIndex++) {
         final stop = stops[stopIndex];
-        final travel = stop['travelToNext'] as Map?;
+        final travel = stop['travelToNext'] as Map<String, dynamic>?;
         places.add({
           'placeId': stop['placeId'],
           'subname': stop['placeName'] ?? '',
@@ -881,7 +883,7 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
           'arrivalAt': stop['arrivalTime'],
           'departureAt': stop['departureTime'],
           'slotType': (stop['slotType'] as String? ?? '').toLowerCase(),
-          'subtypeCodes': stop['subtypeCodes'] ?? const [],
+          'subtypeCodes': stop['subtypeCodes'] ?? const <dynamic>[],
           'overview': stop['reason'] ?? '',
           'travelMinutesToNext': travel?['durationMinutes'],
           'transitToNext':
@@ -901,13 +903,13 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
       'areaCode': 'busan',
       'travelMode': _mode,
       'places': places,
-      'routePaths': (route['routePaths'] as List? ?? const [])
-          .whereType<Map>()
+      'routePaths': (route['routePaths'] as List? ?? const <dynamic>[])
+          .whereType<Map<String, dynamic>>()
           .map(
             (path) => {
               'day': path['day'],
               'dayLabel': _dateLabel((path['day'] as num?)?.toInt() ?? 1),
-              'points': path['points'] ?? const [],
+              'points': path['points'] ?? const <dynamic>[],
             },
           )
           .toList(),
@@ -929,8 +931,8 @@ class _PlannerBuilderScreenState extends State<PlannerBuilderScreen> {
             .where((item) => item.day == slot.day)
             .length -
         1;
-    final places = (_previewCourse?['places'] as List? ?? const [])
-        .whereType<Map>()
+    final places = (_previewCourse?['places'] as List? ?? const <dynamic>[])
+        .whereType<Map<String, dynamic>>()
         .where((place) => (place['day'] as num?)?.toInt() == slot.day)
         .toList();
     if (orderInDay >= places.length) return '$prefix$resolvedTime ~';
@@ -1782,8 +1784,8 @@ class _PreviewRoute {
   }
 
   factory _PreviewRoute.fromCourse(Map<String, dynamic> course, int day) {
-    final points = (course['places'] as List? ?? const [])
-        .whereType<Map>()
+    final points = (course['places'] as List? ?? const <dynamic>[])
+        .whereType<Map<String, dynamic>>()
         .where((place) => (place['day'] as num?)?.toInt() == day)
         .map((place) {
           final lat = _asDouble(place['mapy']);
@@ -1792,14 +1794,14 @@ class _PreviewRoute {
         })
         .whereType<latlong.LatLng>()
         .toList();
-    final route = (course['routePaths'] as List? ?? const [])
-        .whereType<Map>()
+    final route = (course['routePaths'] as List? ?? const <dynamic>[])
+        .whereType<Map<String, dynamic>>()
         .firstWhere(
           (path) => (path['day'] as num?)?.toInt() == day,
           orElse: () => const <String, Object?>{},
         );
-    final path = (route['points'] as List? ?? const [])
-        .whereType<Map>()
+    final path = (route['points'] as List? ?? const <dynamic>[])
+        .whereType<Map<String, dynamic>>()
         .map((point) {
           final lat = _asDouble(point['lat']);
           final lng = _asDouble(point['lng']);
@@ -1807,9 +1809,10 @@ class _PreviewRoute {
         })
         .whereType<latlong.LatLng>()
         .toList();
-    final transitSegments = (route['transitSegments'] as List? ?? const [])
-        .whereType<Map>()
-        .toList();
+    final transitSegments =
+        (route['transitSegments'] as List? ?? const <dynamic>[])
+            .whereType<Map<String, dynamic>>()
+            .toList();
     return _PreviewRoute(
       day: day,
       points: points,
@@ -1985,20 +1988,23 @@ class _PlannerCandidate {
     'lng': lng,
   };
 
-  factory _PlannerCandidate.fromJson(
-    Map<dynamic, dynamic> json,
-  ) => _PlannerCandidate(
-    placeId: (json['placeId'] as num?)?.toInt() ?? 0,
-    name: json['placeName'] as String? ?? '이름 없는 장소',
-    address: json['address'] as String? ?? '',
-    imageUrl: json['imageUrl'] as String? ?? '',
-    lat: _asDouble(json['lat']),
-    lng: _asDouble(json['lng']),
-    fromPreviousMeters:
-        ((json['fromPrevious'] as Map?)?['distanceMeters'] as num?)?.toInt(),
-    fromPreviousMinutes:
-        ((json['fromPrevious'] as Map?)?['durationMinutes'] as num?)?.toInt(),
-  );
+  factory _PlannerCandidate.fromJson(Map<dynamic, dynamic> json) =>
+      _PlannerCandidate(
+        placeId: (json['placeId'] as num?)?.toInt() ?? 0,
+        name: json['placeName'] as String? ?? '이름 없는 장소',
+        address: json['address'] as String? ?? '',
+        imageUrl: json['imageUrl'] as String? ?? '',
+        lat: _asDouble(json['lat']),
+        lng: _asDouble(json['lng']),
+        fromPreviousMeters:
+            ((json['fromPrevious'] as Map<String, dynamic>?)?['distanceMeters']
+                    as num?)
+                ?.toInt(),
+        fromPreviousMinutes:
+            ((json['fromPrevious'] as Map<String, dynamic>?)?['durationMinutes']
+                    as num?)
+                ?.toInt(),
+      );
 
   static double? _asDouble(Object? value) => value is num
       ? value.toDouble()

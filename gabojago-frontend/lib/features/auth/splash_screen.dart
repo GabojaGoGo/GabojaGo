@@ -75,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     // 페이드 전환 — 흰색 배경 플래시 방지
     Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
+      PageRouteBuilder<void>(
         pageBuilder: (context, a1, a2) => dest,
         transitionDuration: const Duration(milliseconds: 400),
         transitionsBuilder: (context, animation, a2, child) =>
