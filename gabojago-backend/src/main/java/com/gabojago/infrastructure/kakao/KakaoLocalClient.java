@@ -90,7 +90,7 @@ public class KakaoLocalClient {
                         doc.path("place_url").asText("")
                 ));
             }
-            return List.copyOf(places);
+            return places;
         } catch (Exception e) {
             log.warn("KakaoLocal API error: {}", e.getMessage());
             return Collections.emptyList();

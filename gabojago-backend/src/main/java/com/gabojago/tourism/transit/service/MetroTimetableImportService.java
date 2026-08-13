@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -57,7 +56,7 @@ public class MetroTimetableImportService {
     }
 
     private String key(int lineNumber, String stationName) {
-        String normalized = stationName.replaceAll("[^가-힣0-9A-Za-z]", "").toLowerCase(Locale.ROOT);
+        String normalized = stationName.replaceAll("[^가-힣0-9A-Za-z]", "").toLowerCase();
         // 운행 정보 CSV는 2024년 역명 변경 전 명칭을 사용한다.
         if (normalized.equals("국제금융부산은행")) normalized = "국제금융센터부산은행";
         return lineNumber + ":" + normalized;

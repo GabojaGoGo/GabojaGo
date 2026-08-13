@@ -97,7 +97,7 @@ public class SlotSuggestionService {
         List<SlotSuggestionResponse.Suggestion> suggestions = candidates.stream()
                 .map(candidate -> toSuggestion(candidate, targetSlot, request.travelConcept(), previous, next, directDistance, matrix))
                 .filter(value -> value.detourMeters() != null)
-                .sorted(Comparator.comparingDouble(SlotSuggestionResponse.Suggestion::score).reversed()
+                .sorted(Comparator.comparing(SlotSuggestionResponse.Suggestion::score).reversed()
                         .thenComparing(SlotSuggestionResponse.Suggestion::detourMeters))
                 .limit(RESULT_LIMIT)
                 .toList();

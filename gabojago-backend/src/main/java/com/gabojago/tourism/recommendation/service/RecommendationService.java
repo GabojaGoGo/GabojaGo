@@ -22,7 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -254,7 +253,7 @@ public class RecommendationService {
                 ? TravelMode.CAR
                 : request.travelMode();
         LocalDateTime departureAt = request == null || request.departureAt() == null
-                ? LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1).atTime(LocalTime.of(10, 0))
+                ? LocalDate.now().plusDays(1).atTime(LocalTime.of(10, 0))
                 : request.departureAt();
         boolean debugUseImported = request == null || request.debugUseImported() == null
                 || request.debugUseImported();

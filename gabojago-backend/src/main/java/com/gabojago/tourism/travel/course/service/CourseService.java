@@ -15,11 +15,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Locale;
 import java.util.Objects;
 
 @Service
@@ -81,7 +79,7 @@ public class CourseService {
                         travelConcept,
                         null,
                         travelMode,
-                        LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1).atTime(LocalTime.of(10, 0)),
+                        LocalDate.now().plusDays(1).atTime(LocalTime.of(10, 0)),
                         true
                 )
         );
@@ -130,7 +128,7 @@ public class CourseService {
                 .orElse(DEFAULT_IMAGE_URL);
 
         return new CourseDto(
-                "recommendation_" + summary.travelMode().name().toLowerCase(Locale.ROOT) + "_" + route.rank(),
+                "recommendation_" + summary.travelMode().name().toLowerCase() + "_" + route.rank(),
                 title,
                 summary.regionName(),
                 imageUrl,

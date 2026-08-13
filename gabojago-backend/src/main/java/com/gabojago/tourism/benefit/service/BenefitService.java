@@ -18,7 +18,7 @@ import java.util.List;
  * 2. Benefit 엔티티를 BenefitDto로 변환
  * 3. Flutter 앱에 반환할 데이터 준비
  *
- * {@code @Transactional(readOnly = true)}로 읽기 전용 트랜잭션을 적용합니다.
+ * @Transactional(readOnly = true): 읽기 전용 트랜잭션
  * - 성능 최적화 (변경 감지 불필요)
  * - 자동 flush 안 함
  */

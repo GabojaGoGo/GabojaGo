@@ -2,7 +2,6 @@ package com.gabojago.member.activity.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @Entity
 @Table(name = "user_bucket_list")
@@ -38,7 +37,7 @@ public class UserBucketItem {
         b.title     = title;
         b.area      = area;
         b.note      = note;
-        b.createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        b.createdAt = LocalDateTime.now();
         return b;
     }
 

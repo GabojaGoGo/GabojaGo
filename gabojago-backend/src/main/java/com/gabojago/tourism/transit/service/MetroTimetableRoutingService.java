@@ -27,7 +27,7 @@ public class MetroTimetableRoutingService {
                     .stream().findFirst().orElse(null);
             if (departure != null) {
                 LocalDateTime departureAt = cursor.toLocalDate().atStartOfDay().plusSeconds(departure.getDepartureSeconds());
-                return Math.max(0, (int) java.time.Duration.between(readyAt, departureAt).toSeconds());
+                return Math.max(0, (int) java.time.Duration.between(readyAt, departureAt).getSeconds());
             }
             cursor = cursor.toLocalDate().plusDays(1).atStartOfDay();
         }

@@ -55,29 +55,6 @@ spotless {
     ratchetFrom 'origin/develop'
     java {
         target 'src/main/java/**/*.java'
-        targetExclude(
-                'src/main/java/com/gabojago/infrastructure/kakao/KakaoLocalClient.java',
-                'src/main/java/com/gabojago/member/activity/domain/UserBenefitReport.java',
-                'src/main/java/com/gabojago/member/activity/domain/UserBucketItem.java',
-                'src/main/java/com/gabojago/member/activity/domain/UserFootprint.java',
-                'src/main/java/com/gabojago/member/activity/domain/UserPreference.java',
-                'src/main/java/com/gabojago/member/auth/service/AuthFacade.java',
-                'src/main/java/com/gabojago/member/user/domain/SocialAccount.java',
-                'src/main/java/com/gabojago/member/user/domain/User.java',
-                'src/main/java/com/gabojago/member/user/domain/UserConsent.java',
-                'src/main/java/com/gabojago/place/domain/enums/AttributeKey.java',
-                'src/main/java/com/gabojago/tourism/planner/service/InteractivePlannerService.java',
-                'src/main/java/com/gabojago/tourism/recommendation/service/RecommendationService.java',
-                'src/main/java/com/gabojago/tourism/recommendation/service/SlotSuggestionService.java',
-                'src/main/java/com/gabojago/tourism/transit/service/BusanMetroRoutingService.java',
-                'src/main/java/com/gabojago/tourism/transit/service/MetroTimetableImportService.java',
-                'src/main/java/com/gabojago/tourism/transit/service/MetroTimetableRoutingService.java',
-                'src/main/java/com/gabojago/tourism/travel/course/service/CourseService.java',
-                'src/main/java/com/gabojago/tourism/benefit/controller/BenefitController.java',
-                'src/main/java/com/gabojago/tourism/benefit/dto/response/BenefitDto.java',
-                'src/main/java/com/gabojago/tourism/benefit/service/BenefitService.java',
-                'src/main/java/com/gabojago/tourism/benefit/service/VacationSupportSyncScheduler.java'
-        )
         googleJavaFormat('1.36.1')
     }
 }

@@ -23,7 +23,7 @@ import java.util.Map;
  * 1. 활성화된 혜택 목록 조회 (GET /api/benefits)
  * 2. 관리자용 즉시 동기화 (POST /api/benefits/sync/vacation-support)
  *
- * {@code @TrackExecutionTime}은 각 엔드포인트의 실행 시간을 로깅합니다.
+ * @TrackExecutionTime: 각 엔드포인트의 실행 시간을 로깅 (성능 모니터링)
  */
 @RestController
 @RequestMapping("/api/benefits")

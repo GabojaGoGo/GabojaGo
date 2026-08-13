@@ -104,7 +104,7 @@ public enum AttributeKey {
     private final Set<String> allowedValues;
 
     AttributeKey(Set<PlaceType> applicableTypes, Set<String> allowedValues) {
-        this.applicableTypes = Set.copyOf(applicableTypes);
+        this.applicableTypes = applicableTypes;
         Set<String> values = new HashSet<>(allowedValues);
         values.add(UNKNOWN);
         this.allowedValues = Set.copyOf(values);

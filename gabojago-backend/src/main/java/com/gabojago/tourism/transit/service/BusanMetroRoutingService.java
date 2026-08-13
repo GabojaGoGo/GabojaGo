@@ -16,7 +16,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -56,7 +55,7 @@ public class BusanMetroRoutingService {
         TransitWalkRoutingClient.WalkRoute directWalk = walkRoutingClient.route(from, to);
         List<MetroEdge> edges = edgeRepository.findAll();
         Map<String, TransitPoint> stationPoints = stationPoints(accessPoints);
-        LocalDateTime departureAt = request.departureAt() == null ? LocalDateTime.now(ZoneId.of("Asia/Seoul")) : request.departureAt();
+        LocalDateTime departureAt = request.departureAt() == null ? LocalDateTime.now() : request.departureAt();
 
         Candidate best = null;
         for (int startIndex = 0; startIndex < startStations.size(); startIndex++) {
@@ -84,7 +83,7 @@ public class BusanMetroRoutingService {
             }
             cursor = cursor.plusSeconds(edge.getDurationSeconds());
         }
-        return (int) java.time.Duration.between(readyAt, cursor).toSeconds();
+        return (int) java.time.Duration.between(readyAt, cursor).getSeconds();
     }
 
     private TransitRouteResponse directWalk(TransitWalkRoutingClient.WalkRoute route) {

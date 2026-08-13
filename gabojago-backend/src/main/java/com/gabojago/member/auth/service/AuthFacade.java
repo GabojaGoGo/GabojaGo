@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -69,7 +68,7 @@ public class AuthFacade {
         }
         try {
             LocalDateTime expiryAt = jwtUtils.getExpiryAt(accessToken);
-            Duration ttl = Duration.between(LocalDateTime.now(ZoneId.of("Asia/Seoul")), expiryAt);
+            Duration ttl = Duration.between(LocalDateTime.now(), expiryAt);
             jwtTokenBlacklist.add(accessToken, ttl);
         } catch (JwtException | IllegalArgumentException e) {
             log.debug("access token blacklist 생략: 유효하지 않은 token", e);

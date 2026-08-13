@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @Getter
 @Entity
@@ -43,7 +42,7 @@ public class SocialAccount {
         socialAccount.user = user;
         socialAccount.provider = provider;
         socialAccount.providerUserId = providerUserId;
-        socialAccount.connectedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        socialAccount.connectedAt = LocalDateTime.now();
         return socialAccount;
     }
 
@@ -52,6 +51,6 @@ public class SocialAccount {
     }
 
     public void recordLogin() {
-        this.lastLoginAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        this.lastLoginAt = LocalDateTime.now();
     }
 }
