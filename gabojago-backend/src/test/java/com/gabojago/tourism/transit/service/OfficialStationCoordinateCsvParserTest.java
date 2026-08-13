@@ -1,5 +1,6 @@
 package com.gabojago.tourism.transit.service;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
@@ -11,7 +12,8 @@ class OfficialStationCoordinateCsvParserTest {
     private final OfficialStationCoordinateCsvParser parser = new OfficialStationCoordinateCsvParser();
 
     @Test
-    void 공식_TSV에서_역번호와_중심_좌표를_읽는다() throws Exception {
+    @DisplayName("공식 TSV에서 역번호와 중심 좌표를 읽는다")
+    void readsStationCodeAndCoordinatesFromOfficialTsv() throws Exception {
         var rows = parser.parse(new StringReader("""
                 역번호\t역사명\t역위도\t역경도
                 101\t신평역\t35.095179\t128.960564

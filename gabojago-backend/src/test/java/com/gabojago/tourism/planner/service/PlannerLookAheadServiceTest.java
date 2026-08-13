@@ -4,6 +4,7 @@ import com.gabojago.place.domain.Place;
 import com.gabojago.place.domain.enums.PlaceType;
 import com.gabojago.place.domain.enums.TravelMode;
 import com.gabojago.tourism.recommendation.service.RoutingMatrixClient;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -19,7 +20,8 @@ class PlannerLookAheadServiceTest {
     private final PlannerLookAheadService service = new PlannerLookAheadService(null);
 
     @Test
-    void 이후_슬롯과_앵커까지_가장_짧게_연결되는_경로를_선택한다() {
+    @DisplayName("이후 슬롯과 앵커까지 가장 짧게 연결되는 경로를 선택한다")
+    void selectsShortestConnectionToLaterSlotAndAnchor() {
         Place target = place(1L);
         Place longWay = place(2L);
         Place shortWay = place(3L);
@@ -42,7 +44,8 @@ class PlannerLookAheadServiceTest {
     }
 
     @Test
-    void 이후_슬롯으로_연결되는_도로_비용이_없으면_점수를_적용하지_않는다() {
+    @DisplayName("이후 슬롯으로 연결되는 도로 비용이 없으면 점수를 적용하지 않는다")
+    void skipsScoreWhenRoadCostToLaterSlotIsMissing() {
         Place target = place(1L);
         Place future = place(2L);
         PlannerLookAheadService.LookAheadPlan plan = new PlannerLookAheadService.LookAheadPlan(List.of(List.of(future)));

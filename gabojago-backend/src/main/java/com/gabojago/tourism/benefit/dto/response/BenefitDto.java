@@ -27,54 +27,36 @@ import com.gabojago.tourism.benefit.domain.Benefit;
  *   "statusLabel": "신청접수중",
  *   "detailJson": { "regions": [...] }  ← 문자열 아님, JSON 객체로 포함됨
  * }
+ *
+ * @param id 혜택 고유 ID
+ * @param title 혜택 제목
+ * @param subtitle 부제목
+ * @param description 상세 설명
+ * @param category 카테고리
+ * @param benefitType 혜택 타입 (subsidy, discount 등)
+ * @param statusLabel UI에 표시할 상태 레이블 ("신청접수중", "마감" 등)
+ * @param statusType 상태 타입 (active, closed 등)
+ * @param gradientStart UI 그라디언트 시작 색상
+ * @param gradientEnd UI 그라디언트 종료 색상
+ * @param iconName UI 아이콘 이름
+ * @param applyUrl 사용자가 탭하면 외부 사이트로 이동하는 신청 링크
+ * @param isRepeatable 반복 신청 가능 여부
+ * @param detailJson JSON 구조로 그대로 출력하는 상세 정보
  */
 public record BenefitDto(
-        /** 혜택 고유 ID */
         String id,
-
-        /** 혜택 제목 */
         String title,
-
-        /** 부제목 */
         String subtitle,
-
-        /** 상세 설명 */
         String description,
-
-        /** 카테고리 */
         String category,
-
-        /** 혜택 타입 (subsidy, discount 등) */
         String benefitType,
-
-        /** UI에 표시할 상태 레이블 ("신청접수중", "마감" 등) */
         String statusLabel,
-
-        /** 상태 타입 (active, closed 등) */
         String statusType,
-
-        /** UI 그라디언트 시작 색상 */
         String gradientStart,
-
-        /** UI 그라디언트 종료 색상 */
         String gradientEnd,
-
-        /** UI 아이콘 이름 */
         String iconName,
-
-        /** 신청 링크 (사용자가 탭하면 외부 사이트로 이동) */
         String applyUrl,
-
-        /** 반복 신청 가능 여부 */
         boolean isRepeatable,
-
-        /**
-         * 상세 정보를 JSON으로 포함
-         *
-         * @JsonRawValue: 문자열이지만 JSON 구조로 그대로 출력
-         * 일반 String이면 "detailJson": "{\\"regions\\":[...]}" 처럼 이스케이프되는데,
-         * @JsonRawValue를 쓰면 "detailJson": {"regions":[...]} 처럼 올바른 JSON으로 출력
-         */
         @JsonRawValue String detailJson
 ) {
     /**

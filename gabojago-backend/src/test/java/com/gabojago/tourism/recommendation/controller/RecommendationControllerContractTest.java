@@ -7,6 +7,7 @@ import com.gabojago.tourism.recommendation.dto.response.RoutePreviewResponse;
 import com.gabojago.tourism.recommendation.service.RecommendationService;
 import com.gabojago.tourism.recommendation.service.RoutePreviewService;
 import com.gabojago.tourism.recommendation.service.SlotSuggestionService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -54,7 +55,8 @@ class RecommendationControllerContractTest {
     private JpaMetamodelMappingContext jpaMappingContext;
 
     @Test
-    void 편집된_코스의_일자별_OSRM_경로를_반환한다() throws Exception {
+    @DisplayName("편집된 코스의 일자별 OSRM 경로를 반환한다")
+    void returnsDailyOsrmPathsForEditedCourse() throws Exception {
         when(routePreviewService.preview(any())).thenReturn(new RoutePreviewResponse(List.of(
                 new RoutePreviewResponse.RoutePath(1, List.of(
                         new RoutePreviewResponse.RoutePoint(BigDecimal.valueOf(35.1), BigDecimal.valueOf(129.1)),

@@ -35,7 +35,7 @@ import java.util.Map;
  * → Flutter 앱이 다음 번 혜택 조회 시 최신 상태 표시
  *
  * 실행 스케줄:
- * @Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")
+ * {@code @Scheduled(cron = "0 0 6 * * *", zone = "Asia/Seoul")}
  * - cron: "초 분 시 일 월 요일"
  * - "0 0 6 * * *" = 매일 06:00:00 (오전 6시)
  * - zone = "Asia/Seoul" = 한국 시간 기준
@@ -72,7 +72,7 @@ public class VacationSupportSyncScheduler {
      * 6. 변경된 JSON을 DB에 저장
      *
      * 트랜잭션:
-     * @Transactional: 모든 작업을 하나의 트랜잭션으로 처리
+     * {@code @Transactional}로 모든 작업을 하나의 트랜잭션으로 처리합니다.
      * - 업데이트 중 에러 발생 시 자동 롤백
      * - 데이터 무결성 보장
      *

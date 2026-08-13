@@ -2,6 +2,7 @@ package com.gabojago.member.activity.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -99,38 +100,38 @@ public class UserBenefitReport {
         r.benefitType = benefitType;
         r.benefitLabel = benefitLabel;
         r.amount = amount;
-        r.appliedAt = LocalDateTime.now();  // 현재 시각을 신청 시각으로 설정
+        r.appliedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));  // 현재 시각을 신청 시각으로 설정
         return r;
     }
 
     // ━━━━━━━━━━━━━ Getters ━━━━━━━━━━━━━
 
-    /** @return 보고서 고유 ID */
+    /** 보고서 고유 ID를 반환합니다. @return 보고서 고유 ID */
     public Long getId() {
         return id;
     }
 
-    /** @return 사용자 ID */
+    /** 사용자 ID를 반환합니다. @return 사용자 ID */
     public Long getUserId() {
         return userId;
     }
 
-    /** @return 혜택 타입 (SUBSIDY, COUPON 등) */
+    /** 혜택 타입을 반환합니다. @return 혜택 타입 (SUBSIDY, COUPON 등) */
     public String getBenefitType() {
         return benefitType;
     }
 
-    /** @return 혜택 이름 (UI에 표시) */
+    /** UI에 표시할 혜택 이름을 반환합니다. @return 혜택 이름 */
     public String getBenefitLabel() {
         return benefitLabel;
     }
 
-    /** @return 혜택 금액 */
+    /** 혜택 금액을 반환합니다. @return 혜택 금액 */
     public int getAmount() {
         return amount;
     }
 
-    /** @return 신청 시각 */
+    /** 신청 시각을 반환합니다. @return 신청 시각 */
     public LocalDateTime getAppliedAt() {
         return appliedAt;
     }

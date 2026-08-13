@@ -2,6 +2,7 @@ package com.gabojago.member.activity.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +42,7 @@ public class UserFootprint {
         f.spotId     = spotId;
         f.spotName   = spotName;
         f.regionName = regionName;
-        f.visitedAt  = LocalDateTime.now();
+        f.visitedAt  = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         f.tags       = tags.isEmpty() ? null : String.join(",", tags);
         return f;
     }

@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -109,7 +110,7 @@ public class InteractivePlannerService {
                         )
                 ))
                 .filter(option -> option.fromPrevious() == null || option.fromPrevious().distanceMeters() != null)
-                .sorted(Comparator.comparing(PlannerSlotOptionsResponse.CandidateOption::score).reversed())
+                .sorted(Comparator.comparingDouble(PlannerSlotOptionsResponse.CandidateOption::score).reversed())
                 .skip(request.offset())
                 .limit(request.limit())
                 .toList();
@@ -286,7 +287,7 @@ public class InteractivePlannerService {
         return new NormalizedRequest(
                 request.regionKey() == null || request.regionKey().isBlank() ? "busan" : request.regionKey(),
                 travelMode,
-                request.departureAt() == null ? LocalDateTime.now().withHour(10).withMinute(0).withSecond(0).withNano(0) : request.departureAt(),
+                request.departureAt() == null ? LocalDateTime.now(ZoneId.of("Asia/Seoul")).withHour(10).withMinute(0).withSecond(0).withNano(0) : request.departureAt(),
                 target, slots, request.dayStartAnchors(), Boolean.TRUE.equals(request.debugUseImported()),
                 normalizeOffset(request.offset()), normalizeLimit(request.limit()));
     }

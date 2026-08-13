@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Locale;
 
 @Getter
 @Entity
@@ -54,7 +56,7 @@ public class User extends BaseTimeEntity {
         if (email == null) {
             return null;
         }
-        String normalized = email.trim().toLowerCase();
+        String normalized = email.trim().toLowerCase(Locale.ROOT);
         return normalized.isEmpty() ? null : normalized;
     }
 
@@ -63,12 +65,12 @@ public class User extends BaseTimeEntity {
     }
 
     public void recordLogin() {
-        this.lastLoginAt = LocalDateTime.now();
+        this.lastLoginAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
     public void softDelete() {
         this.status = UserStatus.DELETED;
-        this.deletedAt = LocalDateTime.now();
+        this.deletedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
     public boolean isActive() {

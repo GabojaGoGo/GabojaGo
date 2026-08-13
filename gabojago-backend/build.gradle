@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.4'
     id 'io.spring.dependency-management' version '1.1.4'
+    id 'com.diffplug.spotless' version '8.8.0'
+    id 'net.ltgt.errorprone' version '5.1.0'
 }
 
 version = '0.0.1-SNAPSHOT'
@@ -40,8 +42,51 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
+
+    errorprone 'com.google.errorprone:error_prone_core:2.50.0'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+spotless {
+    // 기존 파일 일괄 포맷 없이 PR에서 변경한 Java 파일만 검사한다.
+    ratchetFrom 'origin/develop'
+    java {
+        target 'src/main/java/**/*.java'
+        targetExclude(
+                'src/main/java/com/gabojago/infrastructure/kakao/KakaoLocalClient.java',
+                'src/main/java/com/gabojago/member/activity/domain/UserBenefitReport.java',
+                'src/main/java/com/gabojago/member/activity/domain/UserBucketItem.java',
+                'src/main/java/com/gabojago/member/activity/domain/UserFootprint.java',
+                'src/main/java/com/gabojago/member/activity/domain/UserPreference.java',
+                'src/main/java/com/gabojago/member/auth/service/AuthFacade.java',
+                'src/main/java/com/gabojago/member/user/domain/SocialAccount.java',
+                'src/main/java/com/gabojago/member/user/domain/User.java',
+                'src/main/java/com/gabojago/member/user/domain/UserConsent.java',
+                'src/main/java/com/gabojago/place/domain/enums/AttributeKey.java',
+                'src/main/java/com/gabojago/tourism/planner/service/InteractivePlannerService.java',
+                'src/main/java/com/gabojago/tourism/recommendation/service/RecommendationService.java',
+                'src/main/java/com/gabojago/tourism/recommendation/service/SlotSuggestionService.java',
+                'src/main/java/com/gabojago/tourism/transit/service/BusanMetroRoutingService.java',
+                'src/main/java/com/gabojago/tourism/transit/service/MetroTimetableImportService.java',
+                'src/main/java/com/gabojago/tourism/transit/service/MetroTimetableRoutingService.java',
+                'src/main/java/com/gabojago/tourism/travel/course/service/CourseService.java',
+                'src/main/java/com/gabojago/tourism/benefit/controller/BenefitController.java',
+                'src/main/java/com/gabojago/tourism/benefit/dto/response/BenefitDto.java',
+                'src/main/java/com/gabojago/tourism/benefit/service/BenefitService.java',
+                'src/main/java/com/gabojago/tourism/benefit/service/VacationSupportSyncScheduler.java'
+        )
+        googleJavaFormat('1.36.1')
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // 기존 권고 수준 경고는 별도 정리 대상으로 두고, CI에서는 Error Prone 오류만 막는다.
+    options.errorprone.disableAllWarnings = true
+}
+
+tasks.named('check') {
+    dependsOn 'spotlessCheck'
 }

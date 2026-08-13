@@ -3,6 +3,7 @@ package com.gabojago.tourism.recommendation.service;
 import com.gabojago.place.domain.Place;
 import com.gabojago.tourism.recommendation.domain.RecommendationSlot;
 import com.gabojago.tourism.recommendation.domain.RecommendationSlotType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -15,7 +16,8 @@ class SlotCandidateScoringServiceTest {
     private final SlotCandidateScoringService service = new SlotCandidateScoringService(new StubPreferenceScoreProvider());
 
     @Test
-    void lookAhead가_있으면_즉시_동선과_이후_동선을_분리해_결합한다() {
+    @DisplayName("lookAhead가 있으면 즉시 동선과 이후 동선을 분리해 결합한다")
+    void combinesImmediateAndLaterRoutesWhenLookAheadExists() {
         SlotCandidateScoringService.CandidateScore score = service.score(
                 mock(Place.class), slot(), "", 1_000, 9_000
         );
@@ -28,7 +30,8 @@ class SlotCandidateScoringServiceTest {
     }
 
     @Test
-    void lookAhead가_없으면_기존_즉시_동선_점수를_그대로_사용한다() {
+    @DisplayName("lookAhead가 없으면 기존 즉시 동선 점수를 그대로 사용한다")
+    void usesImmediateRouteScoreWhenLookAheadIsMissing() {
         SlotCandidateScoringService.CandidateScore score = service.score(mock(Place.class), slot(), "", 1_000);
 
         assertThat(score.totalScore()).isEqualTo(90.9);

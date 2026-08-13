@@ -6,6 +6,7 @@ import com.gabojago.place.repository.PlaceRepository;
 import com.gabojago.tourism.recommendation.dto.request.RoutePreviewRequest;
 import com.gabojago.tourism.recommendation.dto.response.RoutePreviewResponse;
 import com.gabojago.tourism.transit.service.BusanMetroRoutingService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -25,7 +26,8 @@ class RoutePreviewServiceTest {
             placeRepository, routingRouteClient, busanMetroRoutingService);
 
     @Test
-    void 일자별_장소_순서로_OSRM_도로_경로를_반환한다() {
+    @DisplayName("일자별 장소 순서로 OSRM 도로 경로를 반환한다")
+    void returnsOsrmRoadPathsInDailyPlaceOrder() {
         Place first = place(1L, 35.1, 129.1);
         Place second = place(2L, 35.2, 129.2);
         Place third = place(3L, 35.3, 129.3);

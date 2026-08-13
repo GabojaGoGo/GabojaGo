@@ -2,6 +2,7 @@ package com.gabojago.member.activity.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -30,14 +31,14 @@ public class UserPreference {
         p.userId   = userId;
         p.purposes = purposes.isEmpty() ? null : String.join(",", purposes);
         p.duration = duration;
-        p.updatedAt = LocalDateTime.now();
+        p.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         return p;
     }
 
     public void update(List<String> purposes, String duration) {
         this.purposes   = purposes.isEmpty() ? null : String.join(",", purposes);
         this.duration   = duration;
-        this.updatedAt  = LocalDateTime.now();
+        this.updatedAt  = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
     public Long getUserId()            { return userId; }

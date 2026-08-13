@@ -14,6 +14,7 @@ import com.gabojago.tourism.recommendation.service.CandidateQueryService;
 import com.gabojago.tourism.recommendation.service.RoutingMatrixClient;
 import com.gabojago.tourism.recommendation.service.RoutingRouteClient;
 import com.gabojago.tourism.recommendation.service.SlotCandidateScoringService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -44,7 +45,8 @@ class InteractivePlannerServiceTest {
     @Mock SlotCandidateScoringService slotCandidateScoringService;
 
     @Test
-    void 다음_빈_슬롯에_선택_시간과_실제_이동시간을_반영한_후보를_반환한다() {
+    @DisplayName("다음 빈 슬롯에 선택 시간과 실제 이동시간을 반영한 후보를 반환한다")
+    void returnsCandidateForNextEmptySlotWithSelectedAndTravelTime() {
         Region region = org.mockito.Mockito.mock(Region.class);
         Place selected = place(1L, "해운대 해수욕장", PlaceType.TOURIST_SPOT, 35.158, 129.160);
         Place candidate = place(2L, "해운대 국밥", PlaceType.RESTAURANT, 35.160, 129.164);
@@ -78,7 +80,8 @@ class InteractivePlannerServiceTest {
     }
 
     @Test
-    void 잘못된_시간_형식은_추천_계산_전에_거절한다() {
+    @DisplayName("잘못된 시간 형식은 추천 계산 전에 거절한다")
+    void rejectsInvalidTimeFormatBeforeRecommendationCalculation() {
         PlannerSlotOptionsRequest request = new PlannerSlotOptionsRequest("busan", TravelMode.CAR, null, 1,
                 List.of(new PlannerSlotRequest(1, 1, "오후", RecommendationSlotType.SIGHT, List.of(), null)), List.of(), true);
 
@@ -88,7 +91,8 @@ class InteractivePlannerServiceTest {
     }
 
     @Test
-    void DAY2_첫_슬롯은_숙소_출발_기준점으로_후보를_평가한다() {
+    @DisplayName("DAY2 첫 슬롯은 숙소 출발 기준점으로 후보를 평가한다")
+    void evaluatesFirstDayTwoSlotCandidatesFromAccommodationAnchor() {
         Region region = org.mockito.Mockito.mock(Region.class);
         Place candidate = place(2L, "해운대 해수욕장", PlaceType.TOURIST_SPOT, 35.160, 129.164);
         when(regionRepository.findByRegionKey("busan")).thenReturn(Optional.of(region));
@@ -113,7 +117,8 @@ class InteractivePlannerServiceTest {
     }
 
     @Test
-    void 다음_미확정_슬롯의_도로_연결성을_후보_점수에_반영한다() {
+    @DisplayName("다음 미확정 슬롯의 도로 연결성을 후보 점수에 반영한다")
+    void appliesNextUnconfirmedSlotRoadConnectivityToCandidateScore() {
         Region region = org.mockito.Mockito.mock(Region.class);
         Place selected = place(1L, "해운대 해수욕장", PlaceType.TOURIST_SPOT, 35.158, 129.160);
         Place candidate = place(2L, "해운대 국밥", PlaceType.RESTAURANT, 35.160, 129.164);

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Getter
 @Entity
@@ -36,7 +37,7 @@ public class UserConsent {
         c.termsVersion = termsVersion;
         c.privacyVersion = privacyVersion;
         c.marketingOptIn = marketingOptIn;
-        c.consentedAt = LocalDateTime.now();
+        c.consentedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         return c;
     }
 }
