@@ -1,0 +1,70 @@
+﻿place_type,attribute_key,source_content_type_id,source_field,weighted_fill_rate,status,measured_fill_rate,measured_scope,measured_note
+TOURIST_SPOT,PARKING_CONVENIENCE,12+14,parking+parkingculture,75,FREE_TEXT,93.0,"관광지(12) 부울경 200건 층화표본, seed 20260820",parking 186/200. 기록 75%는 12+14 가중 추정이었다
+TOURIST_SPOT,NOISE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+TOURIST_SPOT,CROWD_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+TOURIST_SPOT,PRICE_LEVEL,14,usefee,13,SOURCE_SEARCH_PENDING,0.0,"관광지(12) 부울경 200건 층화표본, seed 20260820",usefee 필드가 응답에 없음. 문화시설(14)은 미측정 / 다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+TOURIST_SPOT,BUSINESS_HOURS,12+14+15,usetime+usetimeculture+usetimefestival,97,FREE_TEXT,96.5,"관광지(12) 부울경 200건 층화표본, seed 20260820",usetime 193/200. 기록 97%와 일치
+TOURIST_SPOT,VISIT_DURATION,14,spendtime,2,SOURCE_SEARCH_PENDING,0.0,"관광지(12) 부울경 200건 층화표본, seed 20260820",spendtime 필드가 응답에 없음. 문화시설(14)은 미측정 / 다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+TOURIST_SPOT,ENTRANCE_FEE_LEVEL,14,usefee,13,SOURCE_SEARCH_PENDING,0.0,"관광지(12) 부울경 200건 층화표본, seed 20260820",usefee 필드가 응답에 없음. 문화시설(14)은 미측정 / 다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+TOURIST_SPOT,PHOTO_SPOT,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+TOURIST_SPOT,WALKING_INTENSITY,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+TOURIST_SPOT,INDOOR_OUTDOOR,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+TOURIST_SPOT,SCENERY_QUALITY,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACTIVITY,PARKING_CONVENIENCE,28,parkingleports,7,LOW_COVERAGE,9.8,"레포츠(28) 부울경 200건 층화표본, seed 20260820. 상세 존재 82건 기준",parkingleports 8/82. 모집단 대비 실효 확보율은 약 4%
+ACTIVITY,NOISE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACTIVITY,CROWD_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACTIVITY,PRICE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACTIVITY,BUSINESS_HOURS,28,usetimeleports,93,FREE_TEXT,96.3,"레포츠(28) 부울경 200건 층화표본, seed 20260820. 상세 존재 82건 기준",usetimeleports 79/82. 표본 200건 중 118건(59%)은 상세 자체가 원천에 없어 분모에서 뺐다. 모집단 대비 실효 확보율은 약 39%
+ACTIVITY,RESERVATION_REQUIRED,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACTIVITY,PHYSICAL_INTENSITY,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACTIVITY,GROUP_SIZE_FIT,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACTIVITY,WEATHER_DEPENDENCY,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACTIVITY,EXPERIENCE_DURATION,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACCOMMODATION,PARKING_CONVENIENCE,32,parkinglodging,96,FREE_TEXT,,,
+ACCOMMODATION,NOISE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACCOMMODATION,CROWD_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACCOMMODATION,PRICE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+ACCOMMODATION,BUSINESS_HOURS,32,checkintime,100,FREE_TEXT,,,
+SHOP,PARKING_CONVENIENCE,38,parkingshopping,100,FREE_TEXT,,,
+SHOP,NOISE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+SHOP,CROWD_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+SHOP,PRICE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+SHOP,BUSINESS_HOURS,38,opentime,100,FREE_TEXT,,,
+RESTAURANT,PARKING_CONVENIENCE,39,parkingfood,93,FREE_TEXT,,,
+RESTAURANT,NOISE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+RESTAURANT,CROWD_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+RESTAURANT,PRICE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+RESTAURANT,BUSINESS_HOURS,39,opentimefood,100,FREE_TEXT,,,
+RESTAURANT,WAITING_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+RESTAURANT,GROUP_SEATING,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+RESTAURANT,KIDS_FRIENDLY,39,kidsfacility,4,LOW_COVERAGE,,,
+RESTAURANT,SOLO_DINING_SUITABILITY,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,PARKING_CONVENIENCE,39,parkingfood,93,FREE_TEXT,,,
+CAFE,NOISE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,CROWD_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,PRICE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,BUSINESS_HOURS,39,opentimefood,100,FREE_TEXT,,,
+CAFE,SEAT_CAPACITY,39,scalefood,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,TABLE_SIZE,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,SEAT_SPACING,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,OUTLET_ACCESSIBILITY,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,WIFI_STABILITY,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,STAY_DURATION,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,SPACE_OPENNESS,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,INTERIOR_MOOD,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,NATURAL_LIGHT,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,WINDOW_VIEW,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,DESSERT_VISUAL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,SOLO_VISIT_SUITABILITY,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,CONVERSATION_SUITABILITY,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+CAFE,DATE_MOOD,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+BAR,PARKING_CONVENIENCE,39,parkingfood,93,FREE_TEXT,,,
+BAR,NOISE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+BAR,CROWD_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+BAR,PRICE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+BAR,BUSINESS_HOURS,39,opentimefood,100,FREE_TEXT,,,
+PARKING_LOT,PARKING_CONVENIENCE,PARKING_STANDARD,주차구획수+요금정보,0,MEASURED_AVAILABLE,99.9,"전국주차장정보표준데이터 부울경 2,529건 전량 (GO-79)","주차구획수 99.9%, 요금정보(무료/유료/혼합) 100%. TourAPI에 PARKING_LOT 콘텐츠 타입이 없어 NO_SOURCE로 잡혀 있었으나 표준데이터가 원천이다"
+PARKING_LOT,NOISE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+PARKING_LOT,CROWD_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+PARKING_LOT,PRICE_LEVEL,,,0,SOURCE_SEARCH_PENDING,,,다섯 탐색 범위 미완(GO-125). 특정 원천의 부재를 NO_SOURCE로 쓰지 않는다
+PARKING_LOT,BUSINESS_HOURS,PARKING_STANDARD,평일·토요일·공휴일운영시각+운영요일,0,MEASURED_AVAILABLE,100.0,"전국주차장정보표준데이터 부울경 2,529건 전량 (GO-79)",운영시각 4종과 운영요일 모두 100%. 자유텍스트가 아니라 고정 형식이다
