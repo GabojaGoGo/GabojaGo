@@ -9,6 +9,12 @@
 1. `docs/L-1-operating-principles.md` — 어떻게 판단할지
 2. `docs/L0-project-context.md` — 이미 무엇이 결정됐는지
 3. 아래 이 저장소의 규칙 — 실제로 어떻게 작업할지
+4. `data-import/` 작업이면, 먼저 `L0` 6절에서 **현재 프로젝트 단계와 허용 범위**를 확인한 뒤 해당 단계의 data-import 문서를 읽는다.
+   - 원천 탐색·실측(P1): `other-source-survey.md` **0절부터** → `source-downloads.md` → `attribute-coverage.md`
+   - 분류·매핑 계약(P2): `classification-mapping.md` → 필요한 근거 문서(`other-source-survey.md`, `attribute-coverage.md`)
+   - 구현·적재(P3 이후): 위 문서에서 해당 원천·매핑 계약을 확인한다.
+
+   `data-import/docs/`는 이 영역의 세부 계약과 근거를 소유한다. 프로젝트 전체 단계·현재 우선순위는 여기서 정하지 않으며 `L0`과 Jira를 따른다. `mappings/*.csv`는 **값만 갖고 범위는 이 문서들이 소유한다.** csv의 `measured_scope`가 비어 있는 것은 범위 미기록이 아니라 소유 문서가 따로 있다는 뜻일 수 있으므로, 수치가 이상해 보이면 먼저 그 값의 소유 문서를 찾는다.
 
 ## 저장소 구성
 

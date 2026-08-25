@@ -1,0 +1,99 @@
+source_license_type,source_uptae,target_place_type,target_subtype_code,mapping_status,source_count,sample_titles,note
+식품_일반음식점,한식,RESTAURANT,KOREAN,CONFIRMED,45183,다경양곱창 / 자갈치식당 / 히노쿠시,
+식품_일반음식점,기타,,,NEEDS_REVIEW,14047,낭커피(NANG COFFEE) / 설중 / 아나브린,"[상호 전량 분류 2026-08-22] 카페 13.5% · 한식 7.5% · 주점 6.9% · 양식 5.6% · 분식 3.5%, **미분류 62.0%**. 여러 PlaceType에 흩어지고 상호에 정보가 없는 건이 과반이라 단일 subtype 배정 불가. 카페 1,891건은 PlaceType이 RESTAURANT가 아니라 CAFE로 갈린다 / 상호 분류에서 PlaceType 자체가 갈려 target을 비웠다"
+식품_일반음식점,호프/통닭,BAR,GENERAL_BAR,CONFIRMED,8645,케네디로즈 / 기남윤주 막걸리 / 나리치킨,현행 BAR base 정의에 포함된 업태
+식품_일반음식점,식육(숯불구이),RESTAURANT,KOREAN,CONFIRMED,8321,육사랑방 / 땡우 / 한우고집,
+식품_일반음식점,분식,RESTAURANT,SNACK_FAST_FOOD,CONFIRMED,5843,"남포수제비 / 엄마손분식 / 찐불이, 찐 숯불 두마리 치킨",
+식품_일반음식점,경양식,,,NEEDS_REVIEW,5269,무봤나촌닭 영주대신점 / 불닭발땡초동대문엽기떡볶이 광복점 / 파스타바니타,[상호 전량 분류 2026-08-22] 양식 21.7%만 업태를 지지하고 카페 7.2% · 주점 2.7% · 한식 2.2%가 섞였다. **미분류 64.3%**. 다수가 WESTERN일 개연성은 있으나 근거가 21.7%뿐이라 확정하지 않는다 / 상호 분류에서 PlaceType 자체가 갈려 target을 비웠다
+식품_일반음식점,횟집,RESTAURANT,KOREAN,NEEDS_REVIEW,4033,밀양상회 / 우마이야 / 소담식당,KOREAN/JAPANESE 어느 쪽인지 미확정. 표본도 혼재
+식품_일반음식점,중국식,RESTAURANT,CHINESE,CONFIRMED,3860,만리장성 / 홍콩반점 남포1호점 / 행복한짜장,
+식품_일반음식점,일식,RESTAURANT,JAPANESE,CONFIRMED,2553,갓포신 / 팔딱활아구&A9 / 쿄우다이,
+식품_일반음식점,정종/대포집/소주방,BAR,TRADITIONAL_PUB,CONFIRMED,2528,이화민속주점 / 카도 / 치락스,현행 BAR base 정의에 포함된 업태
+식품_일반음식점,통닭(치킨),BAR,GENERAL_BAR,NEEDS_REVIEW,1795,시장분식 / 미스터치킨맨 / 제이앤제니,"현행 base는 BAR로 셌으나 치킨전문점은 RESTAURANT일 수 있다. base 13,229 정의에 직접 영향"
+식품_일반음식점,탕류(보신용),RESTAURANT,KOREAN,CONFIRMED,860,대청마루 / 장터소머리곰탕 / 남포삼계탕,
+식품_일반음식점,김밥(도시락),RESTAURANT,SNACK_FAST_FOOD,CONFIRMED,743,지에이에프 / 중앙식당 / 자매김밥,
+식품_일반음식점,"외국음식전문점(인도,태국등)",RESTAURANT,ASIAN,CONFIRMED,594,키키샵 / 봄베이인도요리전문점 / 박소베조코리아,
+식품_일반음식점,뷔페식,RESTAURANT,FUSION_OTHER,NEEDS_REVIEW,364,콜렉티보 호텔토브점 / (주)이랜드이츠 애슐리퀸즈 롯데마트 광복점 / 대박한식뷔페,뷔페는 음식 종류가 아니라 제공 형식. 대응 축이 없다
+식품_일반음식점,패스트푸드,RESTAURANT,SNACK_FAST_FOOD,CONFIRMED,292,쭈야네 / 멜팅보틀 / 7번가피자 남포*보수점,
+식품_일반음식점,냉면집,RESTAURANT,KOREAN,CONFIRMED,265,최가네 국밥 / 왕밀면냉면중앙점 / 강가면옥,
+식품_일반음식점,감성주점,BAR,GENERAL_BAR,CONFIRMED,256,힐링주점 / 글로우 / 썰쓰데이파티,현행 BAR base 정의에 포함된 업태
+식품_일반음식점,복어취급,RESTAURANT,KOREAN,CONFIRMED,213,동해복국 / 생복식당 / 남포동동주복국,
+식품_일반음식점,까페,CAFE,GENERAL_CAFE,NEEDS_REVIEW,172,금화 / 바 해인 / 조마이국수,카페 키워드 적중 15.1%로 휴게음식점 커피숍(56.2%)의 1/4. 오적중 기준선(한식 0.8%)보다는 높아 일부는 실제 카페다. 업태 값을 그대로 믿을 수 없다
+식품_일반음식점,패밀리레스트랑,RESTAURANT,WESTERN,CONFIRMED,126,빕스 롯데백화점 광복점 / 왓더버거 동대신동점 / 라메르,
+식품_일반음식점,라이브카페,BAR,GENERAL_BAR,NEEDS_REVIEW,80,북앵커 아테네학당 / 신불떡볶이 / 고흥식당,명칭은 카페지만 주점 성격. 표본은 분식·식당이라 불일치
+식품_일반음식점,전통찻집,CAFE,TRADITIONAL_TEA,NEEDS_REVIEW,38,토니카쿠라멘 / 오리촌 / 사또분식,38건 중 카페·찻집 키워드 적중 7.9%. 표본도 라멘·분식이라 값 신뢰도가 낮다
+식품_일반음식점,출장조리,,,UNMAPPED,34,비엔비키친(초막) / 제일뷔페 / 대도웨딩뷔페,고정 장소가 아니다. 장소 모집단에 넣지 않는다
+식품_일반음식점,키즈카페,,,NEEDS_REVIEW,30,모넬로키즈카페 / 주니어킹덤 / 파리봉봉 화명점,대응 subtype 없음. CAFE인지 ACTIVITY인지 미확정
+식품_일반음식점,이동조리,,,UNMAPPED,18,찜일번가 / 퍼니하우스 / 제주흑도야지,고정 장소가 아니다
+식품_일반음식점,푸드트럭,,,UNMAPPED,15,네가 좋아할(푸드코리아) / 엠케이펍(테라무빙펍트레일러) / 비비큐치킨 센텀점,고정 장소가 아니다
+식품_일반음식점,,,,UNMAPPED,5,삼시세콩 / 광안목 해운대점 / 울싼주거래처,업태 빈값
+식품_휴게음식점,커피숍,CAFE,GENERAL_CAFE,CONFIRMED,12351,레이지버터 / 로비커피 / (주)스타벅스커피코리아(남포동역점),
+식품_휴게음식점,기타 휴게음식점,,,NEEDS_REVIEW,5357,영커피중앙서린점 / 할랄푸드(HALAL FOOD) / 쇼콜라퐁쎄,"[상호 전량 분류 2026-08-22] 카페 21.3% · 분식 12.1% · **PC방 8.6%** · **편의점 8.1%**, 미분류 46.3%. 편의점 434건(SHOP)과 PC방 460건은 상호로 확실히 갈리나 PC방은 대응 subtype이 없다. 분리 방식은 결정 필요"
+식품_휴게음식점,일반조리판매,RESTAURANT,SNACK_FAST_FOOD,NEEDS_REVIEW,4083,코심 / 심심푸리 만화카페 / 하영이네 튀김집,내용 불명. 표본이 분식·만화카페로 혼재
+식품_휴게음식점,편의점,SHOP,CONVENIENCE_STORE,CONFIRMED,3945,CU 부산메리놀점 / CU편의점 / CU보수원룸점,**PlaceType 경계를 넘는다.** 파일은 휴게음식점이지만 SHOP이다
+식품_휴게음식점,패스트푸드,RESTAURANT,SNACK_FAST_FOOD,NEEDS_REVIEW,1248,과일카페세나(FRUITS CAFE SeNa) / 이재모피자 광복배달포장점 / 통영,표본에 카페가 섞임(과일카페세나). PlaceType이 갈릴 수 있다
+식품_휴게음식점,다방,CAFE,GENERAL_CAFE,CONFIRMED,911,다사랑 / 르네상스 / 커피산책,
+식품_휴게음식점,푸드트럭,,,UNMAPPED,570,와따컴퍼니 / 젤라또랜드 / 코지비비큐(KOGI BBQ),고정 장소가 아니다
+식품_휴게음식점,아이스크림,CAFE,BAKERY_DESSERT_CAFE,CONFIRMED,276,롯데웰푸드(주) 파스퇴르 밀크바 광복점 / 뵈르뵈르 부산송도점 / 배스킨라빈스 부산동대신점,
+식품_휴게음식점,전통찻집,CAFE,TRADITIONAL_TEA,CONFIRMED,192,주미 / 설소차 / 부산서구시니어클럽 전통다원 여여(如如),표본 일치(설소차·전통다원)
+식품_휴게음식점,백화점,,,UNMAPPED,111,신돈야시장(광복점) / 제주스 / 하루쿡 롯데백화점광복점,업태가 아니라 **입지**다. subtype을 결정하지 못한다
+식품_휴게음식점,떡카페,CAFE,BAKERY_DESSERT_CAFE,CONFIRMED,109,엄마의마음 / 예쁜떡케이크 / 화사,
+식품_휴게음식점,고속도로,,,UNMAPPED,89,한국맥도날드유한회사당감점 / (주)푸르웰 가덕해양Park브라더꽈배기 / 호두과자만주,입지 값
+식품_휴게음식점,과자점,CAFE,BAKERY_DESSERT_CAFE,CONFIRMED,81,정항우JHW케익 / 블루샥 중앙동점 / 향단팥빵,
+식품_휴게음식점,키즈카페,,,NEEDS_REVIEW,66,맘스카페 롯데백화점광복점 챔피언1250X / 라라키즈어드벤처 롯데마트부산점 / 앨리스파파 시민공원,대응 subtype 없음. 일반음식점 키즈카페와 같은 문제
+식품_휴게음식점,극장,,,UNMAPPED,18,랜디스도넛 서면점 / 지에스(GS)25 미남사랑점 / 플러스82 사하점,입지 값. 표본도 도넛·편의점이다
+식품_휴게음식점,철도역구내,,,UNMAPPED,17,꽃분이네 / 구우당 남포점 / GS25 S토성역점,입지 값
+식품_휴게음식점,유원지,,,UNMAPPED,10,킹콩쥬스앤 커피 청춘쌀핫도그 / 울산대공원남문식당 / 고래바다여행선커피점,입지 값
+식품_휴게음식점,관광호텔,,,UNMAPPED,9,주)부산사우나 / 비치라운지 / 아스티호텔 로비라운지,입지 값
+식품_휴게음식점,공항,,,UNMAPPED,2,엔제리너스커피 김해공항 / 모리셔스 브라운 김해공항 국제선점,입지 값
+식품_휴게음식점,한식,RESTAURANT,KOREAN,NEEDS_REVIEW,1,오아조,휴게음식점에 한식 1건. 오입력 가능성
+식품_제과점영업,제과점영업,CAFE,BAKERY_DESSERT_CAFE,CONFIRMED,2833,뚜레쥬르 대청로점 / 파니스 안젤리쿠스(Panis Angelicus) / 쌍떼드순쌀빵,
+문화_숙박업,여관업,ACCOMMODATION,MOTEL,CONFIRMED,3367,황토방 / 태양스테이(모텔) 남포중앙점 / 스테이미도,
+문화_숙박업,숙박업(생활),,,NEEDS_REVIEW,1114,펀스테이 게스트하우스 / 모텔 몽 / 이지스테이(EZSTAY),표본이 게스트하우스·모텔·스테이로 혼재. 단일 subtype으로 못 정한다
+문화_숙박업,일반호텔,ACCOMMODATION,HOTEL,CONFIRMED,535,호텔 그레이 / 투 헤븐 호텔 / 더휴식 아늑 부산남포점,
+문화_숙박업,숙박업 기타,,,NEEDS_REVIEW,383,남포테라스30 / 놀 게스트하우스 / 비엔비 펜션(BnB),표본이 게스트하우스·펜션으로 혼재
+문화_숙박업,관광호텔,ACCOMMODATION,HOTEL,CONFIRMED,192,토요코인 부산중앙역 / 호텔 토브 / 반달호텔,
+문화_숙박업,여인숙업,,,NEEDS_REVIEW,158,부산 / 평안 / 동산여인숙,대응 subtype 없음. MOTEL과 성격이 다르다
+문화_숙박업,휴양콘도미니엄업,ACCOMMODATION,RESORT_CONDO,CONFIRMED,15,한화호텔앤드리조트(주) 해운대 / 대우월드마크해운대 / 빌라쥬드 아난티 클리퍼,
+문화_관광숙박업,,,,NEEDS_REVIEW,621,반달호텔 / 토요코인 부산중앙역 / 스탠포드호텔 부산,관광호텔업과 휴양콘도미니엄업이 한 파일에 섞여 있다. 파일 안에 업태 컬럼이 없어 구분 불가
+식품_유흥주점영업,룸살롱,,,UNMAPPED,2973,행운 / 날개 / 세븐,성인 유흥업소. 대응 subtype 없고 노출 정책 미결
+식품_유흥주점영업,기타,,,UNMAPPED,1735,칠억조 / 소리바다 / 히노쿠시 ∥,"내용 불명. 1,735건으로 커서 표본 조사가 필요하다"
+식품_유흥주점영업,간이주점,,,NEEDS_REVIEW,1331,에스(S)소주방 / 오동추7080라이브주점 / 히노쇼군(남포점),일반 술집에 가깝다. 노출 정책 결정 후 GENERAL_BAR 후보
+식품_유흥주점영업,비어(바)살롱,,,NEEDS_REVIEW,441,체인지 노래방 / 홍시 / 야호노래주점,상호가 업태를 따르지 않는다. 유흥주점은 13개 업태 전반이 노래주점 형태로 운영돼(룸살롱도 상호에 노래 44.5%) 업태만으로 GENERAL_BAR 여부를 못 정한다
+식품_유흥주점영업,카바레,,,UNMAPPED,300,대웅 / 도경 / 뮤즈,성인 유흥업소. 노출 정책 미결
+식품_유흥주점영업,노래클럽,,,NEEDS_REVIEW,275,땡벌 / 태평양 가라오케 / 청담,노래주점 성격. 대응 subtype 미확정. 유흥주점 업태 간 상호 변별력이 낮다
+식품_유흥주점영업,스텐드바,,,NEEDS_REVIEW,228,항구 노래주점 / s(에스)노래방주점 / 로마노래주점,상호가 업태를 따르지 않는다. 유흥주점 업태 전반이 노래주점 형태라 업태만으로 구분되지 않는다
+식품_유흥주점영업,고고(디스코)클럽,,,UNMAPPED,41,루비 / 돔(DOME) / 247클럽라운지,성인 유흥업소. 노출 정책 미결
+식품_유흥주점영업,요정,,,UNMAPPED,35,파라오 / 밤비 / 플레이보이,성인 유흥업소. 노출 정책 미결
+식품_유흥주점영업,관광호텔나이트(디스코),,,UNMAPPED,12,코모도호텔 이종격투기 나이트크럽 / 아쿠아 / 아시아드나이트,성인 유흥업소. 노출 정책 미결
+식품_유흥주점영업,관광호텔나이트(카바레),,,UNMAPPED,2,황제 / 리베라 나이트 클럽,성인 유흥업소. 노출 정책 미결
+식품_유흥주점영업,극장식당,,,UNMAPPED,2,돌고래 / 수영롯데포장,내용 불명. 2건
+식품_유흥주점영업,,,,UNMAPPED,1,수가라오케,업태 빈값
+식품_단란주점영업,단란주점,,,NEEDS_REVIEW,2779,써브(SERVE) / 꽃바람쉘부르 / 빠리2,노래주점 성격이라 GENERAL_BAR·TRADITIONAL_PUB 어느 쪽도 정확하지 않다
+문화_농어촌민박업,,ACCOMMODATION,PENSION_HOMESTAY,CONFIRMED,4823,청사포 펜션 / 대항펜션 / 카리브의 일몰,업종 전체가 단일 subtype에 대응
+문화_관광펜션업,,ACCOMMODATION,PENSION_HOMESTAY,CONFIRMED,209,선셋스테이 / 물고기 미포 / 라고마르,농어촌민박업과 같은 target. 법적 근거만 다르다
+문화_외국인관광도시민박업,,,,NEEDS_REVIEW,1314,부산가옥 / 오뚜기테라스 / 골목별장,도시 가정집 민박. GUESTHOUSE_HOSTEL인지 PENSION_HOMESTAY인지 미확정
+문화_한옥체험업,,ACCOMMODATION,HANOK_STAY,CONFIRMED,119,쉼표광안 / 진주당혜 / 다란향,
+문화_일반야영장업,,ACCOMMODATION,CAMPING,CONFIRMED,342,바다가 보이는 부산항 힐링 야영장 / 영도 마리노 오토캠핑장 / 대저생태공원캠핑장,
+문화_자동차야영장업,,ACCOMMODATION,CAMPING,CONFIRMED,180,화명 오토캠핑장 / 대저생태공원 캠핑장 / 삼락생태공원 오토캠핑장,"CAMPING이 ""캠핑·오토캠핑""을 포함한다"
+문화_테마파크업(기타),,TOURIST_SPOT,THEME_PARK,NEEDS_REVIEW,417,브레드이발소타운 / 게임센터(케이프로모션) / 닥터밸런스,표본이 게임센터·닥터밸런스라 불일치. 417건으로 커서 표본 조사가 필요하다
+문화_일반테마파크업,,TOURIST_SPOT,THEME_PARK,NEEDS_REVIEW,64,삼보게임랜드 / 서면디스코팡팡 / 해운대블루라인(주),표본이 게임랜드·디스코팡팡이라 테마파크로 보기 어렵다
+문화_종합테마파크업,,TOURIST_SPOT,THEME_PARK,CONFIRMED,6,클럽디오아시스(CLUBD OASIS) 스파&워터파크 / 롯데월드 어드벤처 부산 / 롯데워터파크,표본 일치(롯데월드·롯데워터파크)
+문화_공연장,,TOURIST_SPOT,PERFORMANCE_HALL,CONFIRMED,179,가톨릭소극장 / 살롱 드 부산 1023 / 민주공원 중극장,
+문화_박물관 및 미술관,,,,NEEDS_REVIEW,146,동의대학교박물관 / 부산포민속박물관 / 범어사 성보박물관,MUSEUM과 ART_MUSEUM 두 subtype이 한 파일에 섞여 있다. 파일만으로 구분 불가
+생활_골프장,,ACTIVITY,GOLF,CONFIRMED,53,부산칸트리클럽 / 동래베네스트골프클럽 / 아시아드컨트리클럽,
+생활_골프연습장업,,ACTIVITY,GOLF,NEEDS_REVIEW,1300,마린골프연습장 / 에스에스 골프연습장 / 가나다라골프연습장,골프장과 목적·소요시간이 다른데 GOLF 하나로 뭉친다. 축 세분화 대상
+생활_체력단련장업,,ACTIVITY,SPORTS_FACILITY,NEEDS_REVIEW,2321,모션업 피트니스 / 오케이피트니스 남포점 / 금강헬스클럽,헬스장이 여행 추천 대상인지 노출 적합성 미판단
+생활_체육도장업,태권도,ACTIVITY,SPORTS_FACILITY,NEEDS_REVIEW,1418,대한태권도 / 비룡체육관 / 세림태권도체육관,생활 체육 학원 성격. 여행 추천 대상인지 노출 적합성 미판단
+생활_체육도장업,,ACTIVITY,SPORTS_FACILITY,NEEDS_REVIEW,278,아리랑 멋 퍼니태권도장 / 연세 서부 태권도장 / 서부예체능센터,생활 체육 학원 성격. 여행 추천 대상인지 노출 적합성 미판단
+생활_체육도장업,권투,ACTIVITY,SPORTS_FACILITY,NEEDS_REVIEW,257,부산챔프복싱클럽 / 특사체육관 / 팀매드 본관,생활 체육 학원 성격. 여행 추천 대상인지 노출 적합성 미판단
+생활_체육도장업,합기도,ACTIVITY,SPORTS_FACILITY,NEEDS_REVIEW,184,별하 합기도 대신 무림관 / 미션 아카데미 / 한국무예1관,생활 체육 학원 성격. 여행 추천 대상인지 노출 적합성 미판단
+생활_체육도장업,유도,ACTIVITY,SPORTS_FACILITY,NEEDS_REVIEW,134,청무유도관 / 주식회사 부자유도관 / 극동유도관,생활 체육 학원 성격. 여행 추천 대상인지 노출 적합성 미판단
+생활_체육도장업,검도,ACTIVITY,SPORTS_FACILITY,NEEDS_REVIEW,99,어검검도관 / 구덕검도관 / 용마검도관,생활 체육 학원 성격. 여행 추천 대상인지 노출 적합성 미판단
+생활_체육도장업,우슈,ACTIVITY,SPORTS_FACILITY,NEEDS_REVIEW,19,북경무술관 / 태극무예원 / 국가대표 Y-GYM,생활 체육 학원 성격. 여행 추천 대상인지 노출 적합성 미판단
+생활_체육도장업,레슬링,ACTIVITY,SPORTS_FACILITY,NEEDS_REVIEW,16,팀매드 / 제로 포인트 / 엑서브짐,생활 체육 학원 성격. 여행 추천 대상인지 노출 적합성 미판단
+생활_수영장업,,ACTIVITY,SPORTS_FACILITY,CONFIRMED,122,코모도 실내수영장 / 북항마리나 스포츠센터 / 하나수영장,
+생활_승마장업,,ACTIVITY,HORSE_RIDING,CONFIRMED,21,서부산승마랜드 / 부산국제승마장 / 울산EDA승마장,
+생활_썰매장업,,ACTIVITY,SKI_SNOW,CONFIRMED,12,(주)영남알프스레져 / 발리 통통 눈썰매장 / 가야랜드 눈썰매장,
+생활_요트장업,,ACTIVITY,YACHT_BOAT,CONFIRMED,8,오션브리즈 / 통영해양레저스포츠아카데미 / 통영요트학교,
+생활_종합체육시설업,,ACTIVITY,SPORTS_FACILITY,CONFIRMED,44,주식회사 세광토건 구덕레포츠 / 윈덤그랜드부산 웰니스클럽 / 클래스윔 스포츠센터,

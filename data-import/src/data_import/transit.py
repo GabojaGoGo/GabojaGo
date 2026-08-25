@@ -116,7 +116,7 @@ def selected_sources(mapping_dir: Path, *, require_access_points: bool) -> tuple
     access_source = next(source for source in sources if source.name == "OSM 출입구")
     if require_access_points and not access_source.path.is_file():
         raise MetroImportError(
-            "출입구 CSV가 없습니다. 먼저 export_busan_metro_access_points.py를 실행하거나 "
+            "출입구 CSV가 없습니다. 먼저 scripts/export_busan_metro_access_points.py를 실행하거나 "
             "--without-access-points 옵션을 사용하세요."
         )
     return tuple(source for source in sources if source.name != "OSM 출입구" or source.path.is_file())
