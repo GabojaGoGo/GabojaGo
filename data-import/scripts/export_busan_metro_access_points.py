@@ -12,7 +12,8 @@ from data_import.tour_api.importer import TourApiImportError, connect_database
 from data_import.transit import MetroImportError, database_config
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_OUTPUT = SCRIPT_DIR / "mappings/busan_metro_access_points.csv"
+PROJECT_ROOT = SCRIPT_DIR.parent
+DEFAULT_OUTPUT = PROJECT_ROOT / "mappings/busan_metro_access_points.csv"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -59,7 +60,7 @@ def export_access_points(connection, output: Path) -> int:
 
 def main() -> int:
     args = build_parser().parse_args()
-    load_dotenv(SCRIPT_DIR / ".env")
+    load_dotenv(PROJECT_ROOT / ".env")
     connection = None
     try:
         connection = connect_database(database_config(os.environ))

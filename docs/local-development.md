@@ -140,6 +140,15 @@ flutter run # .env 사용
 
 ## 5. 데이터 적재
 
+> **단계 게이트 확인 — 환경 구성과 적재 실행은 다르다.**
+>
+> 아래 명령은 환경이 동작하는지 확인하는 절차가 아니라 **실제 DB를 갱신하는 P3 적재**다.
+> 실행 전에 [`AGENTS.md`](../AGENTS.md)와
+> [`L0-project-context.md`](L0-project-context.md) **6절**의 현재 단계·허용 범위를 확인한다.
+>
+> **현재 단계는 P1(상세 실측)이며 P3 구현·적재는 금지 범위다.** P1에서는
+> `import_tour_api_to_mysql.py --write`를 실행하지 않는다.
+
 MySQL이 `healthy`인 뒤에 실행한다.
 
 ```bash

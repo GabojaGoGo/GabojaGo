@@ -2,20 +2,42 @@
 
 이 저장소에서 작업하는 에이전트와 자동화 도구는 아래 규칙을 따른다.
 
+## 작업 전 읽는 순서
+
+작업을 시작하기 전에 순서대로 읽는다.
+
+1. `docs/L-1-operating-principles.md` — 어떻게 판단할지
+2. `docs/L0-project-context.md` — 이미 무엇이 결정됐는지
+3. 아래 이 저장소의 규칙 — 실제로 어떻게 작업할지
+4. `data-import/` 작업이면, 먼저 `L0` 6절에서 **현재 프로젝트 단계와 허용 범위**를 확인한 뒤 해당 단계의 data-import 문서를 읽는다.
+   - 원천 탐색·실측(P1): `other-source-survey.md` **0절부터** → `source-downloads.md` → `attribute-coverage.md`
+   - 분류·매핑 계약(P2): `classification-mapping.md` → 필요한 근거 문서(`other-source-survey.md`, `attribute-coverage.md`)
+   - 구현·적재(P3 이후): 위 문서에서 해당 원천·매핑 계약을 확인한다.
+
+   `data-import/docs/`는 이 영역의 세부 계약과 근거를 소유한다. 프로젝트 전체 단계·현재 우선순위는 여기서 정하지 않으며 `L0`과 Jira를 따른다. `mappings/*.csv`는 **값만 갖고 범위는 이 문서들이 소유한다.** csv의 `measured_scope`가 비어 있는 것은 범위 미기록이 아니라 소유 문서가 따로 있다는 뜻일 수 있으므로, 수치가 이상해 보이면 먼저 그 값의 소유 문서를 찾는다.
+
 ## 저장소 구성
 
 - `gabojago-backend/`: Java 21 · Spring Boot · Gradle · MySQL/Redis/OSRM
 - `gabojago-frontend/`: Flutter · Dart
-- `data-import/`: TourAPI 적재 도구
+- `data-import/`: 공공 원천 데이터 수집·적재 도구
 - `gabojago-backend/infra/osrm/`: OSRM 실행·전처리 문서와 스크립트
 
 ## 변경 원칙
 
 1. 요청 범위 밖의 리팩터링·포맷 대량 변경·의존성 업그레이드는 하지 않는다.
-2. 기존 작업 트리 변경은 사용자 작업으로 간주한다. 겹치면 먼저 확인하고, 삭제·되돌리기·강제 push는 명시적 요청이 있을 때만 한다.
-3. `.env`, OSRM 원본·그래프, API 키와 자격증명은 읽거나 출력하거나 커밋하지 않는다.
-4. 새 HTTP endpoint에는 OpenAPI 설명·예시와 서비스 테스트를 함께 추가한다.
-5. 외부 연동은 timeout·실패 fallback을 고려한다. OSRM 경로가 바뀌면 프론트의 `routePaths`도 다시 계산한다.
+2. 기존 작업 트리 변경은 사용자 작업으로 간주한다. 충돌 가능성이 있으면 **해당 파일 수정을 중단하고 충돌 범위를 보고한다. 사용자의 명시적 지시 없이 기존 변경을 덮어쓰지 않는다.** 무인 실행에서는 확인을 기다릴 수 없으므로 전체를 멈추지 말고 해당 파일만 건너뛴 뒤 보고한다.
+3. 새 HTTP endpoint에는 OpenAPI 설명·예시와 서비스 테스트를 함께 추가한다.
+4. 외부 연동은 아래 항목 중 무엇이 필요한지 검토한다. 전부 넣으라는 뜻이 아니라 빠뜨리지 말고 판단하라는 뜻이다.
+
+   ```
+   timeout · retry · backoff · idempotency · fallback
+   ```
+
+5. OSRM 경로가 바뀌면 프론트의 `routePaths`도 다시 계산한다.
+6. 빌드 산출물, 캐시, 임시 export, 로컬 DB dump, OSRM 원본·그래프는 **명시적 목적이 없으면 커밋하지 않는다.** 대용량 원본·그래프는 내용을 출력하지도 않는다.
+
+보안·파괴적 작업 관련 제한은 아래 **YOLO 실행 환경 안전선**을 따른다. 이 절에서 반복하지 않는다.
 
 ## YOLO 실행 환경 안전선
 
@@ -40,8 +62,13 @@ make format-check
 - frontend 변경: `flutter analyze`와 관련 `flutter test`를 실행한다.
 - Docker/OSRM 변경: Compose healthcheck와 실제 API 응답을 확인한다.
 
+**검증 명령 통과만으로 완료로 간주하지 않고, 변경 목적에 맞는 실제 결과를 확인한다.** 명령이 성공한 것과 결과가 맞는 것은 다르다. 판단 기준은 `docs/L-1-operating-principles.md` 8절을 따른다.
+
 ## 문서 정책
 
+- 운영 원칙: `docs/L-1-operating-principles.md`
+- 프로젝트 컨텍스트: `docs/L0-project-context.md`
+- 결정·검증 이력: `docs/decision-log.md`
 - 개발 규칙: `docs/development-rules.md`
 - 협업·브랜치 규칙: `CONTRIBUTING.md`
 - OSRM 환경·운영: `gabojago-backend/infra/osrm/README.md`, `DEVELOPMENT.md`
@@ -50,5 +77,6 @@ make format-check
 ## 커밋과 브랜치
 
 - `main`, `develop`에는 직접 push하지 않는다.
+- **현재 브랜치가 `main` 또는 `develop`이면 사용자 요청 없이 새 브랜치를 만들거나 push하지 않는다.** 작업만 하고 현재 브랜치를 보고한다.
 - 기능, 버그 수정, 하네스/문서는 서로 다른 커밋으로 분리한다.
 - 커밋·push·PR 생성은 사용자가 요청한 경우에만 수행한다.

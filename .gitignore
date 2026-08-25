@@ -4,6 +4,8 @@
 *.pyc
 *.swp
 .DS_Store
+# Office 임시 잠금 파일 (문서를 열어둔 동안 생성됨)
+~$*
 .atom/
 .build/
 .buildlog/

@@ -18,8 +18,9 @@ from data_import.transit import (
 )
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_MAPPING_DIR = SCRIPT_DIR / "mappings"
-DEFAULT_REPORTS = SCRIPT_DIR / "data/reports"
+PROJECT_ROOT = SCRIPT_DIR.parent
+DEFAULT_MAPPING_DIR = PROJECT_ROOT / "mappings"
+DEFAULT_REPORTS = PROJECT_ROOT / "data/reports"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -57,7 +58,7 @@ def write_report(reports: Path, *, write: bool, sources: tuple) -> Path:
 
 def main() -> int:
     args = build_parser().parse_args()
-    load_dotenv(SCRIPT_DIR / ".env")
+    load_dotenv(PROJECT_ROOT / ".env")
     try:
         sources = selected_sources(
             args.mapping_dir,
@@ -66,7 +67,7 @@ def main() -> int:
         if not any(source.name == "OSM 출입구" for source in sources):
             print("WARNING: 출입구 CSV 없이 적재합니다. 경로 안내의 출구 번호는 표시되지 않습니다.")
         run_imports(
-            Path(__file__).resolve().parents[1] / "gabojago-backend",
+            PROJECT_ROOT.parent / "gabojago-backend",
             sources,
             database_config(os.environ),
             write=args.write,

@@ -1,5 +1,20 @@
 # GabojaGO Data Import
 
+> **실행 전 확인 — 이 문서는 실행 권한이 아니다.**
+>
+> 아래 수집·적재 절차는 **P3 이후에 해당하는 구현 방법**이다. 현재 프로젝트 단계에서
+> 이 절차를 실행해도 되는지는 이 문서가 정하지 않는다.
+>
+> 1. [`AGENTS.md`](../AGENTS.md) — 작업 규칙과 문서 진입 순서
+> 2. [`docs/L0-project-context.md`](../docs/L0-project-context.md) **6절** — 현재 단계와 허용·금지 범위
+> 3. [`docs/other-source-survey.md`](docs/other-source-survey.md) **0절** — 원천 탐색의 단위와 순서
+>
+> **현재 단계는 P1(상세 실측)이며 P3 구현·적재는 금지 범위다.** 3절의 `--write` 적재는
+> 실행하지 않는다. 이 단계에서 원본을 받는 목적은 DB 적재가 아니라 raw/staging 품질 측정이다.
+>
+> 또한 이 문서는 TourAPI 단일 원천 기준으로 쓰였다. **TourAPI는 여러 원천 중 하나이며
+> 전체 PlaceType의 기준 원천이 아니다.** 원천별 역할은 위 3번 문서가 소유한다.
+
 GabojaGO의 초기 장소 데이터를 구축하는 Python 프로그램이다.
 
 서비스가 실행될 때 외부 API를 호출하는 구조가 아니다. 필요한 원본 데이터를 먼저
@@ -25,8 +40,12 @@ MySQL places 테이블
 
 ```text
 data-import/
-├── collect_tour_api.py
-├── import_tour_api_to_mysql.py
+├── scripts/
+│   ├── collect_tour_api.py
+│   ├── collect_tour_api_detail.py
+│   ├── import_tour_api_to_mysql.py
+│   ├── import_busan_metro.py
+│   └── export_busan_metro_access_points.py
 ├── data/
 │   ├── raw/
 │   │   └── tourism/
@@ -43,16 +62,18 @@ data-import/
 └── pyproject.toml
 ```
 
-각 파일의 역할:
+`scripts/`는 실행 진입점(CLI)만 모아둔 얇은 껍데기이고, 실제 로직은 전부
+`src/data_import/`에 있다. 각 파일의 역할:
 
 | 파일 | 역할 |
 |---|---|
-| `collect_tour_api.py` | TourAPI 데이터를 JSON으로 수집하는 실행 파일 |
-| `import_tour_api_to_mysql.py` | 수집한 JSON을 MySQL에 적재하는 실행 파일 |
+| `scripts/collect_tour_api.py` | TourAPI 데이터를 JSON으로 수집하는 실행 파일 |
+| `scripts/collect_tour_api_detail.py` | 수집한 목록에서 부울경 표본을 뽑아 상세정보를 추가 수집하는 실행 파일 |
+| `scripts/import_tour_api_to_mysql.py` | 수집한 JSON을 MySQL에 적재하는 실행 파일 |
 | `collector.py` | API 호출, 페이지 처리, 원본 파일 저장 |
 | `importer.py` | JSON 읽기, 검증, 유형 변환, MySQL upsert |
-| `import_busan_metro.py` | 백엔드 도시철도 적재 명령을 순서대로 실행하는 진입점 |
-| `export_busan_metro_access_points.py` | 현재 DB의 검수된 OSM 출입구를 재사용 CSV로 export |
+| `scripts/import_busan_metro.py` | 백엔드 도시철도 적재 명령을 순서대로 실행하는 진입점 |
+| `scripts/export_busan_metro_access_points.py` | 현재 DB의 검수된 OSM 출입구를 재사용 CSV로 export |
 
 ## 실행 준비
 
@@ -111,7 +132,7 @@ cd ../data-import
 전체 유형을 수집한다.
 
 ```bash
-.venv/bin/python collect_tour_api.py
+.venv/bin/python scripts/collect_tour_api.py
 ```
 
 이미 저장된 페이지는 다시 다운로드하지 않고 재사용한다. 수집이 중단돼도 같은 명령을
@@ -120,7 +141,7 @@ cd ../data-import
 연결 확인을 위해 관광지 한 페이지만 수집하려면 다음과 같이 실행한다.
 
 ```bash
-.venv/bin/python collect_tour_api.py \
+.venv/bin/python scripts/collect_tour_api.py \
   --content-type 12 \
   --max-pages 1
 ```
@@ -128,7 +149,7 @@ cd ../data-import
 특정 유형만 전체 수집할 수도 있다.
 
 ```bash
-.venv/bin/python collect_tour_api.py --content-type 39
+.venv/bin/python scripts/collect_tour_api.py --content-type 39
 ```
 
 수집 결과는 다음 위치에 저장된다.
@@ -159,7 +180,7 @@ data/raw/tourism/tour-api/
 먼저 dry-run을 실행한다.
 
 ```bash
-.venv/bin/python import_tour_api_to_mysql.py
+.venv/bin/python scripts/import_tour_api_to_mysql.py
 ```
 
 dry-run은 JSON을 읽고 다음 내용을 검사하지만 DB를 변경하지 않는다.
@@ -181,13 +202,13 @@ dry-run은 JSON을 읽고 다음 내용을 검사하지만 DB를 변경하지 �
 dry-run 결과를 확인한 후 `--write`를 붙여 실행한다.
 
 ```bash
-.venv/bin/python import_tour_api_to_mysql.py --write
+.venv/bin/python scripts/import_tour_api_to_mysql.py --write
 ```
 
 먼저 100건만 시험 적재하려면 다음과 같이 실행한다.
 
 ```bash
-.venv/bin/python import_tour_api_to_mysql.py --write --limit 100
+.venv/bin/python scripts/import_tour_api_to_mysql.py --write --limit 100
 ```
 
 적재 프로그램은 다음 순서로 처리한다.
@@ -284,7 +305,7 @@ docker exec -it gabojago-mysql \
 `metro_station_access_points`를 읽기만 하며, 생성된 CSV를 다음 적재의 정본으로 쓴다.
 
 ```bash
-.venv/bin/python export_busan_metro_access_points.py
+.venv/bin/python scripts/export_busan_metro_access_points.py
 ```
 
 출력 경로는 `mappings/busan_metro_access_points.csv`이며, 팀원이 같은 결과를 재현할 수
@@ -295,14 +316,14 @@ docker exec -it gabojago-mysql \
 기본 명령은 DB를 수정하지 않고 정적 그래프·역 좌표·출입구·시간표를 모두 검증한다.
 
 ```bash
-.venv/bin/python import_busan_metro.py
+.venv/bin/python scripts/import_busan_metro.py
 ```
 
 출입구 CSV를 아직 export하지 않은 초기 상황에서만 아래 옵션으로 나머지 세 종류를
 검증할 수 있다. 이 경우 출구 번호 안내는 재현되지 않는다.
 
 ```bash
-.venv/bin/python import_busan_metro.py --without-access-points
+.venv/bin/python scripts/import_busan_metro.py --without-access-points
 ```
 
 ### 3. 실제 전체 교체 적재
@@ -311,7 +332,7 @@ docker exec -it gabojago-mysql \
 부분 원본으로 운영 DB를 갱신하지 않는다.
 
 ```bash
-.venv/bin/python import_busan_metro.py --write
+.venv/bin/python scripts/import_busan_metro.py --write
 ```
 
 실행 보고서는 `data/reports/busan-metro-import-*.json`에 남는다. 이 보고서에는 원본별
