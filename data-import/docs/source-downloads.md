@@ -814,7 +814,7 @@ TourAPI 쇼핑(38) 부울경 1,555건 대비 이름 정확 일치 70건(19.7%), 
 | 항목 | 값 |
 | --- | --- |
 | 출처 | https://www.agrohealing.go.kr (data.go.kr 카탈로그가 아닌 기관 자체 포털) |
-| 받은 형식 | JSON (포털 내부 API `POST /sf/crfrmFclt/dmstcFclt/selectDmstcFcltList.do` 직접 호출, 로그인·서비스키 불필요) |
+| 받은 형식 | JSON (포털 내부 API `POST /sf/crfrmFclt/dmstcFclt/selectDmstcFcltList.do` 직접 호출, 로그인·서비스키 불필요). 화면 페이지네이션은 8건씩이지만 **`pageSize`를 키우면 한 번에 전량**이 온다 |
 | 다운로드 시각 | 2026-08-24 19:50 KST |
 | 저장 경로 | `data/raw/agrohealing_portal/우수치유농업시설_부울경.json`(부울경 7건, 시도/시군구/명칭만 — 전국 91건 전체 응답은 도구 출력 제한으로 완전 보존하지 못함) |
 | SHA-256 | `97c3c95bf90a284d…` |

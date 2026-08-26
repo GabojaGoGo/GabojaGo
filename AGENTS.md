@@ -9,7 +9,7 @@
 1. `docs/L-1-operating-principles.md` — 어떻게 판단할지
 2. `docs/L0-project-context.md` — 이미 무엇이 결정됐는지
 3. 아래 이 저장소의 규칙 — 실제로 어떻게 작업할지
-4. `data-import/` 작업이면, 먼저 `L0` 6절에서 **현재 프로젝트 단계와 허용 범위**를 확인한 뒤 해당 단계의 data-import 문서를 읽는다.
+4. `data-import/` 작업이면, 먼저 `L0` 6절에서 **현재 프로젝트 단계와 허용 범위**를 확인한 뒤 해당 단계의 data-import 문서를 읽는다. 실측·정제·검증처럼 결과를 남기는 작업이면 `data-work-recording-rules.md`를 함께 읽는다.
    - 원천 탐색·실측(P1): `other-source-survey.md` **0절부터** → `source-downloads.md` → `attribute-coverage.md`
    - 분류·매핑 계약(P2): `classification-mapping.md` → 필요한 근거 문서(`other-source-survey.md`, `attribute-coverage.md`)
    - 구현·적재(P3 이후): 위 문서에서 해당 원천·매핑 계약을 확인한다.
@@ -70,6 +70,7 @@ make format-check
 - 프로젝트 컨텍스트: `docs/L0-project-context.md`
 - 결정·검증 이력: `docs/decision-log.md`
 - 개발 규칙: `docs/development-rules.md`
+- data-import 데이터 작업 기록 규칙(raw·staging·reports·docs 역할과 저장 위치): `data-import/docs/data-work-recording-rules.md`
 - 협업·브랜치 규칙: `CONTRIBUTING.md`
 - OSRM 환경·운영: `gabojago-backend/infra/osrm/README.md`, `DEVELOPMENT.md`
 - 구현과 함께 갱신할 수 없는 장문 기획 문서는 새로 만들지 않는다. 의사결정과 실행 방법만 짧게 남긴다.
