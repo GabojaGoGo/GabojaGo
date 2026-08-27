@@ -13,6 +13,9 @@ dependencies = [
     "pydantic>=2.10",
     "pymysql>=1.1",
     "python-dotenv>=1.0",
+    "pyproj>=3.7",
+    "pyshp>=2.3",
+    "shapely>=2.1",
     "sqlalchemy>=2.0",
 ]
 
