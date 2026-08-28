@@ -43,6 +43,7 @@ class TourApiPage:
 @dataclass(frozen=True)
 class CollectionSummary:
     content_type_id: str
+    classification_code: str | None
     total_count: int
     total_pages: int
     fetched_pages: int
@@ -87,6 +88,7 @@ class TourApiCollector:
         self,
         content_type_id: str,
         *,
+        classification_code: str | None = None,
         max_pages: int | None = None,
         resume: bool = True,
         on_progress: Callable[[int, int, int, bool], None] | None = None,
@@ -95,6 +97,9 @@ class TourApiCollector:
             content_type_id, f"content-type-{content_type_id}"
         )
         output_dir = self.output_root / directory_name
+        if classification_code is not None:
+            _validate_classification_code(classification_code)
+            output_dir = output_dir / classification_code
         output_dir.mkdir(parents=True, exist_ok=True)
 
         page_no = 1
@@ -113,7 +118,7 @@ class TourApiCollector:
                 raw = page_path.read_bytes()
                 reused_pages += 1
             else:
-                raw = self._fetch_page(content_type_id, page_no)
+                raw = self._fetch_page(content_type_id, page_no, classification_code)
                 self._write_atomically(page_path, raw)
                 fetched_pages += 1
 
@@ -134,6 +139,7 @@ class TourApiCollector:
 
         return CollectionSummary(
             content_type_id=content_type_id,
+            classification_code=classification_code,
             total_count=total_count,
             total_pages=total_pages,
             fetched_pages=fetched_pages,
@@ -141,7 +147,9 @@ class TourApiCollector:
             output_dir=output_dir,
         )
 
-    def _fetch_page(self, content_type_id: str, page_no: int) -> bytes:
+    def _fetch_page(
+        self, content_type_id: str, page_no: int, classification_code: str | None
+    ) -> bytes:
         params = {
             "numOfRows": self.num_of_rows,
             "pageNo": page_no,
@@ -151,6 +159,14 @@ class TourApiCollector:
             "contentTypeId": content_type_id,
             "arrange": "C",
         }
+        if classification_code is not None:
+            params.update(
+                {
+                    "lclsSystm1": classification_code[:2],
+                    "lclsSystm2": classification_code[:4],
+                    "lclsSystm3": classification_code,
+                }
+            )
         encoded_key = (
             self.service_key if "%" in self.service_key else quote(self.service_key, safe="")
         )
@@ -177,6 +193,11 @@ class TourApiCollector:
         temporary_path = path.with_suffix(".json.tmp")
         temporary_path.write_bytes(raw)
         temporary_path.replace(path)
+
+
+def _validate_classification_code(code: str) -> None:
+    if len(code) != 8 or not code[:2].isalpha() or not code[2:].isdigit():
+        raise ValueError(f"invalid lclsSystm3 code: {code}")
 
 
 def parse_tour_api_page(raw: bytes) -> TourApiPage:

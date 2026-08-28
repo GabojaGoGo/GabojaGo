@@ -87,3 +87,26 @@ def test_collect_calculates_pages_from_requested_size(tmp_path) -> None:
     summary = collector.collect("12", max_pages=1)
 
     assert summary.total_pages == 127
+
+
+def test_collect_filters_by_lcls_systm3_and_uses_separate_directory(tmp_path) -> None:
+    requested_url = ""
+
+    def open_url(request, _timeout) -> bytes:
+        nonlocal requested_url
+        requested_url = request.full_url
+        return response()
+
+    collector = TourApiCollector(
+        service_key="test-key",
+        output_root=tmp_path,
+        request_interval=0,
+        open_url=open_url,
+    )
+
+    summary = collector.collect("39", classification_code="FD010100")
+
+    assert "lclsSystm1=FD" in requested_url
+    assert "lclsSystm2=FD01" in requested_url
+    assert "lclsSystm3=FD010100" in requested_url
+    assert summary.output_dir == tmp_path / "39_음식점" / "FD010100"
