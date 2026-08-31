@@ -308,7 +308,7 @@ def iter_tour_api_items(raw_root: Path) -> Iterator[dict[str, Any]]:
     if not raw_root.is_dir():
         raise TourApiImportError(f"Raw directory not found: {raw_root}")
 
-    page_paths = sorted(raw_root.glob("*/page-*.json"))
+    page_paths = sorted(raw_root.rglob("page-*.json"))
     if not page_paths:
         raise TourApiImportError(f"No TourAPI page files found under: {raw_root}")
 

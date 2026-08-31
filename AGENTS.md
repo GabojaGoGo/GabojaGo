@@ -10,9 +10,9 @@
 2. `docs/L0-project-context.md` — 이미 무엇이 결정됐는지
 3. 아래 이 저장소의 규칙 — 실제로 어떻게 작업할지
 4. `data-import/` 작업이면, 먼저 `L0` 6절에서 **현재 프로젝트 단계와 허용 범위**를 확인한 뒤 해당 단계의 data-import 문서를 읽는다. 실측·정제·검증처럼 결과를 남기는 작업이면 `data-work-recording-rules.md`를 함께 읽는다.
-   - 원천 탐색·실측(P1): `other-source-survey.md` **0절부터** → `source-downloads.md` → `attribute-coverage.md`
-   - 분류·매핑 계약(P2): `classification-mapping.md` → 필요한 근거 문서(`other-source-survey.md`, `attribute-coverage.md`)
-   - 구현·적재(P3 이후): 위 문서에서 해당 원천·매핑 계약을 확인한다.
+  - 원천 탐색·실측(P1): `other-source-survey.md` **0절부터** → `source-downloads.md` → `attribute-coverage.md`
+  - 분류·매핑 계약(P2): `classification-mapping.md` → 필요한 근거 문서(`other-source-survey.md`, `attribute-coverage.md`)
+  - 구현·적재(P3 이후): 위 문서에서 해당 원천·매핑 계약을 확인한다.
 
    `data-import/docs/`는 이 영역의 세부 계약과 근거를 소유한다. 프로젝트 전체 단계·현재 우선순위는 여기서 정하지 않으며 `L0`과 Jira를 따른다. `mappings/*.csv`는 **값만 갖고 범위는 이 문서들이 소유한다.** csv의 `measured_scope`가 비어 있는 것은 범위 미기록이 아니라 소유 문서가 따로 있다는 뜻일 수 있으므로, 수치가 이상해 보이면 먼저 그 값의 소유 문서를 찾는다.
 
@@ -29,11 +29,9 @@
 2. 기존 작업 트리 변경은 사용자 작업으로 간주한다. 충돌 가능성이 있으면 **해당 파일 수정을 중단하고 충돌 범위를 보고한다. 사용자의 명시적 지시 없이 기존 변경을 덮어쓰지 않는다.** 무인 실행에서는 확인을 기다릴 수 없으므로 전체를 멈추지 말고 해당 파일만 건너뛴 뒤 보고한다.
 3. 새 HTTP endpoint에는 OpenAPI 설명·예시와 서비스 테스트를 함께 추가한다.
 4. 외부 연동은 아래 항목 중 무엇이 필요한지 검토한다. 전부 넣으라는 뜻이 아니라 빠뜨리지 말고 판단하라는 뜻이다.
-
-   ```
+  ```
    timeout · retry · backoff · idempotency · fallback
-   ```
-
+  ```
 5. OSRM 경로가 바뀌면 프론트의 `routePaths`도 다시 계산한다.
 6. 빌드 산출물, 캐시, 임시 export, 로컬 DB dump, OSRM 원본·그래프는 **명시적 목적이 없으면 커밋하지 않는다.** 대용량 원본·그래프는 내용을 출력하지도 않는다.
 
@@ -74,6 +72,9 @@ make format-check
 - 협업·브랜치 규칙: `CONTRIBUTING.md`
 - OSRM 환경·운영: `gabojago-backend/infra/osrm/README.md`, `DEVELOPMENT.md`
 - 구현과 함께 갱신할 수 없는 장문 기획 문서는 새로 만들지 않는다. 의사결정과 실행 방법만 짧게 남긴다.
+- `cg-1119` 작업자의 개인 기록(작업 메모, 조사·검증 과정, 개인 브리핑)은 Obsidian vault에 남기며 저장소 `docs/`에는 남기지 않는다. 에이전트는 사용자가 요청한 작업 범위에서 Obsidian MCP를 사용해 vault를 조회·수정할 수 있다.
+- Jira 이슈의 댓글·설명·상태·담당자 변경은 사용자가 명시적으로 요청한 경우에만 수행한다. 에이전트가 작업 시작·진행·완료를 이유로 임의 갱신하지 않는다.
+- 협업자가 함께 참조해야 하는 공유 기록(확정된 설계 결정, 개발·운영 규칙, 구현·운영 방법)은 저장소 `docs/`에 남긴다.
 
 ## 커밋과 브랜치
 

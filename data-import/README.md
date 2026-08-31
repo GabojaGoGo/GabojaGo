@@ -152,6 +152,23 @@ cd ../data-import
 .venv/bin/python scripts/collect_tour_api.py --content-type 39
 ```
 
+음식점 세부 분류(`lclsSystm3`)별 표본도 수집할 수 있다. 각 코드는 별도 하위
+디렉터리에 저장되므로 기존 전체 음식점 수집 원본과 페이지 이름이 충돌하지 않는다.
+
+```bash
+.venv/bin/python collect_tour_api.py --content-type 39 --num-of-rows 40 --max-pages 1 \
+  --classification-code FD010100 \
+  --classification-code FD020100 \
+  --classification-code FD020200 \
+  --classification-code FD020300 \
+  --classification-code FD030100 \
+  --classification-code FD050100 \
+  --classification-code FD050200
+```
+
+TourAPI는 세부 분류 필터에 `lclsSystm1`, `lclsSystm2`, `lclsSystm3`를 함께 요구한다.
+수집기가 코드에서 상위 두 값을 자동으로 유도한다.
+
 수집 결과는 다음 위치에 저장된다.
 
 ```text
@@ -196,6 +213,110 @@ dry-run은 JSON을 읽고 다음 내용을 검사하지만 DB를 변경하지 �
 적재 지역을 별도로 제한하지 않는다. 원본의 `lDongRegnCd`와 주소를 기준으로 전국
 광역지역을 자동으로 구성하고 모든 장소를 연결한다. 기존 시군구 지역이 있으면 주소가
 일치하는 장소는 더 구체적인 시군구에 연결한다.
+
+## Canonical Taxonomy 표본 검증
+
+`RESTAURANT`와 `CAFE`의 설계는 이름만 보고 자동 분류하지 않는다. 실제 Provider
+장소 100건을 표본으로 뽑아, 검토자가 원본 카테고리·메뉴·상세 페이지 등 근거와
+제안한 facet을 기록하고 오프라인 검증한다. 이 과정은 DB를 읽거나 변경하지 않는다.
+
+먼저 공식 TourAPI 음식점 원본을 한 페이지(최대 100건) 이상 수집한다.
+
+```bash
+.venv/bin/python collect_tour_api.py \
+  --content-type 39 --max-pages 1 \
+  --reports data/reports/restaurant
+```
+
+그 원본에서 100건의 검토용 CSV를 만든다. CSV의 `source_place_id`와 원본 분류는
+자동으로 채워지고, taxonomy와 facet 및 evidence는 사람이 입력한다.
+
+```bash
+.venv/bin/python validate_food_taxonomy.py extract \
+  --output data/reports/restaurant/food-taxonomy-samples.csv
+```
+
+원천 코드 기반의 1차 제안은 아래 명령으로 만든다. 이 명령은 안전한 코드 매핑만 채우며,
+`ASIAN` Variant·베이커리·기타 외국식처럼 근거가 불충분한 값은 `NEEDS_MANUAL`로 남긴다.
+
+```bash
+.venv/bin/python validate_food_taxonomy.py propose \
+  --output data/reports/restaurant/food-taxonomy-proposals.csv
+```
+
+`primary_taxonomy`에는 `RESTAURANT`, `CAFE`, `BAR`, `SHOPPING`, `ACTIVITY`,
+`POINT_OF_INTEREST`, `ACCOMMODATION` 중 하나를 입력한다. 여러 값인 facet은
+`|`로 구분한다. `cuisine`, `cuisine_variant`, `dining_format`, `signature_menu`는 음식점 전용이고,
+`primary_beverage`, `offering`, `cafe_service_style`은 카페 전용이다. `evidence`에는
+메뉴·Provider 카테고리·상세 페이지에서 확인한 근거를 적는다.
+
+검토를 마친 뒤 검증과 JSON 보고서 생성을 실행한다.
+
+```bash
+.venv/bin/python validate_food_taxonomy.py validate \
+  --input data/reports/restaurant/food-taxonomy-samples.csv \
+  --report data/reports/restaurant/food-taxonomy-validation.json
+```
+
+검증기는 다음을 확인한다.
+
+- 표본 수가 최소 100건인지
+- 원천 식별자와 분류 근거가 있는지
+- `RESTAURANT`/`CAFE`에 맞지 않는 facet 혼합이 없는지
+- 정의되지 않은 facet 값 및 기존 subtype (`GENERAL_CAFE`, `SNACK_FAST_FOOD` 등)이 없는지
+- `primary_beverage`가 단일값인지
+
+근거 또는 facet이 빠진 표본은 `검토 필요`로 보고하며, taxonomy 규칙 위반은 오류로
+처리해 명령이 실패한다. 이 보고서는 후속 data-import 매핑 전환의 회귀 검증 표본으로
+재사용한다.
+
+### POINT_OF_INTEREST 표본 검증
+
+`POINT_OF_INTEREST`는 TourAPI `관광지`라는 원천 이름과 동일하지 않다. 먼저 TourAPI
+관광지(12)·문화시설(14) 원본을 수집한 뒤, 확인된 유적·자연·박물관·공원 등 `poi_kind`
+별로 층화 표본을 만든다. 체험시설·테마파크·포괄 관광지 코드는 원천 코드만으로 POI를
+확정할 수 없으므로 이 표본 자동 제안에서 제외한다.
+
+```bash
+.venv/bin/python collect_tour_api.py --content-type 12 --max-pages 1
+.venv/bin/python collect_tour_api.py --content-type 14 --max-pages 1
+
+.venv/bin/python validate_poi_taxonomy.py extract \
+  --output data/reports/poi/poi-taxonomy-samples.csv \
+  --per-kind 10
+```
+
+생성된 행은 `primary_taxonomy=POINT_OF_INTEREST`, `activity_offering_state=UNKNOWN`,
+`event_state=UNKNOWN`인 **제안**이다. `UNKNOWN`은 체험이나 행사가 없다는 뜻이 아니다.
+검토자는 공식 상세 근거로 `poi_kind`를 확정하고, 실제 체험 또는 시간성 행사가 확인된
+경우에만 각각 `CONFIRMED_PRESENT`와 전용 evidence 열을 채운다. 이벤트 자체는 Place가
+아니므로 이 CSV에서 Event 행을 만들지 않는다.
+
+```bash
+.venv/bin/python validate_poi_taxonomy.py validate \
+  --input data/reports/poi/poi-taxonomy-samples.csv \
+  --report data/reports/poi/poi-taxonomy-validation.json
+```
+
+검증기는 `poi_kind` 어휘, 원천 유형(12·14), 최종 primary와 `poi_kind`의 일치, Offering·Event
+존재를 주장할 때의 별도 근거를 검사한다. 아직 검토하지 않은 제안은 오류가 아니라
+`검토 필요`로 보고한다.
+
+### 인터넷 장소 표본 수집
+
+TourAPI 원천 분류와 독립된 검증 표본은 OpenStreetMap에서 실제 음식점·카페 후보를
+각각 50건씩 수집해 만든다. 수집기는 10개 도시의 후보를 순환 선택하며, timeout 또는
+실패 시 보조 Overpass endpoint로 fallback한다. OSM의 `amenity` 태그는 후보 모집과
+원천 URL 보존용일 뿐 Canonical 정답이 아니다.
+
+```bash
+.venv/bin/python collect_taxonomy_validation_samples.py \
+  --output data/reports/internet-food-taxonomy-samples.csv
+```
+
+생성 CSV는 `review_status=PENDING`이며 taxonomy와 facet을 비워 둔다. 검토자는 공식
+매장 홈페이지·공식 메뉴·공식 지도 상세의 재확인 가능한 근거를 기입한 뒤,
+`validate_food_taxonomy.py validate`로 검사한다. 리뷰 본문은 수집하지 않는다.
 
 ## 3. MySQL 실제 적재
 
@@ -416,10 +537,14 @@ exit
 
 ## 실행 보고서
 
-수집 및 적재 결과는 다음 디렉터리에 JSON 보고서로 저장된다.
+수집 및 적재 결과는 다음 디렉터리에 JSON 보고서로 저장된다. Canonical 중분류별
+검증 보고서는 하위 폴더에 분리한다.
 
 ```text
 data/reports/
+├── restaurant/  # RESTAURANT 원본 수집·taxonomy 검증 보고서
+├── cafe/        # CAFE 검증 보고서
+└── bar/         # BAR 검증 보고서
 ```
 
 보고서에는 전체 건수, 신규 건수, 갱신 건수, 제외 건수와 오류 건수가 기록된다.

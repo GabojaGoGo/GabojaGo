@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "gabojago-data-import"
 version = "0.1.0"
 description = "Offline file importer for the GabojaGO place database"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 dependencies = [
     "openpyxl>=3.1",
     "pandas>=2.2",

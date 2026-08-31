@@ -4,7 +4,7 @@ import argparse
 import json
 import os
 import subprocess
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -40,7 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def write_report(reports: Path, *, write: bool, sources: tuple) -> Path:
     reports.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%SZ")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%SZ")
     path = reports / f"busan-metro-import-{timestamp}.json"
     path.write_text(
         json.dumps(

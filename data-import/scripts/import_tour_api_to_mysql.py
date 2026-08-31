@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -91,7 +91,7 @@ def main() -> int:
 
 def write_report(reports: Path, mode: str, summary) -> Path:
     reports.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%SZ")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%SZ")
     report_path = reports / f"tour-api-import-{timestamp}.json"
     report = summary.to_dict()
     report["mode"] = mode
