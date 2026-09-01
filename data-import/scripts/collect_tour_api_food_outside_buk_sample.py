@@ -16,7 +16,6 @@ from data_import.tour_api.detail_collector import (
     stratified_sample,
 )
 
-
 EXCLUDED_REGION_CODES = frozenset({"26", "31", "48"})
 DEFAULT_LIST_ROOT = Path("data/raw/tourism/tour-api")
 DEFAULT_OUTPUT = Path("data/raw/tourism/tour-api-detail-outside-buk/39_음식점")

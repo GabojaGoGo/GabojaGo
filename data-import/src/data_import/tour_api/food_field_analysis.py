@@ -15,7 +15,6 @@ from typing import Any
 from data_import.tour_api.collector import TourApiError
 from data_import.tour_api.detail_collector import parse_detail_item
 
-
 FIELDS = ("parkingfood", "opentimefood", "restdatefood")
 TIME_PATTERN = re.compile(r"\b(?:[01]?\d|2[0-3]):[0-5]\d\b")
 HTML_PATTERN = re.compile(r"<[^>]+>")
