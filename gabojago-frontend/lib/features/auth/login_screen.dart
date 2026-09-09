@@ -3,9 +3,9 @@
 // (카카오·네이버·구글, iOS는 애플 추가) + 비회원 둘러보기
 
 import 'dart:async';
-import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tripmate/core/services/auth_service.dart';
@@ -124,21 +124,9 @@ class _LoginScreenState extends State<LoginScreen>
       );
   }
 
-  void _showComingSoon(String label) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text('$label 로그인은 곧 지원될 예정이에요.'),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-  }
-
   bool get _showAppleLogin {
     if (kIsWeb) return false;
-    return Platform.isIOS;
+    return defaultTargetPlatform == TargetPlatform.iOS;
   }
 
   @override
@@ -220,10 +208,14 @@ class _LoginScreenState extends State<LoginScreen>
                             if (_showAppleLogin) ...[
                               const SizedBox(height: 10),
                               _SocialLoginButton(
-                                isLoading: false,
+                                isLoading:
+                                    _loadingProvider ==
+                                    SocialLoginProvider.apple,
                                 onTap: _isLoading
                                     ? null
-                                    : () => _showComingSoon('Apple'),
+                                    : () => _socialLogin(
+                                        SocialLoginProvider.apple,
+                                      ),
                                 backgroundColor: const Color(0xFF000000),
                                 foregroundColor: Colors.white,
                                 icon: const _AppleIcon(),

@@ -5,6 +5,7 @@ import com.gabojago.global.exception.ErrorCode;
 import com.gabojago.global.security.jwt.JwtUtils;
 import com.gabojago.global.security.jwt.RefreshTokenService;
 import com.gabojago.global.security.oauth2.OAuth2UserInfo;
+import com.gabojago.global.security.oauth2.apple.AppleOAuthProviderClient;
 import com.gabojago.global.security.oauth2.google.GoogleOAuthProviderClient;
 import com.gabojago.global.security.oauth2.kakao.KakaoOAuthProviderClient;
 import com.gabojago.global.security.oauth2.naver.NaverOAuthProviderClient;
@@ -46,6 +47,7 @@ class OAuthLoginServiceTest {
     private JwtUtils jwtUtils;
     private RefreshTokenService refreshTokenService;
     private PlatformTransactionManager transactionManager;
+    private AppleOAuthProviderClient appleClient;
     private OAuthLoginService service;
 
     @BeforeEach
@@ -55,11 +57,13 @@ class OAuthLoginServiceTest {
         jwtUtils = mock(JwtUtils.class);
         refreshTokenService = mock(RefreshTokenService.class);
         transactionManager = mock(PlatformTransactionManager.class);
+        appleClient = mock(AppleOAuthProviderClient.class);
 
         service = new OAuthLoginService(
                 mock(KakaoOAuthProviderClient.class),
                 mock(NaverOAuthProviderClient.class),
                 mock(GoogleOAuthProviderClient.class),
+                appleClient,
                 socialAccountRepository,
                 userRepository,
                 jwtUtils,
@@ -90,6 +94,18 @@ class OAuthLoginServiceTest {
         User user = User.create("여행자", email);
         ReflectionTestUtils.setField(user, "id", id);
         return user;
+    }
+
+    @Test
+    @DisplayName("Apple identity token과 nonce를 Apple client에 전달한다")
+    void delegatesAppleCredentialValidation() {
+        OAuth2UserInfo appleInfo = info(OAuthProvider.APPLE, "apple-1", "apple@x.com");
+        when(appleClient.getUserInfo("identity-token", "raw-nonce")).thenReturn(appleInfo);
+
+        OAuth2UserInfo result = service.getUserInfo(OAuthProvider.APPLE, "identity-token", "raw-nonce");
+
+        assertThat(result).isSameAs(appleInfo);
+        verify(appleClient).getUserInfo("identity-token", "raw-nonce");
     }
 
     @Test

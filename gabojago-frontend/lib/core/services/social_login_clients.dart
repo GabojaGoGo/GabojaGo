@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -5,6 +9,7 @@ import 'package:flutter_naver_login/flutter_naver_login.dart';
 import 'package:flutter_naver_login/interface/types/naver_login_status.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 /// 사용자가 로그인 도중 직접 취소한 경우 — 에러 UI 없이 조용히 복귀해야 함
 class SocialLoginCancelledException implements Exception {
@@ -55,7 +60,8 @@ class SocialLoginFailure implements Exception {
 enum SocialLoginProvider {
   kakao('KAKAO', '카카오'),
   naver('NAVER', '네이버'),
-  google('GOOGLE', '구글');
+  google('GOOGLE', '구글'),
+  apple('APPLE', 'Apple');
 
   const SocialLoginProvider(this.apiValue, this.label);
 
@@ -71,10 +77,15 @@ enum SocialLoginProvider {
 }
 
 class SocialLoginToken {
-  const SocialLoginToken({required this.provider, required this.accessToken});
+  const SocialLoginToken({
+    required this.provider,
+    required this.accessToken,
+    this.nonce,
+  });
 
   final SocialLoginProvider provider;
   final String accessToken;
+  final String? nonce;
 }
 
 abstract interface class SocialLoginClient {
@@ -277,5 +288,81 @@ class GoogleSocialLoginClient implements SocialLoginClient {
     try {
       await _googleSignIn.signOut();
     } catch (_) {}
+  }
+}
+
+typedef AppleCredentialRequester =
+    Future<AuthorizationCredentialAppleID> Function(String hashedNonce);
+
+class AppleSocialLoginClient implements SocialLoginClient {
+  AppleSocialLoginClient({AppleCredentialRequester? requestCredential})
+    : _requestCredential = requestCredential ?? _requestAppleCredential;
+
+  final AppleCredentialRequester _requestCredential;
+
+  @override
+  SocialLoginProvider get provider => SocialLoginProvider.apple;
+
+  @override
+  Future<SocialLoginToken> login() async {
+    final rawNonce = _generateNonce();
+    final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
+
+    try {
+      final credential = await _requestCredential(hashedNonce);
+      final identityToken = credential.identityToken;
+      if (identityToken == null || identityToken.isEmpty) {
+        throw SocialLoginFailure(
+          provider: provider,
+          code: SocialLoginFailureCode.providerSdk,
+          causeType: 'missing_identity_token',
+        );
+      }
+      return SocialLoginToken(
+        provider: provider,
+        accessToken: identityToken,
+        nonce: rawNonce,
+      );
+    } on SignInWithAppleAuthorizationException catch (error) {
+      if (error.code == AuthorizationErrorCode.canceled) {
+        throw const SocialLoginCancelledException();
+      }
+      throw SocialLoginFailure(
+        provider: provider,
+        code: SocialLoginFailureCode.providerSdk,
+        causeType: 'AppleAuthorizationException.${error.code.name}',
+      );
+    } on SocialLoginFailure {
+      rethrow;
+    } catch (error) {
+      throw SocialLoginFailure(
+        provider: provider,
+        code: SocialLoginFailureCode.providerSdk,
+        causeType: error.runtimeType.toString(),
+      );
+    }
+  }
+
+  @override
+  Future<void> logout() async {
+    // AuthenticationServices에는 앱이 종료할 Apple ID 세션이 없다.
+  }
+
+  static Future<AuthorizationCredentialAppleID> _requestAppleCredential(
+    String hashedNonce,
+  ) {
+    return SignInWithApple.getAppleIDCredential(
+      scopes: const [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: hashedNonce,
+    );
+  }
+
+  static String _generateNonce() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(32, (_) => random.nextInt(256));
+    return base64Url.encode(bytes).replaceAll('=', '');
   }
 }
