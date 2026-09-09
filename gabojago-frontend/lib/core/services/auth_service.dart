@@ -136,6 +136,7 @@ class AuthService {
             body: json.encode({
               'provider': providerToken.provider.apiValue,
               'accessToken': providerToken.accessToken,
+              if (providerToken.nonce != null) 'nonce': providerToken.nonce,
             }),
           )
           .timeout(const Duration(seconds: 15));
@@ -200,11 +201,11 @@ class AuthService {
   }
 
   SocialLoginFailureCode _failureCodeForHttp(int status, String? errorCode) {
-    if (errorCode == 'AUTH_SESSION_STORE_UNAVAILABLE' || status >= 500) {
-      return SocialLoginFailureCode.backendUnavailable;
-    }
     if (errorCode == 'OAUTH_USERINFO_FAILED' || status == 502) {
       return SocialLoginFailureCode.providerUnavailable;
+    }
+    if (errorCode == 'AUTH_SESSION_STORE_UNAVAILABLE' || status >= 500) {
+      return SocialLoginFailureCode.backendUnavailable;
     }
     if (status == 400 || status == 401) {
       return SocialLoginFailureCode.providerTokenRejected;
@@ -402,6 +403,7 @@ class AuthService {
       SocialLoginProvider.kakao => KakaoSocialLoginClient(),
       SocialLoginProvider.naver => NaverSocialLoginClient(),
       SocialLoginProvider.google => GoogleSocialLoginClient(),
+      SocialLoginProvider.apple => AppleSocialLoginClient(),
     };
   }
 }

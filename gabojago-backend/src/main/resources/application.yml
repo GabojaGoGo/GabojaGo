@@ -34,6 +34,13 @@ kakao:
   local-api-url: https://dapi.kakao.com
   direction-api-url: https://apis-navi.kakaomobility.com
 
+apple:
+  client-id: ${APPLE_CLIENT_ID:com.gabojago.app}
+  keys-url: https://appleid.apple.com/auth/keys
+  connect-timeout-ms: ${APPLE_CONNECT_TIMEOUT_MS:2000}
+  request-timeout-ms: ${APPLE_REQUEST_TIMEOUT_MS:3000}
+  keys-cache-seconds: ${APPLE_KEYS_CACHE_SECONDS:86400}
+
 routing:
   osrm:
     base-url: ${OSRM_BASE_URL:http://osrm:5000}
